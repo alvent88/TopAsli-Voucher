@@ -228,14 +228,28 @@ async function makeRequest<T>(endpoint: string, body: any): Promise<T> {
   console.log("Timestamp:", timestamp);
   console.log("Access Token:", accessToken.substring(0, 20) + "...");
   console.log("Signature:", signature.substring(0, 40) + "...");
-  console.log("Request body:", JSON.stringify(body, null, 2));
   
   try {
-    const requestBody = {
-      api_key: config.apiKey,
-      timestamp: timestamp,
-      ...body,
-    };
+    // IMPORTANT: Preserve order by constructing object with specific key order
+    // Order: api_key, timestamp, then body keys in their original order
+    const orderedBody: any = {};
+    orderedBody.api_key = config.apiKey;
+    orderedBody.timestamp = timestamp;
+    
+    // Add body keys in specific order if it's inquiry-payment
+    if (endpoint === "/inquiry-payment" && body.entitas_id) {
+      orderedBody.entitas_id = body.entitas_id;
+      orderedBody.denom_id = body.denom_id;
+      orderedBody.user_id = body.user_id;
+      if (body.server_id) {
+        orderedBody.server_id = body.server_id;
+      }
+    } else {
+      // For other endpoints, just spread the body
+      Object.assign(orderedBody, body);
+    }
+    
+    console.log("Request body (ordered):", JSON.stringify(orderedBody, null, 2));
     
     const response = await fetch(fullUrl, {
       method: "POST",
@@ -244,7 +258,7 @@ async function makeRequest<T>(endpoint: string, body: any): Promise<T> {
         "UPL-ACCESS-TOKEN": accessToken,
         "UPL-SIGNATURE": signature,
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(orderedBody),
     });
 
     console.log("Response status:", response.status);

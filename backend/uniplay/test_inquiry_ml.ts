@@ -80,7 +80,7 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
       denom_id: mlPackage.uniplay_denom_id,
     });
 
-    // Step 2: Prepare request
+    // Step 2: Prepare request (ORDER MATTERS!)
     const testRequest = {
       entitas_id: mlPackage.uniplay_entitas_id,
       denom_id: mlPackage.uniplay_denom_id,
@@ -88,7 +88,7 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
       server_id: "9227",
     };
 
-    console.log("Request payload:", testRequest);
+    console.log("Request payload (in correct order):", testRequest);
 
     // Step 3: Get config for curl command
     let apiKey = "YOUR_API_KEY";
