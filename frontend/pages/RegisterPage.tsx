@@ -47,19 +47,18 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await signUp?.create({ emailAddress: email });
-      await signUp?.prepareEmailAddressVerification({ strategy: "email_code" });
+      const result = await backend.otp.sendEmailOTP({ email });
       
       toast({
-        title: "Kode OTP Terkirim",
-        description: "Silakan cek email Anda (termasuk folder spam)",
+        title: "Kode OTP Terkirim ✅",
+        description: result.message,
       });
       setStep("verification");
     } catch (err: any) {
       console.error("Send code error:", err);
       toast({
         title: "Error",
-        description: err.errors?.[0]?.message || "Gagal mengirim kode OTP",
+        description: err.message || "Gagal mengirim kode OTP",
         variant: "destructive",
       });
     } finally {
@@ -80,90 +79,29 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      console.log("Attempting email verification with code:", code);
-      const result = await signUp?.attemptEmailAddressVerification({ code });
+      console.log("Attempting email OTP verification with code:", code);
+      const result = await backend.otp.verifyEmailOTP({ email, otp: code });
       
-      console.log("Verification result:", {
-        status: result?.status,
-        hasCreatedSessionId: !!result?.createdSessionId,
-        createdSessionId: result?.createdSessionId,
-        hasCreatedUserId: !!result?.createdUserId,
-        createdUserId: result?.createdUserId,
-      });
+      console.log("Verification result:", result);
 
-      if (result?.status === "complete") {
-        // Complete status - session created
-        if (result.createdSessionId) {
-          console.log("Setting active session:", result.createdSessionId);
-          await setActive?.({ session: result.createdSessionId });
-        }
-        
+      if (result.success) {
         toast({
           title: "Verifikasi Berhasil ✅",
           description: "Lengkapi data Anda untuk menyelesaikan registrasi",
         });
         setStep("profile");
-      } else if (result?.status === "missing_requirements") {
-        // Missing requirements - need to update signup to skip missing fields
-        console.log("Status missing_requirements - calling signUp.update() to skip requirements");
-        
-        try {
-          // Update signUp to mark as completed
-          const updatedSignUp = await signUp?.update({
-            unsafeMetadata: {
-              emailVerified: true,
-            },
-          });
-          
-          console.log("Updated signUp:", {
-            status: updatedSignUp?.status,
-            hasCreatedSessionId: !!updatedSignUp?.createdSessionId,
-            createdSessionId: updatedSignUp?.createdSessionId,
-            hasCreatedUserId: !!updatedSignUp?.createdUserId,
-            createdUserId: updatedSignUp?.createdUserId,
-          });
-          
-          // Try to create session if still missing
-          if (!updatedSignUp?.createdSessionId) {
-            console.log("No session yet, attempting to create session...");
-            
-            // Prepare all first factors to bypass requirements
-            const prepareResult = await signUp?.prepareEmailAddressVerification({ 
-              strategy: "email_code" 
-            });
-            console.log("Prepare result:", prepareResult);
-          }
-          
-          toast({
-            title: "Verifikasi Berhasil ✅",
-            description: "Lengkapi data Anda untuk menyelesaikan registrasi",
-          });
-          setStep("profile");
-        } catch (updateErr: any) {
-          console.error("Update signup error:", updateErr);
-          console.error("Update error details:", JSON.stringify(updateErr, null, 2));
-          
-          // Proceed to profile anyway - backend will create user
-          toast({
-            title: "Verifikasi Berhasil ✅",
-            description: "Lengkapi data Anda untuk menyelesaikan registrasi",
-          });
-          setStep("profile");
-        }
       } else {
-        console.error("Unexpected verification status:", result?.status);
         toast({
           title: "Error",
-          description: `Verifikasi gagal. Status: ${result?.status}`,
+          description: "Verifikasi gagal. Silakan coba lagi.",
           variant: "destructive",
         });
       }
     } catch (err: any) {
       console.error("Verification error:", err);
-      console.error("Error details:", JSON.stringify(err, null, 2));
       toast({
         title: "Error",
-        description: err.errors?.[0]?.message || err.message || "Kode OTP tidak valid",
+        description: err.message || "Kode OTP tidak valid",
         variant: "destructive",
       });
     } finally {
@@ -285,7 +223,7 @@ export default function RegisterPage() {
                 {step === "email"
                   ? "Masukkan email Anda untuk mendaftar"
                   : step === "verification"
-                  ? "Kode OTP telah dikirim ke email Anda (periksa folder spam jika tidak terlihat)"
+                  ? "Kode OTP telah dikirim ke email Anda. Periksa folder spam jika tidak terlihat di inbox."
                   : "Isi nama lengkap, nomor HP, dan tanggal lahir Anda"}
               </CardDescription>
             </CardHeader>

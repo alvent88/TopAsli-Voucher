@@ -190,7 +190,8 @@ export default function App() {
   return (
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY}
-      fallbackRedirectUrl="/"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
     >
       <AppInner />
     </ClerkProvider>

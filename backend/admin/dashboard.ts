@@ -12,7 +12,7 @@ export const dashboard = api<void, DashboardStats>(
   { expose: true, method: "GET", path: "/admin/dashboard", auth: true },
   async () => {
     const auth = getAuthData();
-    if (!auth.isAdmin) {
+    if (!auth || !auth.isAdmin) {
       throw APIError.permissionDenied("admin access required");
     }
 
