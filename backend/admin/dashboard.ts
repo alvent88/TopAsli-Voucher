@@ -1,5 +1,6 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
 import db from "../db";
+import { getAuthData } from "~encore/auth";
 
 interface DashboardStats {
   totalTransactions: number;
@@ -10,6 +11,11 @@ interface DashboardStats {
 export const dashboard = api<void, DashboardStats>(
   { expose: true, method: "GET", path: "/admin/dashboard", auth: true },
   async () => {
+    const auth = getAuthData();
+    if (!auth.isAdmin) {
+      throw APIError.permissionDenied("admin access required");
+    }
+
     const stats = await db.queryRow<any>`
       SELECT 
         COUNT(*) as total_transactions,
