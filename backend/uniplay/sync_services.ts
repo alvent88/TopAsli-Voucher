@@ -65,6 +65,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 category = ${'Voucher - ' + voucher.publisher},
                 description = ${`Publisher: ${voucher.publisher_website}`},
                 icon_url = ${voucher.image},
+                uniplay_entitas_id = ${voucher.id},
                 updated_at = NOW()
               WHERE id = ${existing.id}
             `;
@@ -73,7 +74,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
           } else {
             // Create new product
             const result = await db.queryRow<{ id: number }>`
-              INSERT INTO products (name, slug, category, description, icon_url, is_active, created_at, updated_at)
+              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, created_at, updated_at)
               VALUES (
                 ${voucher.name},
                 ${slug},
@@ -81,6 +82,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 ${`Publisher: ${voucher.publisher_website}`},
                 ${voucher.image},
                 true,
+                ${voucher.id},
                 NOW(),
                 NOW()
               )
@@ -114,19 +116,23 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                   UPDATE packages
                   SET 
                     price = ${price},
+                    uniplay_entitas_id = ${voucher.id},
+                    uniplay_denom_id = ${denom.id},
                     updated_at = NOW()
                   WHERE id = ${pkgExists.id}
                 `;
               } else {
                 // Create new package
                 await db.exec`
-                  INSERT INTO packages (product_id, name, amount, unit, price, is_active, created_at, updated_at)
+                  INSERT INTO packages (product_id, name, amount, unit, price, uniplay_entitas_id, uniplay_denom_id, is_active, created_at, updated_at)
                   VALUES (
                     ${productId}, 
                     ${denom.package}, 
                     1, 
                     'voucher', 
-                    ${price}, 
+                    ${price},
+                    ${voucher.id},
+                    ${denom.id}, 
                     true, 
                     NOW(), 
                     NOW()
@@ -180,6 +186,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 category = ${'Game - ' + game.publisher},
                 description = ${`Publisher: ${game.publisher_website}`},
                 icon_url = ${game.image},
+                uniplay_entitas_id = ${game.id},
                 updated_at = NOW()
               WHERE id = ${existing.id}
             `;
@@ -188,7 +195,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
           } else {
             // Create new product
             const result = await db.queryRow<{ id: number }>`
-              INSERT INTO products (name, slug, category, description, icon_url, is_active, created_at, updated_at)
+              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, created_at, updated_at)
               VALUES (
                 ${game.name},
                 ${slug},
@@ -196,6 +203,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 ${`Publisher: ${game.publisher_website}`},
                 ${game.image},
                 true,
+                ${game.id},
                 NOW(),
                 NOW()
               )
@@ -229,19 +237,23 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                   UPDATE packages
                   SET 
                     price = ${price},
+                    uniplay_entitas_id = ${game.id},
+                    uniplay_denom_id = ${denom.id},
                     updated_at = NOW()
                   WHERE id = ${pkgExists.id}
                 `;
               } else {
                 // Create new package
                 await db.exec`
-                  INSERT INTO packages (product_id, name, amount, unit, price, is_active, created_at, updated_at)
+                  INSERT INTO packages (product_id, name, amount, unit, price, uniplay_entitas_id, uniplay_denom_id, is_active, created_at, updated_at)
                   VALUES (
                     ${productId}, 
                     ${denom.package}, 
                     1, 
                     'item', 
-                    ${price}, 
+                    ${price},
+                    ${game.id},
+                    ${denom.id}, 
                     true, 
                     NOW(), 
                     NOW()
