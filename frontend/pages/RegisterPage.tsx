@@ -11,7 +11,7 @@ import { useBackend } from "@/lib/useBackend";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { signUp, setActive } = useSignUp();
+  const { isLoaded, signUp, setActive } = useSignUp();
   const { user } = useUser();
   const { toast } = useToast();
   const backend = useBackend();
@@ -27,6 +27,15 @@ export default function RegisterPage() {
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isLoaded) {
+      toast({
+        title: "Loading...",
+        description: "Please wait while we initialize",
+      });
+      return;
+    }
+    
     if (!email.trim()) {
       toast({
         title: "Error",
@@ -69,6 +78,15 @@ export default function RegisterPage() {
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isLoaded) {
+      toast({
+        title: "Loading...",
+        description: "Please wait while we initialize",
+      });
+      return;
+    }
+    
     if (!code.trim()) {
       toast({
         title: "Error",
@@ -303,6 +321,7 @@ export default function RegisterPage() {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     </div>
                   </div>
+                  <div id="clerk-captcha"></div>
                   <div className="flex items-start space-x-2">
                     <input
                       type="checkbox"
