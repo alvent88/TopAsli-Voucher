@@ -66,7 +66,14 @@ export default function PurchaseInquiryPage() {
 
       setInquiryData(response);
       // Use pre-validated username from ProductPage if available, otherwise use UniPlay inquiry username
-      setUsername(preValidatedUsername || response.username || "-");
+      const finalUsername = preValidatedUsername || response.username || "-";
+      setUsername(finalUsername);
+      
+      // Update inquiryData to include the validated username
+      setInquiryData({
+        ...response,
+        username: finalUsername !== "-" ? finalUsername : response.username,
+      });
     } catch (error: any) {
       console.error("Inquiry failed:", error);
       toast({
