@@ -383,6 +383,7 @@ export default function AdminProducts() {
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
                     <TableHead className="text-slate-400">Icon</TableHead>
                     <TableHead className="text-slate-400">Nama</TableHead>
+                    <TableHead className="text-slate-400">UniPlay Entitas ID</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400">Unggulan</TableHead>
                     <TableHead className="text-slate-400 text-right">Aksi</TableHead>
@@ -409,6 +410,13 @@ export default function AdminProducts() {
                       </TableCell>
                       <TableCell className="text-white font-medium">
                         {product.name}
+                      </TableCell>
+                      <TableCell className="text-slate-300 font-mono text-xs">
+                        {(product as any).uniplayEntitasId ? (
+                          <span className="text-green-400">{(product as any).uniplayEntitasId}</span>
+                        ) : (
+                          <span className="text-red-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {canEdit ? (

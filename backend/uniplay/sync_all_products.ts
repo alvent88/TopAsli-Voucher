@@ -46,14 +46,15 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
         const slug = game.id.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         
         const productRow = await db.queryRow<{ id: number }>`
-          INSERT INTO products (name, slug, category, icon_url, description, is_active)
+          INSERT INTO products (name, slug, category, icon_url, description, is_active, uniplay_entitas_id)
           VALUES (
             ${game.name},
             ${slug},
             'Game',
             ${game.image || null},
             ${`Top up ${game.name} - Publisher: ${game.publisher}`},
-            true
+            true,
+            ${game.id}
           )
           RETURNING id
         `;
@@ -65,6 +66,7 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
 
         productsCreated++;
         console.log(`✅ Created product: ${game.name} (ID: ${productRow.id})`);
+        console.log(`   UniPlay Entitas ID: ${game.id}`);
 
         for (const denom of game.denom) {
           await db.exec`
@@ -85,6 +87,7 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
           `;
           packagesCreated++;
           console.log(`  ✅ Created package: ${denom.package} - Rp ${denom.price}`);
+          console.log(`     Entitas ID: ${game.id}, Denom ID: ${denom.id}`);
         }
       }
 
