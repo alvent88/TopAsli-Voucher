@@ -51,11 +51,16 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
         uniplay_entitas_id: string | null;
         uniplay_denom_id: string | null;
       }>`
-        SELECT p.id, p.name, p.uniplay_entitas_id, p.uniplay_denom_id
+        SELECT 
+          p.id, 
+          p.name, 
+          pr.uniplay_entitas_id, 
+          p.uniplay_denom_id
         FROM packages p
         INNER JOIN products pr ON p.product_id = pr.id
         WHERE pr.name ILIKE '%Mobile Legends%'
         AND p.uniplay_denom_id IS NOT NULL
+        AND pr.uniplay_entitas_id IS NOT NULL
         ORDER BY p.id
         LIMIT 1
       `;
