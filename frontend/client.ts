@@ -36,6 +36,7 @@ export class Client {
     public readonly admin: admin.ServiceClient
     public readonly auth: auth.ServiceClient
     public readonly balance: balance.ServiceClient
+    public readonly gmail: gmail.ServiceClient
     public readonly message: message.ServiceClient
     public readonly notification: notification.ServiceClient
     public readonly otp: otp.ServiceClient
@@ -63,6 +64,7 @@ export class Client {
         this.admin = new admin.ServiceClient(base)
         this.auth = new auth.ServiceClient(base)
         this.balance = new balance.ServiceClient(base)
+        this.gmail = new gmail.ServiceClient(base)
         this.message = new message.ServiceClient(base)
         this.notification = new notification.ServiceClient(base)
         this.otp = new otp.ServiceClient(base)
@@ -118,6 +120,7 @@ export interface ClientOptions {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { activateAllCS as api_admin_activate_all_cs_activateAllCS } from "~backend/admin/activate_all_cs";
 import {
     getConfig as api_admin_config_getConfig,
     getGlobalDiscount as api_admin_config_getGlobalDiscount,
@@ -129,6 +132,7 @@ import { dashboard as api_admin_dashboard_dashboard } from "~backend/admin/dashb
 import { deleteAllProducts as api_admin_delete_all_products_deleteAllProducts } from "~backend/admin/delete_all_products";
 import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone } from "~backend/admin/delete_user_by_phone";
 import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
+import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
 import {
     setAdmin as api_admin_manage_user_setAdmin,
     updateUserPhone as api_admin_manage_user_updateUserPhone
@@ -187,6 +191,7 @@ export namespace admin {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.activateAllCS = this.activateAllCS.bind(this)
             this.addWhatsAppCS = this.addWhatsAppCS.bind(this)
             this.banUser = this.banUser.bind(this)
             this.createPackage = this.createPackage.bind(this)
@@ -203,6 +208,7 @@ export namespace admin {
             this.deleteWhatsAppCS = this.deleteWhatsAppCS.bind(this)
             this.demoteFromAdmin = this.demoteFromAdmin.bind(this)
             this.editUser = this.editUser.bind(this)
+            this.exportTransactions = this.exportTransactions.bind(this)
             this.getConfig = this.getConfig.bind(this)
             this.getGlobalDiscount = this.getGlobalDiscount.bind(this)
             this.getSuperadminPhone = this.getSuperadminPhone.bind(this)
@@ -230,6 +236,12 @@ export namespace admin {
             this.updateTransaction = this.updateTransaction.bind(this)
             this.updateUserPhone = this.updateUserPhone.bind(this)
             this.updateWhatsAppCS = this.updateWhatsAppCS.bind(this)
+        }
+
+        public async activateAllCS(): Promise<ResponseType<typeof api_admin_activate_all_cs_activateAllCS>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/whatsapp-cs/activate-all`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_activate_all_cs_activateAllCS>
         }
 
         public async addWhatsAppCS(params: RequestType<typeof api_admin_whatsapp_cs_addWhatsAppCS>): Promise<ResponseType<typeof api_admin_whatsapp_cs_addWhatsAppCS>> {
@@ -334,6 +346,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/edit`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_edit_user_editUser>
+        }
+
+        public async exportTransactions(): Promise<ResponseType<typeof api_admin_export_transactions_exportTransactions>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/transactions/export`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_export_transactions_exportTransactions>
         }
 
         public async getConfig(): Promise<ResponseType<typeof api_admin_config_getConfig>> {
@@ -685,6 +703,80 @@ export namespace balance {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/balance/redeem`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_balance_balance_redeemVoucher>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { debugWebhook as api_gmail_debug_webhook_debugWebhook } from "~backend/gmail/debug_webhook";
+import { setupGmailWatch as api_gmail_setup_watch_setupGmailWatch } from "~backend/gmail/setup_watch";
+import { stopGmailWatch as api_gmail_stop_watch_stopGmailWatch } from "~backend/gmail/stop_watch";
+import { testGmail as api_gmail_test_gmail_testGmail } from "~backend/gmail/test_gmail";
+import { testEmailNotification as api_gmail_test_notification_testEmailNotification } from "~backend/gmail/test_notification";
+import { testWebhookManual as api_gmail_test_webhook_manual_testWebhookManual } from "~backend/gmail/test_webhook_manual";
+import { webhook as api_gmail_webhook_webhook } from "~backend/gmail/webhook";
+
+export namespace gmail {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.debugWebhook = this.debugWebhook.bind(this)
+            this.setupGmailWatch = this.setupGmailWatch.bind(this)
+            this.stopGmailWatch = this.stopGmailWatch.bind(this)
+            this.testEmailNotification = this.testEmailNotification.bind(this)
+            this.testGmail = this.testGmail.bind(this)
+            this.testWebhookManual = this.testWebhookManual.bind(this)
+            this.webhook = this.webhook.bind(this)
+        }
+
+        public async debugWebhook(): Promise<ResponseType<typeof api_gmail_debug_webhook_debugWebhook>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/debug-webhook`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_debug_webhook_debugWebhook>
+        }
+
+        public async setupGmailWatch(): Promise<ResponseType<typeof api_gmail_setup_watch_setupGmailWatch>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/setup-watch`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_setup_watch_setupGmailWatch>
+        }
+
+        public async stopGmailWatch(): Promise<ResponseType<typeof api_gmail_stop_watch_stopGmailWatch>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/stop-watch`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_stop_watch_stopGmailWatch>
+        }
+
+        public async testEmailNotification(): Promise<ResponseType<typeof api_gmail_test_notification_testEmailNotification>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/test-notification`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_test_notification_testEmailNotification>
+        }
+
+        public async testGmail(): Promise<ResponseType<typeof api_gmail_test_gmail_testGmail>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/test`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_test_gmail_testGmail>
+        }
+
+        public async testWebhookManual(): Promise<ResponseType<typeof api_gmail_test_webhook_manual_testWebhookManual>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/test-webhook-manual`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_test_webhook_manual_testWebhookManual>
+        }
+
+        /**
+         * Webhook endpoint to receive Gmail push notifications
+         */
+        public async webhook(params: RequestType<typeof api_gmail_webhook_webhook>): Promise<ResponseType<typeof api_gmail_webhook_webhook>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/gmail/webhook`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_gmail_webhook_webhook>
         }
     }
 }

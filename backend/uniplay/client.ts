@@ -303,3 +303,45 @@ export async function checkStatus(refId?: string, trxId?: string): Promise<UniPl
   
   return makeRequest<UniPlayStatusResponse>("/check-status", body);
 }
+
+export interface UniPlayInquiryPaymentRequest {
+  entitas_id: string;
+  denom_id: string;
+  user_id?: string;
+  server_id?: string;
+}
+
+export interface UniPlayInquiryPaymentResponse {
+  status: string;
+  message: string;
+  inquiry_id: string;
+  inquiry_info?: {
+    username?: string;
+  };
+}
+
+export async function inquiryPayment(request: UniPlayInquiryPaymentRequest): Promise<UniPlayInquiryPaymentResponse> {
+  return makeRequest<UniPlayInquiryPaymentResponse>("/inquiry-payment", request);
+}
+
+export interface UniPlayConfirmPaymentRequest {
+  inquiry_id: string;
+  pincode: string;
+}
+
+export interface UniPlayConfirmPaymentResponse {
+  status: string;
+  message: string;
+  order_id: string;
+  order_info: {
+    trx_number: string;
+    trx_date_order: string;
+    trx_item: string;
+    trx_price: string;
+    trx_status: string;
+  };
+}
+
+export async function confirmPayment(request: UniPlayConfirmPaymentRequest): Promise<UniPlayConfirmPaymentResponse> {
+  return makeRequest<UniPlayConfirmPaymentResponse>("/confirm-payment", request);
+}

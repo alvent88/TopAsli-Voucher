@@ -13,7 +13,7 @@ export default function PurchaseConfirmationPage() {
   const { toast } = useToast();
   const backend = useBackend();
   
-  const { productId, packageId, userId, gameId, productName, packageName, price } = location.state || {};
+  const { productId, packageId, userId, gameId, productName, packageName, price, inquiryId, username } = location.state || {};
   
   const [loading, setLoading] = useState(false);
   const [userBalance, setUserBalance] = useState<number>(0);
@@ -49,6 +49,8 @@ export default function PurchaseConfirmationPage() {
         paymentMethodId: 1,
         userId,
         gameId,
+        inquiryId,
+        username,
       });
 
       toast({
@@ -64,6 +66,7 @@ export default function PurchaseConfirmationPage() {
           price,
           userId,
           gameId,
+          username,
         },
       });
     } catch (error: any) {
@@ -140,6 +143,12 @@ export default function PurchaseConfirmationPage() {
                 <span className="text-slate-400">Game ID</span>
                 <span className="text-white font-mono text-xs">{gameId}</span>
               </div>
+              {username && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Username</span>
+                  <span className="text-green-400 font-semibold text-sm">{username}</span>
+                </div>
+              )}
               <div className="border-t border-slate-700 pt-2 mt-2 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-400 flex items-center gap-2">

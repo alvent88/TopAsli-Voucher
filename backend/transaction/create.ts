@@ -16,6 +16,8 @@ interface CreateTransactionParams {
   paymentMethodId: number;
   userId: string;
   gameId: string;
+  inquiryId?: string;
+  username?: string;
 }
 
 interface CreateTransactionResponse {
@@ -26,7 +28,7 @@ interface CreateTransactionResponse {
 
 export const create = api<CreateTransactionParams, CreateTransactionResponse>(
   { expose: true, method: "POST", path: "/transactions", auth: true },
-  async ({ productId, packageId, paymentMethodId, userId, gameId }) => {
+  async ({ productId, packageId, paymentMethodId, userId, gameId, inquiryId, username }) => {
     const auth = getAuthData()!;
     
     console.log("=== CREATE TRANSACTION START ===");
@@ -92,39 +94,55 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
     const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
 
-    console.log("=== CREATING UNIPLAY ORDER ===");
+    console.log("=== CONFIRMING UNIPLAY PAYMENT ===");
     let uniplayOrderId = "";
     let uniplaySN = "";
     try {
-      const productRow = await db.queryRow<{ slug: string }>`
-        SELECT slug FROM products WHERE id = ${productId}
-      `;
-      
-      if (productRow) {
-        const uniplayOrder = await createUniPlayOrder({
-          product_code: productRow.slug.toUpperCase(),
-          user_id: userId,
-          zone_id: gameId,
-          ref_id: transactionId,
+      if (inquiryId) {
+        const { confirmPaymentEndpoint } = await import("../uniplay/confirm_payment");
+        const confirmResponse = await confirmPaymentEndpoint({
+          inquiryId,
+          transactionId,
         });
         
-        if (uniplayOrder.status === "success") {
-          uniplayOrderId = uniplayOrder.data.trx_id;
-          console.log("✅ UniPlay order created:", uniplayOrderId);
-          console.log("✅ Price:", uniplayOrder.data.price);
-          console.log("✅ Status:", uniplayOrder.data.status);
+        uniplayOrderId = confirmResponse.orderId;
+        console.log("✅ UniPlay payment confirmed:", uniplayOrderId);
+        console.log("✅ Transaction Number:", confirmResponse.trxNumber);
+        console.log("✅ Item:", confirmResponse.trxItem);
+        console.log("✅ Price:", confirmResponse.trxPrice);
+        console.log("✅ Status:", confirmResponse.trxStatus);
+      } else {
+        console.log("⚠️ No inquiry ID provided, using legacy order creation");
+        const productRow = await db.queryRow<{ slug: string }>`
+          SELECT slug FROM products WHERE id = ${productId}
+        `;
+        
+        if (productRow) {
+          const uniplayOrder = await createUniPlayOrder({
+            product_code: productRow.slug.toUpperCase(),
+            user_id: userId,
+            zone_id: gameId,
+            ref_id: transactionId,
+          });
           
-          await db.exec`
-            UPDATE transactions
-            SET uniplay_order_id = ${uniplayOrderId}
-            WHERE id = ${transactionId}
-          `;
-        } else {
-          console.error("❌ UniPlay order failed:", uniplayOrder.message);
+          if (uniplayOrder.status === "success") {
+            uniplayOrderId = uniplayOrder.data.trx_id;
+            console.log("✅ UniPlay order created:", uniplayOrderId);
+            console.log("✅ Price:", uniplayOrder.data.price);
+            console.log("✅ Status:", uniplayOrder.data.status);
+            
+            await db.exec`
+              UPDATE transactions
+              SET uniplay_order_id = ${uniplayOrderId}
+              WHERE id = ${transactionId}
+            `;
+          } else {
+            console.error("❌ UniPlay order failed:", uniplayOrder.message);
+          }
         }
       }
     } catch (uniplayError) {
-      console.error("❌ Failed to create UniPlay order:", uniplayError);
+      console.error("❌ Failed to confirm UniPlay payment:", uniplayError);
     }
 
     console.log("=== SENDING PURCHASE CONFIRMATIONS ===");
@@ -168,7 +186,8 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
           
           console.log("📱 Formatted phone number:", formattedPhone);
           
-          const message = `✅ *PEMBELIAN BERHASIL - TopAsli*\n\nHalo ${fullName},\n\nPembelian Anda telah berhasil diproses!\n\n📦 *Detail Pembelian*\nProduk: ${product.name}\nPaket: ${pkg.name}\nHarga: ${formatCurrency(pkg.price)}\n\n🎮 *Akun Game*\nUser ID: ${userId}\nGame ID: ${gameId}\n\n💰 *Pembayaran*\nTotal: ${formatCurrency(price)}\nSisa Saldo: ${formatCurrency(newBalance)}\n\n🆔 *ID Transaksi*\n${transactionId}\n\n⚠️ Item akan segera diproses dan dikirim ke akun game Anda dalam waktu maksimal 5 menit.\n\nKami dengan senang hati melayani kebutuhan top-up Anda. 🙏`;
+          const usernameInfo = username ? `Username: ${username}\n` : '';
+          const message = `✅ *PEMBELIAN BERHASIL - TopAsli*\n\nHalo ${fullName},\n\nPembelian Anda telah berhasil diproses!\n\n📦 *Detail Pembelian*\nProduk: ${product.name}\nPaket: ${pkg.name}\nHarga: ${formatCurrency(pkg.price)}\n\n🎮 *Akun Game*\n${usernameInfo}User ID: ${userId}\nGame ID: ${gameId}\n\n💰 *Pembayaran*\nTotal: ${formatCurrency(price)}\nSisa Saldo: ${formatCurrency(newBalance)}\n\n🆔 *ID Transaksi*\n${transactionId}\n\n⚠️ Item akan segera diproses dan dikirim ke akun game Anda dalam waktu maksimal 5 menit.\n\nKami dengan senang hati melayani kebutuhan top-up Anda. 🙏`;
 
           const formData = new URLSearchParams();
           formData.append('target', formattedPhone);

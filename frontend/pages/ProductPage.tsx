@@ -72,18 +72,43 @@ export default function ProductPage() {
     }
 
     const selectedPkg = packages.find((p) => p.id === selectedPackage);
+    const finalPrice = selectedPkg?.discountPrice && selectedPkg.discountPrice < selectedPkg.price 
+      ? selectedPkg.discountPrice 
+      : selectedPkg?.price;
 
-    navigate("/purchase-confirmation", {
-      state: {
-        productId: product!.id,
-        packageId: selectedPackage,
+    setLoading(true);
+    try {
+      const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
+        packageId: selectedPackage!,
         userId,
-        gameId,
-        productName: product!.name,
-        packageName: selectedPkg?.name,
-        price: selectedPkg?.price,
-      },
-    });
+        serverId: gameId,
+      });
+
+      navigate("/purchase-confirmation", {
+        state: {
+          productId: product!.id,
+          packageId: selectedPackage,
+          userId,
+          gameId,
+          productName: product!.name,
+          packageName: selectedPkg?.name,
+          price: finalPrice,
+          originalPrice: selectedPkg?.price,
+          discountPrice: selectedPkg?.discountPrice,
+          inquiryId: inquiryResponse.inquiryId,
+          username: inquiryResponse.username,
+        },
+      });
+    } catch (error: any) {
+      console.error("Inquiry payment failed:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal memvalidasi data pembelian",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -192,28 +217,48 @@ export default function ProductPage() {
                     <div className="grid md:grid-cols-2 gap-3">
                       {packages
                         .filter((pkg) => pkg.isSpecialItem)
-                        .map((pkg) => (
+                        .map((pkg) => {
+                          const hasDiscount = pkg.discountPrice && pkg.discountPrice < pkg.price;
+                          const displayPrice = (hasDiscount ? pkg.discountPrice : pkg.price) ?? 0;
+                          const discountPercent = hasDiscount 
+                            ? Math.round(((pkg.price - pkg.discountPrice!) / pkg.price) * 100)
+                            : 0;
+                          
+                          return (
                           <label
                             key={pkg.id}
-                            className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
+                            className={`relative flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
                               selectedPackage === pkg.id
                                 ? "bg-yellow-500/20 border-yellow-400"
                                 : "bg-white/5 border-yellow-500/30 hover:bg-yellow-500/10"
                             }`}
                           >
+                            {hasDiscount && (
+                              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                                -{discountPercent}%
+                              </div>
+                            )}
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value={pkg.id.toString()} />
                               <div>
                                 <div className="text-white font-medium">
                                   {pkg.name}
                                 </div>
-                                <div className="text-yellow-300 text-sm">
-                                  {formatCurrency(pkg.price)}
+                                <div className="flex items-center gap-2">
+                                  {hasDiscount && (
+                                    <div className="text-gray-500 text-xs line-through">
+                                      {formatCurrency(pkg.price)}
+                                    </div>
+                                  )}
+                                  <div className={hasDiscount ? "text-yellow-300 text-sm font-bold" : "text-yellow-300 text-sm"}>
+                                    {formatCurrency(displayPrice)}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </label>
-                        ))}
+                          );
+                        })}
                     </div>
                   </RadioGroup>
                 </CardContent>
@@ -232,28 +277,48 @@ export default function ProductPage() {
                   <div className="grid md:grid-cols-2 gap-3">
                     {packages
                       .filter((pkg) => !pkg.isSpecialItem)
-                      .map((pkg) => (
+                      .map((pkg) => {
+                        const hasDiscount = pkg.discountPrice && pkg.discountPrice < pkg.price;
+                        const displayPrice = (hasDiscount ? pkg.discountPrice : pkg.price) ?? 0;
+                        const discountPercent = hasDiscount 
+                          ? Math.round(((pkg.price - pkg.discountPrice!) / pkg.price) * 100)
+                          : 0;
+                        
+                        return (
                         <label
                           key={pkg.id}
-                          className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
+                          className={`relative flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
                             selectedPackage === pkg.id
                               ? "bg-purple-500/20 border-purple-400"
                               : "bg-white/5 border-white/10 hover:bg-white/10"
                           }`}
                         >
+                          {hasDiscount && (
+                            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                              -{discountPercent}%
+                            </div>
+                          )}
                           <div className="flex items-center gap-3">
                             <RadioGroupItem value={pkg.id.toString()} />
                             <div>
                               <div className="text-white font-medium">
                                 {pkg.name}
                               </div>
-                              <div className="text-purple-300 text-sm">
-                                {formatCurrency(pkg.price)}
+                              <div className="flex items-center gap-2">
+                                {hasDiscount && (
+                                  <div className="text-gray-500 text-xs line-through">
+                                    {formatCurrency(pkg.price)}
+                                  </div>
+                                )}
+                                <div className={hasDiscount ? "text-purple-300 text-sm font-bold" : "text-purple-300 text-sm"}>
+                                  {formatCurrency(displayPrice)}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </label>
-                      ))}
+                        );
+                      })}
                   </div>
                 </RadioGroup>
               </CardContent>
@@ -282,9 +347,14 @@ export default function ProductPage() {
                       <div className="flex justify-between text-gray-400">
                         <span>Harga</span>
                         <span className="text-white">
-                          {formatCurrency(
-                            packages.find((p) => p.id === selectedPackage)?.price || 0
-                          )}
+                          {(() => {
+                            const pkg = packages.find((p) => p.id === selectedPackage);
+                            if (!pkg) return formatCurrency(0);
+                            const finalPrice = pkg.discountPrice && pkg.discountPrice < pkg.price 
+                              ? pkg.discountPrice 
+                              : pkg.price;
+                            return formatCurrency(finalPrice);
+                          })()}
                         </span>
                       </div>
                     </>
@@ -292,10 +362,10 @@ export default function ProductPage() {
                 </div>
                 <Button
                   onClick={handleCheckout}
-                  disabled={!userId || !gameId || !selectedPackage}
+                  disabled={!userId || !gameId || !selectedPackage || loading}
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 >
-                  Beli Sekarang
+                  {loading ? "Memvalidasi..." : "Beli Sekarang"}
                 </Button>
               </CardContent>
             </Card>
