@@ -66,6 +66,13 @@ export default function AdminDashboard() {
   const [validationUserId, setValidationUserId] = useState("");
   const [validationServerId, setValidationServerId] = useState("");
   const [validationResult, setValidationResult] = useState("");
+  
+  // Test UniPlay Transaction states
+  const [testingTransaction, setTestingTransaction] = useState(false);
+  const [testUserId, setTestUserId] = useState("235791720");
+  const [testServerId, setTestServerId] = useState("9227");
+  const [testRequestJson, setTestRequestJson] = useState("");
+  const [testResponseJson, setTestResponseJson] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -396,6 +403,66 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestTransaction = async () => {
+    setTestingTransaction(true);
+    setTestRequestJson("");
+    setTestResponseJson("");
+
+    try {
+      // Call inquiry-payment untuk Mobile Legends 3 Diamonds
+      const requestData = {
+        entitas_id: "mlbb",
+        denom_id: "3",
+        user_id: testUserId,
+        server_id: testServerId,
+      };
+
+      setTestRequestJson(JSON.stringify(requestData, null, 2));
+
+      toast({
+        title: "🧪 Testing UniPlay Transaction",
+        description: "Mengirim inquiry untuk ML 3 Diamonds...",
+      });
+
+      // Panggil endpoint inquiry dengan entitas_id dan denom_id langsung
+      const result = await backend.uniplay.testInquiry({
+        entitasId: "mlbb",
+        denomId: "3",
+        userId: testUserId,
+        serverId: testServerId,
+      });
+
+      setTestResponseJson(JSON.stringify(result, null, 2));
+
+      if (result.status === "200") {
+        toast({
+          title: "✅ Test Berhasil!",
+          description: `Username: ${result.inquiry_info?.username || "N/A"}`,
+        });
+      } else {
+        toast({
+          title: "❌ Test Gagal",
+          description: result.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test transaction error:", error);
+      setTestResponseJson(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test transaction",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingTransaction(false);
+    }
+  };
+
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
     try {
@@ -658,6 +725,85 @@ export default function AdminDashboard() {
             )}
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Info:</strong> Gunakan Run Diagnostic untuk menemukan endpoint yang benar, Test Connection untuk cek koneksi, Sync Pricelist untuk ambil daftar produk.
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test UniPlay Transaction */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <TestTube2 className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test UniPlay Transaction</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test inquiry-payment untuk ML 3 Diamonds</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="test-user-id" className="text-slate-300">User ID</Label>
+                <Input
+                  id="test-user-id"
+                  value={testUserId}
+                  onChange={(e) => setTestUserId(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white font-mono"
+                  placeholder="235791720"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="test-server-id" className="text-slate-300">Server ID</Label>
+                <Input
+                  id="test-server-id"
+                  value={testServerId}
+                  onChange={(e) => setTestServerId(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white font-mono"
+                  placeholder="9227"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleTestTransaction}
+              disabled={testingTransaction}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              {testingTransaction ? "Testing..." : "🧪 Test ML 3 Diamonds"}
+            </Button>
+
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Request JSON</Label>
+                <Textarea
+                  value={testRequestJson}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs h-32 resize-none"
+                  placeholder="Request JSON akan muncul di sini..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-300">Response JSON</Label>
+                <Textarea
+                  value={testResponseJson}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-blue-400 font-mono text-xs h-64 resize-none"
+                  placeholder="Response JSON akan muncul di sini..."
+                />
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 Info:</strong> Test ini akan memanggil inquiry-payment UniPlay dengan:
+              <ul className="list-disc list-inside mt-2 space-y-1 text-slate-400">
+                <li>Entitas ID: <code className="text-purple-400">mlbb</code></li>
+                <li>Denom ID: <code className="text-purple-400">3</code> (3 Diamonds)</li>
+                <li>User ID: <code className="text-purple-400">{testUserId}</code></li>
+                <li>Server ID: <code className="text-purple-400">{testServerId}</code></li>
+              </ul>
             </div>
           </CardContent>
         </Card>
