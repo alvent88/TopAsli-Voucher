@@ -48,10 +48,10 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
       
       await db.exec`
         INSERT INTO users (
-          email, full_name, phone_number, birth_date, created_at, updated_at, is_active
+          email, full_name, phone_number, birth_date, created_at, updated_at
         )
         VALUES (
-          ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}, true
+          ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}
         )
       `;
       
