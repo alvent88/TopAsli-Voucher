@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
-import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag } from "lucide-react";
+import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@clerk/clerk-react";
 
@@ -52,6 +53,8 @@ export default function AdminDashboard() {
   const [syncingPackages, setSyncingPackages] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
+  const [testingML, setTestingML] = useState(false);
+  const [mlTestResponse, setMlTestResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -415,6 +418,40 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestMLInquiry = async () => {
+    setTestingML(true);
+    setMlTestResponse("");
+    try {
+      const result = await backend.uniplay.testInquiryML();
+      
+      const formattedResponse = JSON.stringify(result, null, 2);
+      setMlTestResponse(formattedResponse);
+      
+      if (result.isMatchingExpectedFormat) {
+        toast({
+          title: "Test Inquiry Berhasil! ✅",
+          description: `Username: ${result.rawResponse.inquiry_info?.username || 'N/A'}`,
+        });
+      } else {
+        toast({
+          title: "Response Format Berbeda ⚠️",
+          description: "Lihat detail response di textbox",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test ML Inquiry error:", error);
+      setMlTestResponse(JSON.stringify({ error: error.message }, null, 2));
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test inquiry Mobile Legends",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingML(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -735,6 +772,59 @@ export default function AdminDashboard() {
                 Simpan Konfigurasi Provider
               </Button>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <TestTube2 className="h-5 w-5 text-orange-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test Inquiry Mobile Legends</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test inquiry-payment API dengan package 3 Diamonds</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-xs bg-slate-800/50 p-3 rounded-lg border border-slate-700 space-y-2">
+              <div className="text-slate-400"><strong>🎮 Test Data:</strong></div>
+              <div className="text-slate-300">• Product: Mobile Legends: Bang Bang</div>
+              <div className="text-slate-300">• Package: 3 Diamonds</div>
+              <div className="text-slate-300">• User ID: <span className="font-mono">235791720</span></div>
+              <div className="text-slate-300">• Server ID: <span className="font-mono">9227</span></div>
+            </div>
+            {canEdit && (
+              <Button
+                onClick={handleTestMLInquiry}
+                disabled={testingML}
+                className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+              >
+                {testingML ? "Testing..." : "🧪 Test Inquiry Payment"}
+              </Button>
+            )}
+            {mlTestResponse && (
+              <div className="space-y-2">
+                <Label className="text-slate-300">Response dari UniPlay API:</Label>
+                <Textarea
+                  value={mlTestResponse}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-white font-mono text-xs min-h-[300px]"
+                />
+              </div>
+            )}
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 Expected Response:</strong>
+              <pre className="text-slate-300 mt-2 overflow-x-auto">{JSON.stringify({
+                status: "200",
+                message: "Success",
+                inquiry_id: "INQUIRY ID RESULT",
+                inquiry_info: {
+                  username: "jagoanneon (Note: Not Showing If Voucher)"
+                }
+              }, null, 2)}</pre>
+            </div>
           </CardContent>
         </Card>
       </div>
