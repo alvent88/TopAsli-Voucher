@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
   const [testingML, setTestingML] = useState(false);
+  const [mlTestRequest, setMlTestRequest] = useState("");
   const [mlTestResponse, setMlTestResponse] = useState("");
 
   useEffect(() => {
@@ -420,11 +421,15 @@ export default function AdminDashboard() {
 
   const handleTestMLInquiry = async () => {
     setTestingML(true);
+    setMlTestRequest("");
     setMlTestResponse("");
     try {
       const result = await backend.uniplay.testInquiryML();
       
-      const formattedResponse = JSON.stringify(result, null, 2);
+      const formattedRequest = JSON.stringify(result.rawRequest, null, 2);
+      const formattedResponse = JSON.stringify(result.rawResponse, null, 2);
+      
+      setMlTestRequest(formattedRequest);
       setMlTestResponse(formattedResponse);
       
       if (result.isMatchingExpectedFormat) {
@@ -804,13 +809,23 @@ export default function AdminDashboard() {
                 {testingML ? "Testing..." : "🧪 Test Inquiry Payment"}
               </Button>
             )}
+            {mlTestRequest && (
+              <div className="space-y-2">
+                <Label className="text-slate-300">Request yang Dikirim ke UniPlay:</Label>
+                <Textarea
+                  value={mlTestRequest}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs min-h-[150px]"
+                />
+              </div>
+            )}
             {mlTestResponse && (
               <div className="space-y-2">
                 <Label className="text-slate-300">Response dari UniPlay API:</Label>
                 <Textarea
                   value={mlTestResponse}
                   readOnly
-                  className="bg-slate-800 border-slate-700 text-white font-mono text-xs min-h-[300px]"
+                  className="bg-slate-800 border-slate-700 text-blue-400 font-mono text-xs min-h-[300px]"
                 />
               </div>
             )}

@@ -34,23 +34,28 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
 
     console.log("=== TEST INQUIRY MOBILE LEGENDS ===");
     
-    // Find Mobile Legends: Bang Bang package
-    const mlPackage = await db.queryRow<{
-      id: number;
-      name: string;
-      uniplay_entitas_id: string | null;
-      uniplay_denom_id: string | null;
-    }>`
-      SELECT p.id, p.name, p.uniplay_entitas_id, p.uniplay_denom_id
-      FROM packages p
-      INNER JOIN products pr ON p.product_id = pr.id
-      WHERE pr.name ILIKE '%Mobile Legends%'
-      AND p.name ILIKE '%3 Diamond%'
-      LIMIT 1
-    `;
+    let mlPackage;
+    try {
+      mlPackage = await db.queryRow<{
+        id: number;
+        name: string;
+        uniplay_entitas_id: string | null;
+        uniplay_denom_id: string | null;
+      }>`
+        SELECT p.id, p.name, p.uniplay_entitas_id, p.uniplay_denom_id
+        FROM packages p
+        INNER JOIN products pr ON p.product_id = pr.id
+        WHERE pr.name ILIKE '%Mobile Legends%'
+        AND p.uniplay_denom_id IS NOT NULL
+        LIMIT 1
+      `;
+    } catch (dbError: any) {
+      console.error("Database query error:", dbError);
+      throw APIError.internal("Failed to query package: " + dbError.message);
+    }
 
     if (!mlPackage) {
-      throw APIError.notFound("Mobile Legends 3 Diamonds package not found. Please sync from UniPlay first.");
+      throw APIError.notFound("Mobile Legends package not found. Please sync from UniPlay first.");
     }
 
     if (!mlPackage.uniplay_entitas_id || !mlPackage.uniplay_denom_id) {
@@ -83,7 +88,6 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
         },
       };
 
-      // Check if response matches expected format
       const isMatchingExpectedFormat = 
         response.status === "200" &&
         typeof response.message === "string" &&
