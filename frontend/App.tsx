@@ -33,10 +33,7 @@ import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
 
-// TEMPORARY: Using development key until custom domain DNS is fixed
-// Production custom domain (clerk.topasli.com) has DNS configuration issues
-// Switch back to production after DNS propagation completes
-const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
+const PUBLISHABLE_KEY = "pk_live_Y2xlcmsudG9wYXNsaS5jb20k";
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
