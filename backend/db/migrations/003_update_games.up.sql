@@ -1,0 +1,155 @@
+TRUNCATE products RESTART IDENTITY CASCADE;
+
+INSERT INTO products (name, slug, category, description, icon_url) VALUES
+  ('Mobile Legends', 'mobile-legends', 'MOBA', 'Top up Diamond Mobile Legends Bang Bang', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('Free Fire', 'free-fire', 'Battle Royale', 'Top up Diamond Free Fire', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('PUBG Mobile', 'pubg-mobile', 'Battle Royale', 'Top up UC PUBG Mobile', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Genshin Impact', 'genshin-impact', 'RPG', 'Top up Genesis Crystal', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200'),
+  ('Honkai Star Rail', 'honkai-star-rail', 'RPG', 'Top up Oneiric Shard', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('League of Legends: Wild Rift', 'lol-wild-rift', 'MOBA', 'Top up Wild Cores', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('Valorant', 'valorant', 'FPS', 'Top up Valorant Points', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Call of Duty Mobile', 'cod-mobile', 'FPS', 'Top up COD Points', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200'),
+  ('Arena of Valor', 'arena-of-valor', 'MOBA', 'Top up Voucher AOV', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('Clash of Clans', 'clash-of-clans', 'Strategy', 'Top up Gems COC', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('Clash Royale', 'clash-royale', 'Strategy', 'Top up Gems CR', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Roblox', 'roblox', 'Sandbox', 'Top up Robux', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200'),
+  ('Minecraft', 'minecraft', 'Sandbox', 'Top up Minecoins', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('Point Blank', 'point-blank', 'FPS', 'Top up Cash Point Blank', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('Ragnarok M', 'ragnarok-m', 'MMORPG', 'Top up Big Cat Coin', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Tower of Fantasy', 'tower-of-fantasy', 'MMORPG', 'Top up Tanium', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200'),
+  ('Stumble Guys', 'stumble-guys', 'Party', 'Top up Gems', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('Among Us', 'among-us', 'Party', 'Top up Stars', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('Garena Speed Drifters', 'garena-speed-drifters', 'Racing', 'Top up Tokens', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Lords Mobile', 'lords-mobile', 'Strategy', 'Top up Gems', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200'),
+  ('Dragon Nest M', 'dragon-nest-m', 'MMORPG', 'Top up Diamonds', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200'),
+  ('Lineage 2M', 'lineage-2m', 'MMORPG', 'Top up Red Diamonds', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200'),
+  ('Perfect World Mobile', 'perfect-world-mobile', 'MMORPG', 'Top up Gold', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200'),
+  ('Garena Undawn', 'garena-undawn', 'Survival', 'Top up RC', 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=200');
+
+INSERT INTO packages (product_id, name, amount, unit, price) VALUES
+  (1, '86 Diamonds', 86, 'Diamonds', 20000),
+  (1, '172 Diamonds', 172, 'Diamonds', 40000),
+  (1, '257 Diamonds', 257, 'Diamonds', 60000),
+  (1, '344 Diamonds', 344, 'Diamonds', 80000),
+  (1, '429 Diamonds', 429, 'Diamonds', 100000),
+  (1, '514 Diamonds', 514, 'Diamonds', 120000),
+  (1, '706 Diamonds', 706, 'Diamonds', 160000),
+  (1, '878 Diamonds', 878, 'Diamonds', 200000),
+  
+  (2, '50 Diamonds', 50, 'Diamonds', 7000),
+  (2, '100 Diamonds', 100, 'Diamonds', 14000),
+  (2, '210 Diamonds', 210, 'Diamonds', 28000),
+  (2, '355 Diamonds', 355, 'Diamonds', 47000),
+  (2, '720 Diamonds', 720, 'Diamonds', 95000),
+  (2, '1450 Diamonds', 1450, 'Diamonds', 190000),
+  
+  (3, '60 UC', 60, 'UC', 15000),
+  (3, '325 UC', 325, 'UC', 75000),
+  (3, '660 UC', 660, 'UC', 150000),
+  (3, '1800 UC', 1800, 'UC', 400000),
+  (3, '3850 UC', 3850, 'UC', 850000),
+  
+  (4, '60 Genesis', 60, 'Genesis Crystal', 15000),
+  (4, '300 Genesis', 300, 'Genesis Crystal', 75000),
+  (4, '980 Genesis', 980, 'Genesis Crystal', 240000),
+  (4, '1980 Genesis', 1980, 'Genesis Crystal', 475000),
+  (4, '3280 Genesis', 3280, 'Genesis Crystal', 780000),
+  (4, '6480 Genesis', 6480, 'Genesis Crystal', 1500000),
+  
+  (5, '60 Oneiric', 60, 'Oneiric Shard', 15000),
+  (5, '300 Oneiric', 300, 'Oneiric Shard', 75000),
+  (5, '980 Oneiric', 980, 'Oneiric Shard', 240000),
+  (5, '1980 Oneiric', 1980, 'Oneiric Shard', 475000),
+  (5, '3280 Oneiric', 3280, 'Oneiric Shard', 780000),
+  
+  (6, '400 Wild Cores', 400, 'Wild Cores', 50000),
+  (6, '850 Wild Cores', 850, 'Wild Cores', 100000),
+  (6, '1750 Wild Cores', 1750, 'Wild Cores', 200000),
+  (6, '3600 Wild Cores', 3600, 'Wild Cores', 400000),
+  
+  (7, '125 VP', 125, 'Valorant Points', 15000),
+  (7, '420 VP', 420, 'Valorant Points', 50000),
+  (7, '700 VP', 700, 'Valorant Points', 75000),
+  (7, '1375 VP', 1375, 'Valorant Points', 150000),
+  (7, '2400 VP', 2400, 'Valorant Points', 250000),
+  
+  (8, '80 CP', 80, 'CP', 15000),
+  (8, '400 CP', 400, 'CP', 75000),
+  (8, '800 CP', 800, 'CP', 150000),
+  (8, '1600 CP', 1600, 'CP', 300000),
+  (8, '4000 CP', 4000, 'CP', 750000),
+  
+  (9, '50 Voucher', 50, 'Voucher', 10000),
+  (9, '100 Voucher', 100, 'Voucher', 20000),
+  (9, '300 Voucher', 300, 'Voucher', 60000),
+  (9, '500 Voucher', 500, 'Voucher', 100000),
+  (9, '1000 Voucher', 1000, 'Voucher', 200000),
+  
+  (10, '80 Gems', 80, 'Gems', 12000),
+  (10, '500 Gems', 500, 'Gems', 75000),
+  (10, '1200 Gems', 1200, 'Gems', 180000),
+  (10, '2500 Gems', 2500, 'Gems', 375000),
+  (10, '6500 Gems', 6500, 'Gems', 975000),
+  
+  (11, '80 Gems', 80, 'Gems', 12000),
+  (11, '500 Gems', 500, 'Gems', 75000),
+  (11, '1200 Gems', 1200, 'Gems', 180000),
+  (11, '2500 Gems', 2500, 'Gems', 375000),
+  
+  (12, '80 Robux', 80, 'Robux', 12000),
+  (12, '400 Robux', 400, 'Robux', 50000),
+  (12, '800 Robux', 800, 'Robux', 100000),
+  (12, '1700 Robux', 1700, 'Robux', 200000),
+  (12, '4500 Robux', 4500, 'Robux', 500000),
+  (12, '10000 Robux', 10000, 'Robux', 1000000),
+  
+  (13, '320 Minecoins', 320, 'Minecoins', 25000),
+  (13, '1020 Minecoins', 1020, 'Minecoins', 75000),
+  (13, '3500 Minecoins', 3500, 'Minecoins', 250000),
+  
+  (14, '1000 Cash', 1000, 'Cash', 10000),
+  (14, '3000 Cash', 3000, 'Cash', 30000),
+  (14, '6000 Cash', 6000, 'Cash', 60000),
+  (14, '20000 Cash', 20000, 'Cash', 200000),
+  
+  (15, '30 BCC', 30, 'Big Cat Coin', 30000),
+  (15, '60 BCC', 60, 'Big Cat Coin', 60000),
+  (15, '150 BCC', 150, 'Big Cat Coin', 150000),
+  (15, '300 BCC', 300, 'Big Cat Coin', 300000),
+  
+  (16, '60 Tanium', 60, 'Tanium', 15000),
+  (16, '300 Tanium', 300, 'Tanium', 75000),
+  (16, '980 Tanium', 980, 'Tanium', 240000),
+  
+  (17, '60 Gems', 60, 'Gems', 10000),
+  (17, '200 Gems', 200, 'Gems', 30000),
+  (17, '350 Gems', 350, 'Gems', 50000),
+  (17, '750 Gems', 750, 'Gems', 100000),
+  
+  (18, '30 Stars', 30, 'Stars', 8000),
+  (18, '75 Stars', 75, 'Stars', 20000),
+  (18, '150 Stars', 150, 'Stars', 40000),
+  
+  (19, '100 Tokens', 100, 'Tokens', 15000),
+  (19, '300 Tokens', 300, 'Tokens', 45000),
+  (19, '650 Tokens', 650, 'Tokens', 95000),
+  
+  (20, '500 Gems', 500, 'Gems', 75000),
+  (20, '1500 Gems', 1500, 'Gems', 225000),
+  (20, '3000 Gems', 3000, 'Gems', 450000),
+  
+  (21, '70 Diamonds', 70, 'Diamonds', 20000),
+  (21, '210 Diamonds', 210, 'Diamonds', 60000),
+  (21, '350 Diamonds', 350, 'Diamonds', 100000),
+  
+  (22, '60 Red Diamonds', 60, 'Red Diamonds', 15000),
+  (22, '300 Red Diamonds', 300, 'Red Diamonds', 75000),
+  (22, '980 Red Diamonds', 980, 'Red Diamonds', 240000),
+  
+  (23, '60 Gold', 60, 'Gold', 15000),
+  (23, '300 Gold', 300, 'Gold', 75000),
+  (23, '650 Gold', 650, 'Gold', 160000),
+  
+  (24, '100 RC', 100, 'RC', 15000),
+  (24, '310 RC', 310, 'RC', 45000),
+  (24, '645 RC', 645, 'RC', 95000);

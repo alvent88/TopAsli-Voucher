@@ -1,0 +1,4 @@
+ALTER TABLE phone_registrations ADD COLUMN IF NOT EXISTS is_banned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE phone_registrations ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ;
+ALTER TABLE phone_registrations ADD COLUMN IF NOT EXISTS banned_reason TEXT;
+ALTER TABLE phone_registrations ADD COLUMN IF NOT EXISTS banned_by TEXT;
