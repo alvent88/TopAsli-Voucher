@@ -89,6 +89,11 @@ export function getGameSlugFromProductName(productName: string): { slug: string;
     return { slug: "ld", requiresServer: false };
   }
 
+  // Roblox
+  if (name.includes("roblox")) {
+    return { slug: "roblox", requiresServer: false };
+  }
+
   // Game tidak didukung untuk username validation
   return null;
 }

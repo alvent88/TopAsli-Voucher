@@ -64,7 +64,68 @@ export const validateUsernameByProduct = api<ValidateUsernameByProductRequest, V
         throw APIError.invalidArgument(`Game "${product.name}" requires serverId parameter`);
       }
 
-      // Call validation API
+      // Special handling for Roblox - use different API
+      if (gameInfo.slug === "roblox") {
+        console.log("Using Roblox API for validation");
+        
+        // Roblox API: Get user info by User ID
+        // Endpoint: https://users.roblox.com/v1/users/{userId}
+        const robloxEndpoint = `https://users.roblox.com/v1/users/${req.userId}`;
+        
+        console.log("Calling Roblox API:", robloxEndpoint);
+        
+        const robloxResponse = await fetch(robloxEndpoint, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const robloxResponseText = await robloxResponse.text();
+        console.log("Roblox Response status:", robloxResponse.status);
+        console.log("Roblox Response body:", robloxResponseText);
+
+        if (!robloxResponse.ok) {
+          console.log("Roblox API returned non-OK status");
+          return {
+            success: false,
+            gameSupported: true,
+            message: "Username Invalid",
+          };
+        }
+
+        let robloxData: any;
+        try {
+          robloxData = JSON.parse(robloxResponseText);
+        } catch (parseErr) {
+          console.error("Failed to parse Roblox JSON:", parseErr);
+          return {
+            success: false,
+            gameSupported: true,
+            message: "Username Invalid",
+          };
+        }
+
+        console.log("Roblox data:", JSON.stringify(robloxData, null, 2));
+
+        // Roblox API returns: { "id": 156, "name": "Builderman", "displayName": "Builderman", ... }
+        if (robloxData.name || robloxData.displayName) {
+          return {
+            success: true,
+            gameSupported: true,
+            username: robloxData.displayName || robloxData.name,
+            message: "Username validated successfully",
+          };
+        } else {
+          return {
+            success: false,
+            gameSupported: true,
+            message: "Username Invalid",
+          };
+        }
+      }
+
+      // Call validation API for other games (isan.eu.org)
       const baseUrl = "https://api.isan.eu.org/nickname";
       const endpoint = `${baseUrl}/${gameInfo.slug}`;
 
