@@ -117,12 +117,26 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
         server_id: req.serverId,
       });
 
-      console.log("✅ Response:", JSON.stringify(response, null, 2));
+      console.log("=== UniPlay Response Detail ===");
+      console.log("Full Response:", JSON.stringify(response, null, 2));
+      console.log("status:", response.status);
+      console.log("message:", response.message);
+      console.log("inquiry_id:", response.inquiry_id);
+      console.log("inquiry_info:", response.inquiry_info);
+      console.log("username:", response.inquiry_info?.username);
       
-      return {
-        ...response,
+      const finalResponse = {
+        status: response.status,
+        message: response.message,
+        inquiry_id: response.inquiry_id,
+        inquiry_info: response.inquiry_info,
         curlCommand,
       };
+      
+      console.log("=== Final Response to Frontend ===");
+      console.log(JSON.stringify(finalResponse, null, 2));
+      
+      return finalResponse;
     } catch (error: any) {
       console.error("❌ Error:", error);
       throw error;
