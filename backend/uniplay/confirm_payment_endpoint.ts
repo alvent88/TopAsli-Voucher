@@ -35,10 +35,10 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
       // Verify transaction belongs to user
       const transaction = await db.queryRow<{
         id: number;
-        user_id: string;
+        clerk_user_id: string;
         status: string;
       }>`
-        SELECT id, user_id, status
+        SELECT id, clerk_user_id, status
         FROM transactions
         WHERE id = ${req.transactionId}
       `;
@@ -47,7 +47,7 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         throw APIError.notFound("Transaction not found");
       }
 
-      if (transaction.user_id !== auth.userID) {
+      if (transaction.clerk_user_id !== auth.userID) {
         throw APIError.permissionDenied("Transaction does not belong to user");
       }
 
