@@ -132,6 +132,92 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
 
       console.log("✅ Transaction updated with order_id:", response.order_id);
 
+      // Send WhatsApp notification after successful payment
+      try {
+        const transactionData = await db.queryRow<{
+          user_id: string;
+          game_id: string;
+          product_name: string;
+          package_name: string;
+          price: number;
+          username: string | null;
+        }>`
+          SELECT 
+            t.user_id, 
+            t.game_id,
+            pr.name as product_name,
+            pk.name as package_name,
+            t.price,
+            t.username
+          FROM transactions t
+          INNER JOIN products pr ON t.product_id = pr.id
+          INNER JOIN packages pk ON t.package_id = pk.id
+          WHERE t.id = ${req.transactionId}
+        `;
+
+        const { createClerkClient } = await import("@clerk/backend");
+        const { secret } = await import("encore.dev/config");
+        const clerkSecretKey = secret("ClerkSecretKey");
+        const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
+
+        const user = await clerkClient.users.getUser(auth.userID);
+        const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
+        const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
+
+        if (phoneNumber && transactionData) {
+          const configRow = await db.queryRow<{ value: string }>`
+            SELECT value FROM admin_config WHERE key = 'dashboard_config'
+          `;
+
+          if (configRow) {
+            const config = JSON.parse(configRow.value);
+            const fonnteToken = config.whatsapp?.fonnteToken || "";
+
+            if (fonnteToken) {
+              let formattedPhone = phoneNumber.replace(/\+/g, "").replace(/\s/g, "").replace(/-/g, "");
+              
+              if (formattedPhone.startsWith("0")) {
+                formattedPhone = "62" + formattedPhone.substring(1);
+              } else if (!formattedPhone.startsWith("62")) {
+                formattedPhone = "62" + formattedPhone;
+              }
+
+              const formatCurrency = (amount: number) => {
+                return new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                }).format(amount);
+              };
+
+              const usernameInfo = transactionData.username ? `Username: ${transactionData.username}\n` : '';
+              const message = `✅ *PEMBELIAN BERHASIL - TopAsli*\n\nHalo ${fullName},\n\nPembelian Anda telah berhasil diproses!\n\n📦 *Detail Pembelian*\nProduk: ${transactionData.product_name}\nPaket: ${transactionData.package_name}\nHarga: ${formatCurrency(transactionData.price)}\n\n🎮 *Akun Game*\n${usernameInfo}User ID: ${transactionData.user_id}\nGame ID: ${transactionData.game_id}\n\n💰 *Pembayaran*\nTotal: ${formatCurrency(transactionData.price)}\nSisa Saldo: ${formatCurrency(newBalance)}\n\n🆔 *ID Transaksi*\n${req.transactionId}\n\n🎫 *UniPlay Order ID*\n${response.order_id}\n\n⚠️ Item telah diproses dan dikirim ke akun game Anda.\n\nKami dengan senang hati melayani kebutuhan top-up Anda. 🙏`;
+
+              const formData = new URLSearchParams();
+              formData.append('target', formattedPhone);
+              formData.append('message', message);
+              formData.append('countryCode', '62');
+
+              console.log("📱 Sending WhatsApp confirmation...");
+              const waResponse = await fetch('https://api.fonnte.com/send', {
+                method: 'POST',
+                headers: {
+                  'Authorization': fonnteToken,
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+              });
+
+              const waData = await waResponse.json();
+              console.log("📱 WhatsApp sent:", JSON.stringify(waData, null, 2));
+            }
+          }
+        }
+      } catch (waErr) {
+        console.error("❌ Failed to send WhatsApp notification:", waErr);
+        // Don't throw error, continue with response
+      }
+
       return {
         success: true,
         orderId: response.order_id,

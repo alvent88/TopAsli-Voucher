@@ -171,17 +171,19 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     console.log("Email:", email);
     console.log("Phone:", phoneNumber);
 
-    const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-      }).format(amount);
-    };
-
-    if (phoneNumber) {
+    // Only send WhatsApp for successful transactions (old flow)
+    // For new flow (pending), WhatsApp will be sent after confirm payment
+    if (status === 'success' && phoneNumber) {
       try {
         console.log("📱 Attempting to send WhatsApp confirmation to:", phoneNumber);
+        
+        const formatCurrency = (amount: number) => {
+          return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          }).format(amount);
+        };
         
         const configRow = await db.queryRow<{ value: string }>`
           SELECT value FROM admin_config WHERE key = 'dashboard_config'
@@ -243,6 +245,8 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
         console.error("❌ Failed to send WhatsApp:", whatsappError);
         console.error("❌ Error details:", whatsappError.message);
       }
+    } else if (status === 'pending') {
+      console.log("⏳ Transaction pending - WhatsApp will be sent after confirmation");
     }
 
     console.log("=== TRANSACTION COMPLETED SUCCESSFULLY ===");
