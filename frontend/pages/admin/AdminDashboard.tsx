@@ -73,10 +73,16 @@ export default function AdminDashboard() {
   const [testServerId, setTestServerId] = useState("9227");
   const [testRequestJson, setTestRequestJson] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
+  const [testProducts, setTestProducts] = useState<any[]>([]);
+  const [testPackages, setTestPackages] = useState<any[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
     loadStats();
     loadConfig();
+    loadTestProducts();
   }, []);
 
   const loadStats = async () => {
@@ -101,6 +107,53 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Failed to load config:", error);
     }
+  };
+
+  const loadTestProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const { products } = await backend.product.list();
+      // Filter only products with uniplay_entitas_id
+      const uniplayProducts = products.filter((p: any) => p.uniplayEntitasId);
+      setTestProducts(uniplayProducts);
+      
+      // Auto-select Mobile Legends if available
+      const mlProduct = uniplayProducts.find((p: any) => 
+        p.name.toLowerCase().includes("mobile legends")
+      );
+      if (mlProduct) {
+        setSelectedProductId(mlProduct.id);
+        await loadTestPackages(mlProduct.id);
+      }
+    } catch (error) {
+      console.error("Failed to load test products:", error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const loadTestPackages = async (productId: number) => {
+    try {
+      const { packages } = await backend.pkg.list({ productId });
+      // Filter only packages with uniplay_denom_id
+      const uniplayPackages = packages.filter((p: any) => p.uniplayDenomId);
+      setTestPackages(uniplayPackages);
+      
+      // Auto-select first package if available
+      if (uniplayPackages.length > 0) {
+        setSelectedPackageId(uniplayPackages[0].id);
+      }
+    } catch (error) {
+      console.error("Failed to load test packages:", error);
+    }
+  };
+
+  const handleProductChange = async (productId: string) => {
+    const id = parseInt(productId);
+    setSelectedProductId(id);
+    setSelectedPackageId(null);
+    setTestPackages([]);
+    await loadTestPackages(id);
   };
   
   const handleSaveWhatsAppConfig = async () => {
@@ -404,33 +457,44 @@ export default function AdminDashboard() {
   };
 
   const handleTestTransaction = async () => {
+    if (!selectedPackageId) {
+      toast({
+        title: "Error",
+        description: "Pilih package terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTestingTransaction(true);
     setTestRequestJson("");
     setTestResponseJson("");
 
     try {
-      // Call inquiry-payment untuk Mobile Legends 3 Diamonds
+      const selectedPackage = testPackages.find(p => p.id === selectedPackageId);
+      const selectedProduct = testProducts.find(p => p.id === selectedProductId);
+      
       const requestData = {
-        entitas_id: "mlbb",
-        denom_id: "3",
-        user_id: testUserId,
-        server_id: testServerId,
+        packageId: selectedPackageId,
+        userId: testUserId,
+        serverId: testServerId || undefined,
       };
 
-      setTestRequestJson(JSON.stringify(requestData, null, 2));
+      setTestRequestJson(JSON.stringify({
+        package: selectedPackage?.name,
+        product: selectedProduct?.name,
+        entitas_id: selectedProduct?.uniplayEntitasId,
+        denom_id: selectedPackage?.uniplayDenomId,
+        user_id: testUserId,
+        server_id: testServerId,
+      }, null, 2));
 
       toast({
         title: "🧪 Testing UniPlay Transaction",
-        description: "Mengirim inquiry untuk ML 3 Diamonds...",
+        description: `Mengirim inquiry untuk ${selectedPackage?.name}...`,
       });
 
-      // Panggil endpoint inquiry dengan entitas_id dan denom_id langsung
-      const result = await backend.uniplay.testInquiry({
-        entitasId: "mlbb",
-        denomId: "3",
-        userId: testUserId,
-        serverId: testServerId,
-      });
+      const result = await backend.uniplay.testInquiry(requestData);
 
       setTestResponseJson(JSON.stringify(result, null, 2));
 
@@ -738,11 +802,44 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <CardTitle className="text-white">Test UniPlay Transaction</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Test inquiry-payment untuk ML 3 Diamonds</p>
+                <p className="text-sm text-slate-400 mt-1">Test inquiry-payment dengan product dan package</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="test-product" className="text-slate-300">Produk</Label>
+                <Select value={selectedProductId?.toString()} onValueChange={handleProductChange} disabled={loadingProducts}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder={loadingProducts ? "Loading..." : "Pilih produk"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {testProducts.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="test-package" className="text-slate-300">Paket</Label>
+                <Select value={selectedPackageId?.toString()} onValueChange={(v) => setSelectedPackageId(parseInt(v))} disabled={!selectedProductId || testPackages.length === 0}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder={!selectedProductId ? "Pilih produk dulu" : testPackages.length === 0 ? "Tidak ada paket" : "Pilih paket"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {testPackages.map((pkg) => (
+                      <SelectItem key={pkg.id} value={pkg.id.toString()}>
+                        {pkg.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="test-user-id" className="text-slate-300">User ID</Label>
@@ -768,10 +865,10 @@ export default function AdminDashboard() {
 
             <Button
               onClick={handleTestTransaction}
-              disabled={testingTransaction}
+              disabled={testingTransaction || !selectedPackageId}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {testingTransaction ? "Testing..." : "🧪 Test ML 3 Diamonds"}
+              {testingTransaction ? "Testing..." : "🧪 Test Transaction"}
             </Button>
 
             <div className="space-y-3">
@@ -797,12 +894,12 @@ export default function AdminDashboard() {
             </div>
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Info:</strong> Test ini akan memanggil inquiry-payment UniPlay dengan:
+              <strong className="text-slate-400">💡 Info:</strong> Test akan menggunakan Entitas ID dan Denom ID dari database:
               <ul className="list-disc list-inside mt-2 space-y-1 text-slate-400">
-                <li>Entitas ID: <code className="text-purple-400">mlbb</code></li>
-                <li>Denom ID: <code className="text-purple-400">3</code> (3 Diamonds)</li>
-                <li>User ID: <code className="text-purple-400">{testUserId}</code></li>
-                <li>Server ID: <code className="text-purple-400">{testServerId}</code></li>
+                <li>Produk: <code className="text-purple-400">{testProducts.find(p => p.id === selectedProductId)?.name || "N/A"}</code></li>
+                <li>Paket: <code className="text-purple-400">{testPackages.find(p => p.id === selectedPackageId)?.name || "N/A"}</code></li>
+                <li>Entitas ID: <code className="text-purple-400">{testProducts.find(p => p.id === selectedProductId)?.uniplayEntitasId || "N/A"}</code></li>
+                <li>Denom ID: <code className="text-purple-400">{testPackages.find(p => p.id === selectedPackageId)?.uniplayDenomId || "N/A"}</code></li>
               </ul>
             </div>
           </CardContent>
