@@ -20,6 +20,7 @@ export function AuthButton() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [balance, setBalance] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -30,6 +31,7 @@ export function AuthButton() {
       setIsLoggedIn(loggedIn);
       setUserName(name);
       setUserEmail(email);
+      setIsAdmin(email === "alvent88@gmail.com");
       
       if (loggedIn) {
         loadBalance();
@@ -141,6 +143,20 @@ export function AuthButton() {
             <History className="mr-2 h-4 w-4" />
             Riwayat Transaksi
           </DropdownMenuItem>
+          
+          {isAdmin && (
+            <>
+              <DropdownMenuSeparator className="bg-slate-700" />
+              
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/dashboard")}
+                className="text-yellow-400 hover:text-yellow-300 hover:bg-slate-700 cursor-pointer"
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Admin Panel
+              </DropdownMenuItem>
+            </>
+          )}
           
           <DropdownMenuSeparator className="bg-slate-700" />
           
