@@ -1,5 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
+import bcrypt from "bcryptjs";
 
 export interface LoginEmailRequest {
   email: string;
@@ -44,7 +45,7 @@ export const loginEmail = api<LoginEmailRequest, LoginEmailResponse>(
         );
       }
       
-      const isPasswordValid = await Bun.password.verify(password, user.password_hash);
+      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
       
       if (!isPasswordValid) {
         throw APIError.unauthenticated(

@@ -1,6 +1,7 @@
 import { api } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import bcrypt from "bcryptjs";
 
 export interface RegisterEmailRequest {
   email: string;
@@ -47,10 +48,7 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
         );
       }
       
-      const passwordHash = await Bun.password.hash(password, {
-        algorithm: "bcrypt",
-        cost: 10
-      });
+      const passwordHash = await bcrypt.hash(password, 10);
       
       const generatedUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
