@@ -15,6 +15,11 @@ export default function PurchaseConfirmationPage() {
   
   const { productId, packageId, userId, gameId, productName, packageName, price, inquiryId, username } = location.state || {};
   
+  console.log("=== PURCHASE CONFIRMATION PAGE ===");
+  console.log("Location state:", location.state);
+  console.log("Username from state:", username);
+  console.log("Inquiry ID from state:", inquiryId);
+  
   const [loading, setLoading] = useState(false);
   const [userBalance, setUserBalance] = useState<number>(0);
   const [balanceLoading, setBalanceLoading] = useState(true);

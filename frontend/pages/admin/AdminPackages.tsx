@@ -429,6 +429,8 @@ export default function AdminPackages() {
                     <TableHead className="text-slate-400">Nama Paket</TableHead>
                     <TableHead className="text-slate-400">Harga Asli</TableHead>
                     <TableHead className="text-slate-400">Harga Setelah Diskon</TableHead>
+                    <TableHead className="text-slate-400">UniPlay Entitas ID</TableHead>
+                    <TableHead className="text-slate-400">UniPlay Denom ID</TableHead>
                     <TableHead className="text-slate-400">Special Item</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400 text-right">Aksi</TableHead>
@@ -451,6 +453,20 @@ export default function AdminPackages() {
                         }
                         {!pkg.discountPrice && globalDiscount > 0 && (
                           <span className="ml-2 text-xs text-red-400">(-{globalDiscount}%)</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-300 font-mono text-xs">
+                        {(pkg as any).uniplayEntitasId ? (
+                          <span className="text-green-400">{(pkg as any).uniplayEntitasId}</span>
+                        ) : (
+                          <span className="text-red-400">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-300 font-mono text-xs">
+                        {(pkg as any).uniplayDenomId ? (
+                          <span className="text-green-400">{(pkg as any).uniplayDenomId}</span>
+                        ) : (
+                          <span className="text-red-400">-</span>
                         )}
                       </TableCell>
                       <TableCell>

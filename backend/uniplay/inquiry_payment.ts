@@ -47,6 +47,10 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentR
       };
     }
 
+    console.log("✅ Package has UniPlay config:");
+    console.log("  - Entitas ID:", pkg.uniplay_entitas_id);
+    console.log("  - Denom ID:", pkg.uniplay_denom_id);
+
     try {
       const response = await inquiryPayment({
         entitas_id: pkg.uniplay_entitas_id,
@@ -55,11 +59,15 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentR
         server_id: serverId,
       });
 
-      console.log("UniPlay inquiry response:", response);
+      console.log("UniPlay inquiry response:", JSON.stringify(response, null, 2));
 
       if (response.status !== "200") {
         throw APIError.invalidArgument(response.message || "Inquiry payment failed");
       }
+
+      console.log("✅ Inquiry successful!");
+      console.log("  - Inquiry ID:", response.inquiry_id);
+      console.log("  - Username:", response.inquiry_info?.username || "NOT FOUND");
 
       return {
         inquiryId: response.inquiry_id,

@@ -82,16 +82,27 @@ export default function ProductPage() {
     let username = "";
     
     try {
+      console.log("=== CALLING INQUIRY PAYMENT ===");
+      console.log("Package ID:", selectedPackage);
+      console.log("User ID:", userId);
+      console.log("Server ID:", gameId);
+      
       const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
         packageId: selectedPackage!,
         userId,
         serverId: gameId,
       });
       
+      console.log("=== INQUIRY RESPONSE ===");
+      console.log("Full response:", inquiryResponse);
+      console.log("Inquiry ID:", inquiryResponse.inquiryId);
+      console.log("Username:", inquiryResponse.username);
+      
       inquiryId = inquiryResponse.inquiryId || "";
       username = inquiryResponse.username || "";
       
       if (inquiryId && !username) {
+        console.log("⚠️ Got inquiry ID but no username - retrying...");
         let retryAttempt = 0;
         const maxRetries = 2;
         
@@ -110,8 +121,11 @@ export default function ProductPage() {
               serverId: gameId,
             });
             
+            console.log(`Retry ${retryAttempt} response:`, retryResponse);
+            
             if (retryResponse.username) {
               username = retryResponse.username;
+              console.log("✅ Username found on retry:", username);
               break;
             }
           } catch (retryError) {
@@ -129,6 +143,8 @@ export default function ProductPage() {
       
       if (!inquiryId && !username) {
         console.log("⚠️ Package not configured with UniPlay - proceeding without inquiry");
+      } else {
+        console.log("✅ Inquiry successful - proceeding with:", { inquiryId, username });
       }
       
     } catch (error: any) {
@@ -150,6 +166,16 @@ export default function ProductPage() {
         description: "Melanjutkan tanpa validasi UniPlay. Pastikan User ID dan Game ID benar.",
       });
     }
+
+    console.log("=== NAVIGATING TO CONFIRMATION ===");
+    console.log("State data:", {
+      inquiryId,
+      username,
+      productId: product!.id,
+      packageId: selectedPackage,
+      userId,
+      gameId,
+    });
 
     navigate("/purchase-confirmation", {
       state: {
