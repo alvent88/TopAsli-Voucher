@@ -3,7 +3,6 @@ import { inquiryPayment, UniPlayInquiryPaymentResponse } from "./client";
 import db from "../db";
 
 export interface TestInquiryRequest {
-  packageId: number;
   userId: string;
   serverId?: string;
 }
@@ -11,52 +10,64 @@ export interface TestInquiryRequest {
 export const testInquiry = api<TestInquiryRequest, UniPlayInquiryPaymentResponse>(
   { expose: true, method: "POST", path: "/uniplay/test-inquiry", auth: true },
   async (req: TestInquiryRequest) => {
-    console.log("=== Test Inquiry ===");
-    console.log("Package ID:", req.packageId);
+    console.log("=== Test Inquiry - Mobile Legends 3 Diamonds ===");
     console.log("User ID:", req.userId);
     console.log("Server ID:", req.serverId);
 
-    // Get package and product data from database
-    const packageData = await db.queryRow<{
-      package_id: number;
-      package_name: string;
-      product_id: number;
-      product_name: string;
+    // Find Mobile Legends product
+    const product = await db.queryRow<{
+      id: number;
+      name: string;
       uniplay_entitas_id: string | null;
+    }>`
+      SELECT id, name, uniplay_entitas_id
+      FROM products
+      WHERE LOWER(name) LIKE '%mobile legends%'
+      AND uniplay_entitas_id IS NOT NULL
+      AND is_active = true
+      LIMIT 1
+    `;
+
+    if (!product) {
+      throw APIError.notFound("Mobile Legends product not found in database");
+    }
+
+    if (!product.uniplay_entitas_id) {
+      throw APIError.invalidArgument("Mobile Legends product does not have UniPlay Entitas ID");
+    }
+
+    console.log("Product found:", product.name);
+    console.log("Entitas ID:", product.uniplay_entitas_id);
+
+    // Find 3 Diamonds package
+    const packageData = await db.queryRow<{
+      id: number;
+      name: string;
       uniplay_denom_id: string | null;
     }>`
-      SELECT 
-        p.id as package_id,
-        p.name as package_name,
-        pr.id as product_id,
-        pr.name as product_name,
-        pr.uniplay_entitas_id,
-        p.uniplay_denom_id
-      FROM packages p
-      INNER JOIN products pr ON p.product_id = pr.id
-      WHERE p.id = ${req.packageId}
+      SELECT id, name, uniplay_denom_id
+      FROM packages
+      WHERE product_id = ${product.id}
+      AND (LOWER(name) LIKE '%3 diamond%' OR LOWER(name) LIKE '%3diamond%')
+      AND uniplay_denom_id IS NOT NULL
+      AND is_active = true
+      LIMIT 1
     `;
 
     if (!packageData) {
-      throw APIError.notFound("Package not found");
+      throw APIError.notFound("3 Diamonds package not found for Mobile Legends");
     }
 
-    if (!packageData.uniplay_entitas_id || !packageData.uniplay_denom_id) {
-      throw APIError.invalidArgument(
-        `Package "${packageData.package_name}" does not have UniPlay configuration. ` +
-        `Entitas ID: ${packageData.uniplay_entitas_id || "N/A"}, ` +
-        `Denom ID: ${packageData.uniplay_denom_id || "N/A"}`
-      );
+    if (!packageData.uniplay_denom_id) {
+      throw APIError.invalidArgument("3 Diamonds package does not have UniPlay Denom ID");
     }
 
-    console.log("Product:", packageData.product_name);
-    console.log("Package:", packageData.package_name);
-    console.log("Entitas ID:", packageData.uniplay_entitas_id);
+    console.log("Package found:", packageData.name);
     console.log("Denom ID:", packageData.uniplay_denom_id);
 
     try {
       const response = await inquiryPayment({
-        entitas_id: packageData.uniplay_entitas_id,
+        entitas_id: product.uniplay_entitas_id,
         denom_id: packageData.uniplay_denom_id,
         user_id: req.userId,
         server_id: req.serverId,
