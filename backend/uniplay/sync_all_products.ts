@@ -44,7 +44,9 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
 
       for (const game of dtuResponse.list_dtu) {
         console.log(`\n=== Processing game: ${game.name} ===`);
+        console.log(`RAW GAME DATA:`, JSON.stringify(game, null, 2));
         console.log(`Game ID (will be entitas_id): ${game.id}`);
+        console.log(`Game ID type: ${typeof game.id}`);
         console.log(`Denoms count: ${game.denom.length}`);
         
         const slug = game.id.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -84,7 +86,9 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
 
         for (const denom of game.denom) {
           console.log(`\n  --- Creating package: ${denom.package} ---`);
+          console.log(`    RAW DENOM DATA:`, JSON.stringify(denom, null, 2));
           console.log(`    Denom ID: ${denom.id}`);
+          console.log(`    Denom ID type: ${typeof denom.id}`);
           console.log(`    Price: ${denom.price}`);
           console.log(`    Will insert with:`);
           console.log(`      - uniplay_entitas_id: ${game.id}`);
