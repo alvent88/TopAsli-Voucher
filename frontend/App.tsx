@@ -27,6 +27,7 @@ import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminWhatsAppCS from "./pages/admin/AdminWhatsAppCS";
+import AdminUniPlaySync from "./pages/admin/AdminUniPlaySync";
 
 const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
 
@@ -97,6 +98,7 @@ function AppInner() {
             <Route path="transactions" element={<AdminTransactions />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="packages" element={<AdminPackages />} />
+            <Route path="uniplay-sync" element={<AdminUniPlaySync />} />
             <Route path="vouchers" element={<AdminVouchers />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="messages" element={<AdminMessages />} />
