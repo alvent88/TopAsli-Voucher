@@ -27,7 +27,6 @@ export default function ProductPage() {
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [validatedUsername, setValidatedUsername] = useState<string>("");
   const [validating, setValidating] = useState(false);
-  const [lastInquiryId, setLastInquiryId] = useState<string>("");
 
   useEffect(() => {
     if (slug) {
@@ -59,24 +58,9 @@ export default function ProductPage() {
       } else {
         setValidatedUsername("");
       }
-
-      if (response.inquiryId) {
-        setLastInquiryId(response.inquiryId);
-        
-        try {
-          await authBackend.admin.updatePackageInquiryId({
-            packageId: selectedPackage,
-            inquiryId: response.inquiryId,
-          });
-          console.log(`✅ Inquiry ID saved to package ${selectedPackage}:`, response.inquiryId);
-        } catch (saveError) {
-          console.error("Failed to save inquiry ID:", saveError);
-        }
-      }
     } catch (error) {
       console.error("Validation error:", error);
       setValidatedUsername("");
-      setLastInquiryId("");
     } finally {
       setValidating(false);
     }
@@ -150,90 +134,54 @@ export default function ProductPage() {
     let inquiryId = "";
     let username = validatedUsername || "";
     
-    try {
-      console.log("=== CALLING INQUIRY PAYMENT ===");
-      console.log("Package ID:", selectedPackage);
-      console.log("User ID:", userId);
-      console.log("Server ID:", gameId);
-      
-      const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
-        packageId: selectedPackage!,
-        userId,
-        serverId: gameId,
-      });
-      
-      console.log("=== INQUIRY RESPONSE ===");
-      console.log("Full response:", inquiryResponse);
-      console.log("Inquiry ID:", inquiryResponse.inquiryId);
-      console.log("Username:", inquiryResponse.username);
-      
-      inquiryId = inquiryResponse.inquiryId || "";
-      username = inquiryResponse.username || "";
-      
-      if (inquiryId && !username) {
-        console.log("⚠️ Got inquiry ID but no username - retrying...");
-        let retryAttempt = 0;
-        const maxRetries = 2;
+    if (!username) {
+      try {
+        console.log("=== CALLING INQUIRY PAYMENT ===");
+        console.log("Package ID:", selectedPackage);
+        console.log("User ID:", userId);
+        console.log("Server ID:", gameId);
         
-        while (retryAttempt < maxRetries) {
-          retryAttempt++;
-          toast({
-            title: "Username tidak ditemukan",
-            description: `Mencoba lagi... (${retryAttempt}/${maxRetries})`,
-          });
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          try {
-            const retryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
-              packageId: selectedPackage!,
-              userId,
-              serverId: gameId,
-            });
-            
-            console.log(`Retry ${retryAttempt} response:`, retryResponse);
-            
-            if (retryResponse.username) {
-              username = retryResponse.username;
-              console.log("✅ Username found on retry:", username);
-              break;
-            }
-          } catch (retryError) {
-            console.error("Retry failed:", retryError);
-          }
-        }
-        
-        if (!username) {
-          toast({
-            title: "Peringatan",
-            description: "Username tidak dapat divalidasi. Pastikan User ID dan Game ID sudah benar sebelum melanjutkan.",
-          });
-        }
-      }
-      
-      if (!inquiryId && !username) {
-        console.log("⚠️ Package not configured with UniPlay - proceeding without inquiry");
-      } else {
-        console.log("✅ Inquiry successful - proceeding with:", { inquiryId, username });
-      }
-      
-    } catch (error: any) {
-      console.error("Inquiry payment failed:", error);
-      
-      if (error.message?.includes("missing UniPlay configuration")) {
-        toast({
-          title: "⚠️ Produk Belum Dikonfigurasi",
-          description: "Admin perlu sync produk dari UniPlay terlebih dahulu. Hubungi admin untuk mengaktifkan produk ini.",
-          variant: "destructive",
+        const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
+          packageId: selectedPackage!,
+          userId,
+          serverId: gameId || undefined,
         });
-        setLoading(false);
-        return;
+        
+        console.log("=== INQUIRY RESPONSE ===");
+        console.log("Full response:", inquiryResponse);
+        console.log("Inquiry ID:", inquiryResponse.inquiryId);
+        console.log("Username:", inquiryResponse.username);
+        
+        inquiryId = inquiryResponse.inquiryId || "";
+        username = inquiryResponse.username || "";
+        
+        if (!inquiryId && !username) {
+          console.log("⚠️ Package not configured with UniPlay - proceeding without inquiry");
+        } else {
+          console.log("✅ Inquiry successful - proceeding with:", { inquiryId, username });
+        }
+        
+      } catch (error: any) {
+        console.error("Inquiry payment failed:", error);
+        
+        if (error.message?.includes("missing UniPlay configuration")) {
+          toast({
+            title: "⚠️ Produk Belum Dikonfigurasi",
+            description: "Admin perlu sync produk dari UniPlay terlebih dahulu. Hubungi admin untuk mengaktifkan produk ini.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        console.log("⚠️ Proceeding without inquiry payment");
+        toast({
+          title: "Info",
+          description: "Melanjutkan tanpa validasi UniPlay. Pastikan User ID sudah benar.",
+        });
       }
-      
-      console.log("⚠️ Proceeding without inquiry payment");
-      toast({
-        title: "Info",
-        description: "Melanjutkan tanpa validasi UniPlay. Pastikan User ID dan Game ID benar.",
-      });
+    } else {
+      console.log("✅ Using validated username:", username);
     }
 
     console.log("=== NAVIGATING TO CONFIRMATION ===");
@@ -532,11 +480,22 @@ export default function ProductPage() {
                 </div>
                 <Button
                   onClick={handleCheckout}
-                  disabled={!userId || !gameId || !selectedPackage || loading}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={
+                    !userId || 
+                    !selectedPackage || 
+                    (product?.requiresServerId !== false && !gameId) || 
+                    loading || 
+                    validating
+                  }
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
                 >
-                  {loading ? "Memvalidasi..." : "Beli Sekarang"}
+                  {validating ? "Memvalidasi..." : loading ? "Memproses..." : "Beli Sekarang"}
                 </Button>
+                {!validatedUsername && userId && selectedPackage && (product?.requiresServerId === false || gameId) && (
+                  <div className="text-yellow-400 text-xs text-center mt-2">
+                    ⚠️ Menunggu validasi username...
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
