@@ -1,4 +1,4 @@
-import { Header, APIError } from "encore.dev/api";
+import { Header, APIError, Gateway } from "encore.dev/api";
 import { authHandler } from "encore.dev/auth";
 
 interface AuthParams {
@@ -43,6 +43,8 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
     isSuperAdmin: isSuperAdmin,
   };
 });
+
+export const gw = new Gateway({ authHandler: auth });
 
 function parseToken(token: string): { userId: string; email: string; fullName: string } | null {
   try {
