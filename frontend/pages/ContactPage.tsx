@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Gamepad2, Send, Mail, MessageCircle, Clock, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,20 +11,19 @@ import { useBackend } from "@/lib/useBackend";
 
 export default function ContactPage() {
   const { toast } = useToast();
-  const { isSignedIn, isLoaded } = useUser();
+  const isSignedIn = sessionStorage.getItem("isLoggedIn") === "true";
   const navigate = useNavigate();
-  const { user } = useUser();
+  const userEmail = sessionStorage.getItem("userEmail") || "";
   const backend = useBackend();
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
     message: "",
   });
-  const userEmail = user?.emailAddresses[0]?.emailAddress || "";
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (!isSignedIn) {
       toast({
         title: "Akses Ditolak",
         description: "Anda harus login terlebih dahulu untuk mengakses halaman kontak.",
@@ -33,7 +31,7 @@ export default function ContactPage() {
       });
       navigate("/login");
     }
-  }, [isLoaded, isSignedIn, navigate, toast]);
+  }, [isSignedIn, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +61,7 @@ export default function ContactPage() {
     }
   };
 
-  if (!isLoaded || !isSignedIn) {
+  if (!isSignedIn) {
     return null;
   }
 

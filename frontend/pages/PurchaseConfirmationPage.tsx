@@ -35,7 +35,8 @@ export default function PurchaseConfirmationPage() {
   const loadUserBalance = async () => {
     setBalanceLoading(true);
     try {
-      const response = await backend.balance.getUserBalance();
+      const userId = sessionStorage.getItem("userId") || "";
+      const response = await backend.balance.getUserBalance({ userId });
       setUserBalance(response.balance);
     } catch (error) {
       console.error("Failed to load balance:", error);

@@ -1,10 +1,8 @@
-import { useUser } from "@clerk/clerk-react";
-
 export function usePermissions() {
-  const { user } = useUser();
+  const userEmail = sessionStorage.getItem("userEmail") || "";
   
-  const isSuperAdmin = (user?.publicMetadata?.isSuperAdmin as boolean) || false;
-  const isAdmin = (user?.publicMetadata?.isAdmin as boolean) || false;
+  const isSuperAdmin = userEmail === "alvent88@gmail.com";
+  const isAdmin = isSuperAdmin;
   
   const canEdit = isSuperAdmin;
   const canView = isSuperAdmin || isAdmin;

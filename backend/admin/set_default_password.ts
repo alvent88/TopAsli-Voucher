@@ -8,7 +8,7 @@ export const setDefaultPassword = api(
     const defaultPassword = "halo123";
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
     
-    const result = await db.exec`
+    await db.exec`
       UPDATE users 
       SET password_hash = ${passwordHash}
       WHERE password_hash IS NULL
@@ -16,7 +16,7 @@ export const setDefaultPassword = api(
     
     return {
       success: true,
-      message: `Updated ${result.rowsAffected} users with default password "halo123"`,
+      message: `Updated users with default password "halo123"`,
     };
   }
 );

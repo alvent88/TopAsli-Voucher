@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@clerk/clerk-react";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -34,15 +33,7 @@ interface UserIPInfo {
 }
 
 export default function AdminLoginHistory() {
-  const { getToken } = useAuth();
-  const authenticatedBackend = useMemo(() => {
-    return backend.with({
-      auth: async () => {
-        const token = await getToken();
-        return { authorization: `Bearer ${token}` };
-      },
-    });
-  }, [getToken]);
+  const authenticatedBackend = useBackend();
 
   const [entries, setEntries] = useState<LoginHistoryEntry[]>([]);
   const [total, setTotal] = useState(0);

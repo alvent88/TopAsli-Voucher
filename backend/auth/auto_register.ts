@@ -32,14 +32,7 @@ export const autoRegister = api<void, AutoRegisterResponse>(
     console.log("Email from auth:", email);
 
     if (!email) {
-      console.log("Email not in auth data, fetching from Clerk user...");
-      const user = await clerkClient.users.getUser(userId);
-      email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ?? null;
-      console.log("Email from Clerk:", email);
-      
-      if (!email) {
-        throw APIError.invalidArgument("Email not found");
-      }
+      throw APIError.invalidArgument("Email not found in auth data");
     }
 
     console.log("Final email:", email);

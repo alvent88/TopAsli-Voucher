@@ -8,7 +8,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useBackend } from "@/lib/useBackend";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { useUser } from "@clerk/clerk-react";
 
 function QRScanner({ onScan, onError, onClose }: { onScan: (code: string) => void; onError: (error: string) => void; onClose: () => void }) {
   const [cameraId, setCameraId] = useState<string>("");
@@ -123,7 +122,7 @@ export default function RedeemVoucherPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const backend = useBackend();
-  const { isSignedIn, isLoaded } = useUser();
+  const isSignedIn = sessionStorage.getItem("isLoggedIn") === "true";
   const [voucherCode, setVoucherCode] = useState("");
   const [displayCode, setDisplayCode] = useState("");
   const [isFromQRScan, setIsFromQRScan] = useState(false);
@@ -137,10 +136,10 @@ export default function RedeemVoucherPage() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (!isSignedIn) {
       navigate('/login');
     }
-  }, [isLoaded, isSignedIn, navigate]);
+  }, [isSignedIn, navigate]);
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useUser } from "@clerk/clerk-react";
 import {
   Select,
   SelectContent,
@@ -27,7 +26,6 @@ export default function AdminDashboard() {
   const backend = useBackend();
   const { toast } = useToast();
   const { canEdit } = usePermissions();
-  const { user } = useUser();
   const [stats, setStats] = useState<DashboardStats>({
     totalTransactions: 0,
     totalRevenue: 0,

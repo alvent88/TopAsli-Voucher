@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
 import { useBackend } from "@/lib/useBackend";
 import type { Product } from "~backend/product/list";
 import type { Package } from "~backend/pkg/list";
@@ -18,7 +17,7 @@ export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isSignedIn } = useUser();
+  const isSignedIn = sessionStorage.getItem("isLoggedIn") === "true";
   const authBackend = useBackend();
   const [product, setProduct] = useState<Product | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);

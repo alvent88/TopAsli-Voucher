@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Mail, Phone, Wallet, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user } = useUser();
   const backend = useBackend();
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);

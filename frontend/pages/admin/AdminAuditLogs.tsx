@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@clerk/clerk-react";
 import backend from "~backend/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,15 +50,7 @@ const entityTypeColors: Record<string, string> = {
 };
 
 export default function AdminAuditLogs() {
-  const { getToken } = useAuth();
-  const authenticatedBackend = useMemo(() => {
-    return backend.with({
-      auth: async () => {
-        const token = await getToken();
-        return { authorization: `Bearer ${token}` };
-      },
-    });
-  }, [getToken]);
+  const authenticatedBackend = backend;
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);

@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBackend } from "@/lib/useBackend";
-import { useUser } from "@clerk/clerk-react";
 import NotificationBell from "@/components/NotificationBell";
 
 export default function AdminLayout() {
@@ -12,19 +11,19 @@ export default function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { user } = useUser();
 
   useEffect(() => {
     const checkAdminStatus = () => {
-      if (!user) {
+      const userEmail = sessionStorage.getItem("userEmail");
+      
+      if (!userEmail) {
         setIsChecking(false);
         setIsAdmin(false);
         navigate("/404", { replace: true });
         return;
       }
 
-      const publicMeta = user.publicMetadata as any;
-      const isAdminUser = publicMeta?.isAdmin === true || publicMeta?.isSuperAdmin === true;
+      const isAdminUser = userEmail === "alvent88@gmail.com";
       
       setIsAdmin(isAdminUser);
       setIsChecking(false);
@@ -35,7 +34,7 @@ export default function AdminLayout() {
     };
 
     checkAdminStatus();
-  }, [user, navigate]);
+  }, [navigate]);
 
   if (isChecking) {
     return (
