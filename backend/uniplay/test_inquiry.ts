@@ -7,7 +7,11 @@ export interface TestInquiryRequest {
   serverId?: string;
 }
 
-export const testInquiry = api<TestInquiryRequest, UniPlayInquiryPaymentResponse>(
+export interface TestInquiryResponse extends UniPlayInquiryPaymentResponse {
+  curlCommand: string;
+}
+
+export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
   { expose: true, method: "POST", path: "/uniplay/test-inquiry", auth: true },
   async (req: TestInquiryRequest) => {
     console.log("=== Test Inquiry - Mobile Legends 3 Diamonds ===");
@@ -65,6 +69,46 @@ export const testInquiry = api<TestInquiryRequest, UniPlayInquiryPaymentResponse
     console.log("Package found:", packageData.name);
     console.log("Denom ID:", packageData.uniplay_denom_id);
 
+    // Get API key and base URL from config
+    const config = await db.queryRow<{ value: string }>`
+      SELECT value FROM admin_config WHERE key = 'dashboard_config'
+    `;
+
+    if (!config) {
+      throw APIError.internal("UniPlay config not found");
+    }
+
+    const dashboardConfig = JSON.parse(config.value);
+    const apiKey = dashboardConfig.uniplay?.apiKey || "";
+    const baseUrl = dashboardConfig.uniplay?.baseUrl || "https://api-reseller.uniplay.id/v1";
+
+    // Generate timestamp
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const timestamp = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
+
+    // Build request body
+    const requestBody: any = {
+      api_key: apiKey,
+      timestamp: timestamp,
+      entitas_id: product.uniplay_entitas_id,
+      denom_id: packageData.uniplay_denom_id,
+      user_id: req.userId,
+    };
+
+    if (req.serverId) {
+      requestBody.server_id = req.serverId;
+    }
+
+    const jsonString = JSON.stringify(requestBody);
+
+    // Generate curl command
+    const curlCommand = `curl -X POST "${baseUrl}/inquiry-payment" \\
+  -H "Content-Type: application/json" \\
+  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
+  -H "UPL-SIGNATURE: <akan-di-generate>" \\
+  -d '${jsonString}'`;
+
     try {
       const response = await inquiryPayment({
         entitas_id: product.uniplay_entitas_id,
@@ -74,7 +118,11 @@ export const testInquiry = api<TestInquiryRequest, UniPlayInquiryPaymentResponse
       });
 
       console.log("✅ Response:", JSON.stringify(response, null, 2));
-      return response;
+      
+      return {
+        ...response,
+        curlCommand,
+      };
     } catch (error: any) {
       console.error("❌ Error:", error);
       throw error;

@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   const [testingTransaction, setTestingTransaction] = useState(false);
   const [testUserId, setTestUserId] = useState("235791720");
   const [testServerId, setTestServerId] = useState("9227");
-  const [testRequestJson, setTestRequestJson] = useState("");
+  const [testCurlCommand, setTestCurlCommand] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
 
   useEffect(() => {
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
 
   const handleTestTransaction = async () => {
     setTestingTransaction(true);
-    setTestRequestJson("");
+    setTestCurlCommand("");
     setTestResponseJson("");
 
     try {
@@ -414,13 +414,6 @@ export default function AdminDashboard() {
         serverId: testServerId || undefined,
       };
 
-      setTestRequestJson(JSON.stringify({
-        product: "Mobile Legends: Bang Bang",
-        package: "3 Diamonds",
-        user_id: testUserId,
-        server_id: testServerId,
-      }, null, 2));
-
       toast({
         title: "🧪 Testing UniPlay Transaction",
         description: "Mengirim inquiry untuk ML 3 Diamonds...",
@@ -428,7 +421,11 @@ export default function AdminDashboard() {
 
       const result = await backend.uniplay.testInquiry(requestData);
 
-      setTestResponseJson(JSON.stringify(result, null, 2));
+      setTestCurlCommand(result.curlCommand || "");
+      
+      // Remove curlCommand from response before displaying
+      const { curlCommand, ...responseWithoutCurl } = result;
+      setTestResponseJson(JSON.stringify(responseWithoutCurl, null, 2));
 
       if (result.status === "200") {
         toast({
@@ -772,12 +769,12 @@ export default function AdminDashboard() {
 
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label className="text-slate-300">Request JSON</Label>
+                <Label className="text-slate-300">Request cURL</Label>
                 <Textarea
-                  value={testRequestJson}
+                  value={testCurlCommand}
                   readOnly
-                  className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs h-32 resize-none"
-                  placeholder="Request JSON akan muncul di sini..."
+                  className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs h-40 resize-none"
+                  placeholder="cURL command akan muncul di sini..."
                 />
               </div>
 
