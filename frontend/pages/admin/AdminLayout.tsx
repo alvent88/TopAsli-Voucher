@@ -110,7 +110,7 @@ export default function AdminLayout() {
             })}
           </nav>
           <div className="absolute bottom-0 w-64 p-3 border-t border-slate-800">
-            <Link to="/" onClick={() => {
+            <Link to="/voucher" onClick={() => {
               setMobileMenuOpen(false);
               setSidebarOpen(false);
             }}>
