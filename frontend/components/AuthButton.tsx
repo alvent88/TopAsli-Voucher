@@ -47,7 +47,10 @@ export function AuthButton() {
 
   const loadBalance = async () => {
     try {
-      const result = await backend.balance.getBalance();
+      const userId = sessionStorage.getItem("userId");
+      if (!userId) return;
+      
+      const result = await backend.balance.getUserBalance({ userId });
       setBalance(result.balance);
     } catch (error) {
       console.error("Failed to load balance:", error);
