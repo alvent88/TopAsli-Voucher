@@ -1,4 +1,3 @@
-import { useUser, useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogIn, UserCircle, User, History, LogOut, Shield, Ticket, Wallet } from "lucide-react";
@@ -14,20 +13,37 @@ import { useBackend } from "@/lib/useBackend";
 import { useEffect, useState } from "react";
 
 export function AuthButton() {
-  const { isSignedIn, user } = useUser();
-  const { signOut } = useClerk();
   const navigate = useNavigate();
   const backend = useBackend();
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [balance, setBalance] = useState<number | null>(null);
 
-  const isSuperAdmin = (user?.publicMetadata?.isSuperAdmin as boolean) || false;
-  const isAdmin = isSuperAdmin || (user?.publicMetadata?.isAdmin as boolean) || false;
-
   useEffect(() => {
-    if (isSignedIn && user) {
-      loadBalance();
-    }
-  }, [isSignedIn, user]);
+    const checkLoginStatus = () => {
+      const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+      const name = sessionStorage.getItem("userName") || "";
+      const email = sessionStorage.getItem("userEmail") || "";
+      
+      setIsLoggedIn(loggedIn);
+      setUserName(name);
+      setUserEmail(email);
+      
+      if (loggedIn) {
+        loadBalance();
+      }
+    };
+    
+    checkLoginStatus();
+    
+    window.addEventListener("storage", checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener("storage", checkLoginStatus);
+    };
+  }, []);
 
   const loadBalance = async () => {
     try {
@@ -46,12 +62,22 @@ export function AuthButton() {
     }).format(amount);
   };
 
-  if (isSignedIn) {
-    const firstName = user.firstName || "";
-    const lastName = user.lastName || "";
-    const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ");
-    const fullName = (user.unsafeMetadata?.fullName as string) || fullNameFromClerk || "User";
+  const handleLogout = () => {
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("userId");
+    sessionStorage.removeItem("userName");
+    sessionStorage.removeItem("userEmail");
     
+    setIsLoggedIn(false);
+    setUserName("");
+    setUserEmail("");
+    setBalance(null);
+    
+    navigate("/");
+    window.location.reload();
+  };
+
+  if (isLoggedIn) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -60,17 +86,17 @@ export function AuthButton() {
             className="text-white hover:text-blue-400 hover:bg-slate-800"
           >
             <UserCircle className="mr-2 h-4 w-4" />
-            {fullName}
+            {userName || "User"}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-64 bg-[#1a1f3a] border-slate-700" align="end">
           <DropdownMenuLabel className="text-white">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium">
-                {fullName}
+                {userName || "User"}
               </p>
               <p className="text-xs text-slate-400">
-                {user.emailAddresses[0]?.emailAddress}
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>
@@ -112,21 +138,11 @@ export function AuthButton() {
             <History className="mr-2 h-4 w-4" />
             Riwayat Transaksi
           </DropdownMenuItem>
-          {isAdmin && (
-            <>
-              <DropdownMenuSeparator className="bg-slate-700" />
-              <DropdownMenuItem
-                onClick={() => navigate("/admin")}
-                className="text-blue-400 hover:text-blue-300 hover:bg-slate-700 cursor-pointer"
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Panel
-              </DropdownMenuItem>
-            </>
-          )}
+          
           <DropdownMenuSeparator className="bg-slate-700" />
+          
           <DropdownMenuItem
-            onClick={() => signOut(() => navigate("/"))}
+            onClick={handleLogout}
             className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer"
           >
             <LogOut className="mr-2 h-4 w-4" />
