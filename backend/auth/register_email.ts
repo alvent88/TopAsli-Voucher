@@ -4,6 +4,7 @@ import db from "../db";
 
 export interface RegisterEmailRequest {
   email: string;
+  password: string;
   fullName: string;
   phoneNumber: string;
   birthDate: string;
@@ -16,7 +17,7 @@ export interface RegisterEmailResponse {
 
 export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
   { expose: true, method: "POST", path: "/auth/register-email", auth: false },
-  async ({ email, fullName, phoneNumber, birthDate }) => {
+  async ({ email, password, fullName, phoneNumber, birthDate }) => {
     try {
       console.log("=== REGISTER WITHOUT OTP START ===");
       console.log("Email:", email);
@@ -46,14 +47,19 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
         );
       }
       
+      const passwordHash = await Bun.password.hash(password, {
+        algorithm: "bcrypt",
+        cost: 10
+      });
+      
       const generatedUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
       await db.exec`
         INSERT INTO users (
-          clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at
+          clerk_user_id, email, password_hash, full_name, phone_number, birth_date, created_at, updated_at
         )
         VALUES (
-          ${generatedUserId}, ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}
+          ${generatedUserId}, ${email}, ${passwordHash}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}
         )
       `;
       

@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2, User, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, User, Phone, Calendar, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ export default function RegisterPage() {
   const backend = useBackend();
   
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -36,6 +38,33 @@ export default function RegisterPage() {
       toast({
         title: "Error",
         description: "Format email tidak valid",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!password.trim()) {
+      toast({
+        title: "Peringatan",
+        description: "Password wajib diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Peringatan",
+        description: "Password minimal 6 karakter",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Password dan konfirmasi password tidak sama",
         variant: "destructive",
       });
       return;
@@ -78,6 +107,7 @@ export default function RegisterPage() {
       
       const result = await backend.auth.registerEmail({
         email,
+        password,
         fullName,
         phoneNumber,
         birthDate,
@@ -154,6 +184,42 @@ export default function RegisterPage() {
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-300">
+                    Password *
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Minimal 6 karakter"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white pl-10"
+                      disabled={loading}
+                    />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-slate-300">
+                    Konfirmasi Password *
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Ulangi password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white pl-10"
+                      disabled={loading}
+                    />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-slate-300">
                     Nama Lengkap *
@@ -228,7 +294,7 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={loading || !email.trim() || !fullName.trim() || !phoneNumber.trim() || !birthDate.trim() || !acceptedTerms}
+                  disabled={loading || !email.trim() || !password.trim() || !confirmPassword.trim() || !fullName.trim() || !phoneNumber.trim() || !birthDate.trim() || !acceptedTerms}
                 >
                   {loading ? (
                     <>
