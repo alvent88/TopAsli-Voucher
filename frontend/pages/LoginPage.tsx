@@ -34,21 +34,23 @@ export default function LoginPhoneOnlyPage() {
       sessionStorage.setItem("isAdmin", response.isAdmin ? "true" : "false");
       sessionStorage.setItem("isSuperAdmin", response.isSuperAdmin ? "true" : "false");
 
+      let ipAddress = 'unknown';
       try {
-        let ipAddress = 'unknown';
-        try {
-          const ipResponse = await fetch('https://api.ipify.org?format=json', { 
-            method: 'GET',
-            signal: AbortSignal.timeout(3000)
-          });
+        const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+          method: 'GET',
+          signal: AbortSignal.timeout(3000)
+        });
+        if (ipResponse.ok) {
           const ipData = await ipResponse.json();
           ipAddress = ipData.ip || 'unknown';
-        } catch (ipError) {
-          console.error("Failed to get IP address:", ipError);
         }
-        
-        const userAgent = navigator.userAgent;
-        
+      } catch (ipError) {
+        console.error("Failed to get IP address:", ipError);
+      }
+      
+      const userAgent = navigator.userAgent;
+      
+      try {
         await backend.auth.trackLogin({
           userId: response.userId,
           email: undefined,
@@ -57,7 +59,6 @@ export default function LoginPhoneOnlyPage() {
           ipAddress: ipAddress,
           userAgent: userAgent,
         });
-
         console.log("Login tracked successfully");
       } catch (trackError) {
         console.error("Failed to track login:", trackError);
