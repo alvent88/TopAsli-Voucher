@@ -80,58 +80,74 @@ export default function ProductPage() {
     
     let inquiryId = "";
     let username = "";
-    let retryAttempt = 0;
-    const maxRetries = 2;
     
-    while (retryAttempt <= maxRetries) {
-      try {
-        const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
-          packageId: selectedPackage!,
-          userId,
-          serverId: gameId,
-        });
+    try {
+      const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
+        packageId: selectedPackage!,
+        userId,
+        serverId: gameId,
+      });
+      
+      inquiryId = inquiryResponse.inquiryId || "";
+      username = inquiryResponse.username || "";
+      
+      if (inquiryId && !username) {
+        let retryAttempt = 0;
+        const maxRetries = 2;
         
-        inquiryId = inquiryResponse.inquiryId;
-        username = inquiryResponse.username || "";
-        
-        if (!username && retryAttempt < maxRetries) {
+        while (retryAttempt < maxRetries) {
           retryAttempt++;
           toast({
             title: "Username tidak ditemukan",
             description: `Mencoba lagi... (${retryAttempt}/${maxRetries})`,
           });
           await new Promise(resolve => setTimeout(resolve, 1000));
-          continue;
+          
+          try {
+            const retryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
+              packageId: selectedPackage!,
+              userId,
+              serverId: gameId,
+            });
+            
+            if (retryResponse.username) {
+              username = retryResponse.username;
+              break;
+            }
+          } catch (retryError) {
+            console.error("Retry failed:", retryError);
+          }
         }
         
-        break;
-      } catch (error: any) {
-        console.error("Inquiry payment failed:", error);
-        
-        if (retryAttempt < maxRetries && error.message?.includes("User ID")) {
-          retryAttempt++;
+        if (!username) {
           toast({
-            title: "Validasi gagal",
-            description: `Mencoba lagi... (${retryAttempt}/${maxRetries})`,
+            title: "Peringatan",
+            description: "Username tidak dapat divalidasi. Pastikan User ID dan Game ID sudah benar sebelum melanjutkan.",
           });
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          continue;
         }
-        
-        setLoading(false);
+      }
+      
+      if (!inquiryId && !username) {
+        console.log("⚠️ Package not configured with UniPlay - proceeding without inquiry");
+      }
+      
+    } catch (error: any) {
+      console.error("Inquiry payment failed:", error);
+      
+      if (error.message?.includes("missing UniPlay configuration")) {
         toast({
-          title: "Error",
-          description: error.message || "Gagal memvalidasi data pembelian. Pastikan User ID dan Game ID benar.",
+          title: "⚠️ Produk Belum Dikonfigurasi",
+          description: "Admin perlu sync produk dari UniPlay terlebih dahulu. Hubungi admin untuk mengaktifkan produk ini.",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
-    }
-    
-    if (!username) {
+      
+      console.log("⚠️ Proceeding without inquiry payment");
       toast({
-        title: "Peringatan",
-        description: "Username tidak dapat divalidasi. Pastikan User ID dan Game ID sudah benar sebelum melanjutkan.",
+        title: "Info",
+        description: "Melanjutkan tanpa validasi UniPlay. Pastikan User ID dan Game ID benar.",
       });
     }
 

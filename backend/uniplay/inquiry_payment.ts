@@ -35,8 +35,16 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentR
 
     console.log("Package query result:", pkg);
 
-    if (!pkg || !pkg.uniplay_entitas_id || !pkg.uniplay_denom_id) {
-      throw APIError.invalidArgument("Package not found or missing UniPlay configuration. Please contact admin to configure UniPlay IDs for this package.");
+    if (!pkg) {
+      throw APIError.invalidArgument("Package not found");
+    }
+
+    if (!pkg.uniplay_entitas_id || !pkg.uniplay_denom_id) {
+      console.log("⚠️ Package missing UniPlay IDs - skipping inquiry payment");
+      return {
+        inquiryId: "",
+        username: undefined,
+      };
     }
 
     try {

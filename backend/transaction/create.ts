@@ -97,8 +97,20 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     console.log("=== CONFIRMING UNIPLAY PAYMENT ===");
     let uniplayOrderId = "";
     let uniplaySN = "";
+    
+    const pkgConfig = await db.queryRow<{ 
+      uniplay_entitas_id: string | null; 
+      uniplay_denom_id: string | null; 
+    }>`
+      SELECT uniplay_entitas_id, uniplay_denom_id 
+      FROM packages 
+      WHERE id = ${packageId}
+    `;
+    
+    const hasUniPlayConfig = pkgConfig?.uniplay_entitas_id && pkgConfig?.uniplay_denom_id;
+    
     try {
-      if (inquiryId) {
+      if (inquiryId && hasUniPlayConfig) {
         const { confirmPaymentEndpoint } = await import("../uniplay/confirm_payment");
         const confirmResponse = await confirmPaymentEndpoint({
           inquiryId,
@@ -111,7 +123,7 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
         console.log("✅ Item:", confirmResponse.trxItem);
         console.log("✅ Price:", confirmResponse.trxPrice);
         console.log("✅ Status:", confirmResponse.trxStatus);
-      } else {
+      } else if (hasUniPlayConfig) {
         console.log("⚠️ No inquiry ID provided, using legacy order creation");
         const productRow = await db.queryRow<{ slug: string }>`
           SELECT slug FROM products WHERE id = ${productId}
@@ -140,9 +152,13 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
             console.error("❌ UniPlay order failed:", uniplayOrder.message);
           }
         }
+      } else {
+        console.log("⚠️ Package not configured with UniPlay - skipping UniPlay order creation");
+        console.log("Transaction will be marked as success but won't have UniPlay order ID");
       }
     } catch (uniplayError) {
       console.error("❌ Failed to confirm UniPlay payment:", uniplayError);
+      console.log("⚠️ Transaction will still be marked as success");
     }
 
     console.log("=== SENDING PURCHASE CONFIRMATIONS ===");
