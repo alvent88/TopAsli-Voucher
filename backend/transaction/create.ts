@@ -108,7 +108,7 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
     const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
 
-    console.log("=== CONFIRMING UNIPLAY PAYMENT ===");
+    console.log("=== CHECKING UNIPLAY CONFIG ===");
     let uniplayOrderId = "";
     let uniplaySN = "";
     
@@ -124,20 +124,12 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     const hasUniPlayConfig = pkgConfig?.uniplay_entitas_id && pkgConfig?.uniplay_denom_id;
     
     try {
+      // NEW FLOW: Don't auto-confirm, will be confirmed from PurchaseInquiryPage
       if (inquiryId && hasUniPlayConfig) {
-        const { confirmPaymentEndpoint } = await import("../uniplay/confirm_payment_endpoint");
-        const confirmResponse = await confirmPaymentEndpoint({
-          inquiryId,
-          transactionId,
-        });
-        
-        uniplayOrderId = confirmResponse.orderId;
-        console.log("✅ UniPlay payment confirmed:", uniplayOrderId);
-        console.log("✅ Transaction Number:", confirmResponse.orderInfo.trxNumber);
-        console.log("✅ Item:", confirmResponse.orderInfo.trxItem);
-        console.log("✅ Price:", confirmResponse.orderInfo.trxPrice);
-        console.log("✅ Status:", confirmResponse.orderInfo.trxStatus);
+        console.log("✅ Transaction created with inquiry_id:", inquiryId);
+        console.log("⏳ Payment will be confirmed via confirm-payment endpoint");
       } else if (hasUniPlayConfig) {
+        // OLD FLOW: Legacy order creation for backward compatibility
         console.log("⚠️ No inquiry ID provided, using legacy order creation");
         const productRow = await db.queryRow<{ slug: string }>`
           SELECT slug FROM products WHERE id = ${productId}

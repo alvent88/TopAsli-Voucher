@@ -233,14 +233,19 @@ async function makeRequest<T>(endpoint: string, body: any): Promise<T> {
     orderedBody.api_key = config.apiKey;
     orderedBody.timestamp = timestamp;
     
-    // Add body keys in specific order if it's inquiry-payment
+    // Add body keys in specific order based on endpoint
     if (endpoint === "/inquiry-payment" && body.entitas_id) {
+      // inquiry-payment: api_key, timestamp, entitas_id, denom_id, user_id, [server_id]
       orderedBody.entitas_id = body.entitas_id;
       orderedBody.denom_id = body.denom_id;
       orderedBody.user_id = body.user_id;
       if (body.server_id) {
         orderedBody.server_id = body.server_id;
       }
+    } else if (endpoint === "/confirm-payment" && body.inquiry_id) {
+      // confirm-payment: api_key, timestamp, inquiry_id, pincode
+      orderedBody.inquiry_id = body.inquiry_id;
+      orderedBody.pincode = body.pincode;
     } else {
       // For other endpoints, just spread the body
       Object.assign(orderedBody, body);
