@@ -134,6 +134,8 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
 
       // Send WhatsApp notification after successful payment
       try {
+        console.log("=== SENDING WHATSAPP NOTIFICATION ===");
+        
         const transactionData = await db.queryRow<{
           user_id: string;
           game_id: string;
@@ -155,6 +157,8 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
           WHERE t.id = ${req.transactionId}
         `;
 
+        console.log("Transaction data loaded:", transactionData);
+
         const { createClerkClient } = await import("@clerk/backend");
         const { secret } = await import("encore.dev/config");
         const clerkSecretKey = secret("ClerkSecretKey");
@@ -164,16 +168,28 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
         const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
 
-        if (phoneNumber && transactionData) {
+        console.log("User data - Phone:", phoneNumber, "Name:", fullName);
+
+        if (!phoneNumber) {
+          console.log("⚠️ No phone number found, skipping WhatsApp");
+        } else if (!transactionData) {
+          console.log("⚠️ No transaction data found, skipping WhatsApp");
+        } else {
           const configRow = await db.queryRow<{ value: string }>`
             SELECT value FROM admin_config WHERE key = 'dashboard_config'
           `;
+
+          console.log("Config loaded:", configRow ? "Yes" : "No");
 
           if (configRow) {
             const config = JSON.parse(configRow.value);
             const fonnteToken = config.whatsapp?.fonnteToken || "";
 
-            if (fonnteToken) {
+            console.log("Fonnte token found:", fonnteToken ? "Yes" : "No");
+
+            if (!fonnteToken) {
+              console.log("⚠️ Fonnte token not configured, skipping WhatsApp");
+            } else {
               let formattedPhone = phoneNumber.replace(/\+/g, "").replace(/\s/g, "").replace(/-/g, "");
               
               if (formattedPhone.startsWith("0")) {
@@ -199,6 +215,8 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
               formData.append('countryCode', '62');
 
               console.log("📱 Sending WhatsApp confirmation...");
+              console.log("Target phone:", formattedPhone);
+              
               const waResponse = await fetch('https://api.fonnte.com/send', {
                 method: 'POST',
                 headers: {
@@ -208,8 +226,14 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
                 body: formData.toString(),
               });
 
-              const waData = await waResponse.json();
-              console.log("📱 WhatsApp sent:", JSON.stringify(waData, null, 2));
+              const waData = await waResponse.json() as any;
+              console.log("📱 WhatsApp API Response:", JSON.stringify(waData, null, 2));
+              
+              if (waResponse.ok && waData.status !== false) {
+                console.log("✅ WhatsApp sent successfully!");
+              } else {
+                console.error("❌ WhatsApp failed:", waData.reason || waData.message || "Unknown error");
+              }
             }
           }
         }
