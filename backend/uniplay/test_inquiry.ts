@@ -43,7 +43,7 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
     console.log("Product found:", product.name);
     console.log("Entitas ID:", product.uniplay_entitas_id);
 
-    // Find 3 Diamonds package
+    // Find 3 Diamonds package (exact match)
     const packageData = await db.queryRow<{
       id: number;
       name: string;
@@ -52,7 +52,7 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
       SELECT id, name, uniplay_denom_id
       FROM packages
       WHERE product_id = ${product.id}
-      AND (LOWER(name) LIKE '%3 diamond%' OR LOWER(name) LIKE '%3diamond%')
+      AND name = '3 Diamonds'
       AND uniplay_denom_id IS NOT NULL
       AND is_active = true
       LIMIT 1
