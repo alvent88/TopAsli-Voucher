@@ -234,7 +234,7 @@ export default function TransactionSuccessPage() {
               Lihat Riwayat Transaksi
             </Button>
             <Button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/voucher")}
               variant="outline"
               className="w-full border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
             >

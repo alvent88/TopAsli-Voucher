@@ -279,7 +279,7 @@ export default function ProductPage() {
         <div className="container mx-auto px-4 py-4">
           <Button
             variant="ghost"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/voucher")}
             className="text-slate-700 hover:text-blue-600"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

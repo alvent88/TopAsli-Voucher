@@ -70,7 +70,7 @@ export default function LoginPhoneOnlyPage() {
       });
 
       setTimeout(() => {
-        navigate("/");
+        navigate("/voucher");
       }, 1000);
     } catch (error: any) {
       console.error("Login failed:", error);
@@ -175,8 +175,8 @@ export default function LoginPhoneOnlyPage() {
         to="/"
         className="absolute top-6 left-6 flex items-center gap-3 text-gray-900 hover:opacity-80 transition-opacity z-20"
       >
-        <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
-        <span className="text-xl font-bold">TopAsli</span>
+        <img src="/logo.png" alt="CV Top Asli" className="w-12 h-12 rounded-full" />
+        <span className="text-2xl font-bold text-primary">CV Top Asli</span>
       </Link>
     </div>
   );

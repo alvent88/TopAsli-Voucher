@@ -8,9 +8,9 @@ export default function PrivacyPage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
-              <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
+              <img src="/logo.png" alt="CV Top Asli" className="w-12 h-12 rounded-full" />
               <span className="text-2xl font-bold text-primary">
-                TopAsli
+                CV Top Asli
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-6">

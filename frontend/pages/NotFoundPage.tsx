@@ -21,7 +21,7 @@ export default function NotFoundPage() {
           
           <div className="flex gap-3">
             <Button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/voucher")}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               Kembali ke Beranda

@@ -175,7 +175,7 @@ export default function RedeemVoucherPage() {
       });
 
       setTimeout(() => {
-        navigate("/");
+        navigate("/voucher");
       }, 2000);
     } catch (error: any) {
       console.error("Redeem error:", error);

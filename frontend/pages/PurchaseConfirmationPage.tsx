@@ -26,7 +26,7 @@ export default function PurchaseConfirmationPage() {
 
   useEffect(() => {
     if (!productId || !packageId || !userId || !gameId) {
-      navigate("/");
+      navigate("/voucher");
       return;
     }
     loadUserBalance();

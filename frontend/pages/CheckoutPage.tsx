@@ -11,7 +11,7 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-4 py-4">
           <Button
             variant="ghost"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/voucher")}
             className="text-white hover:text-purple-300"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

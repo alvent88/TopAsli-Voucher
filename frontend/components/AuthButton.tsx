@@ -79,7 +79,7 @@ export function AuthButton() {
     setUserPhone("");
     setBalance(null);
     
-    navigate("/");
+    navigate("/voucher");
     window.location.reload();
   };
 
