@@ -31,6 +31,7 @@ export default function PurchaseInquiryPage() {
   const packageId = parseInt(searchParams.get("packageId") || "0");
   const userId = searchParams.get("userId") || "";
   const serverId = searchParams.get("serverId") || "";
+  const preValidatedUsername = searchParams.get("username") || "";
 
   useEffect(() => {
     if (!packageId || !userId) {
@@ -64,7 +65,8 @@ export default function PurchaseInquiryPage() {
       }
 
       setInquiryData(response);
-      setUsername(response.username || "-");
+      // Use pre-validated username from ProductPage if available, otherwise use UniPlay inquiry username
+      setUsername(preValidatedUsername || response.username || "-");
     } catch (error: any) {
       console.error("Inquiry failed:", error);
       toast({

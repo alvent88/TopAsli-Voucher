@@ -134,6 +134,10 @@ export default function ProductPage() {
       params.append("serverId", gameId);
     }
 
+    if (validatedUsername) {
+      params.append("username", validatedUsername);
+    }
+
     navigate(`/purchase-inquiry?${params.toString()}`);
   };
 
