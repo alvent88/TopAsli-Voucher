@@ -59,7 +59,15 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentR
         server_id: serverId,
       });
 
-      console.log("UniPlay inquiry response:", JSON.stringify(response, null, 2));
+      console.log("=== UNIPLAY INQUIRY RAW RESPONSE ===");
+      console.log(JSON.stringify(response, null, 2));
+      console.log("=== RESPONSE DETAILS ===");
+      console.log("Status:", response.status);
+      console.log("Message:", response.message);
+      console.log("Inquiry ID:", response.inquiry_id);
+      console.log("Inquiry Info exists?", !!response.inquiry_info);
+      console.log("Inquiry Info:", JSON.stringify(response.inquiry_info, null, 2));
+      console.log("Username from inquiry_info:", response.inquiry_info?.username);
 
       if (response.status !== "200") {
         throw APIError.invalidArgument(response.message || "Inquiry payment failed");

@@ -148,12 +148,14 @@ export default function PurchaseConfirmationPage() {
                 <span className="text-slate-400">Server ID</span>
                 <span className="text-white font-mono text-xs">{gameId}</span>
               </div>
-              {username && (
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Username</span>
-                  <span className="text-green-400 font-semibold text-sm">{username}</span>
-                </div>
-              )}
+              <div className="flex justify-between">
+                <span className="text-slate-400">Username</span>
+                {username ? (
+                  <span className="text-green-400 font-semibold text-sm">✓ {username}</span>
+                ) : (
+                  <span className="text-yellow-400 font-semibold text-sm">⚠ Belum Tervalidasi</span>
+                )}
+              </div>
               <div className="border-t border-slate-700 pt-2 mt-2 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-400 flex items-center gap-2">
