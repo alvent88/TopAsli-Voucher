@@ -40,7 +40,7 @@ export const list = api<ListPackagesParams, ListPackagesResponse>(
     }
 
     const rows = await db.queryAll<any>`
-      SELECT id, product_id, name, amount, unit, price, discount_price, is_active, is_special_item
+      SELECT id, product_id, name, amount, unit, price, discount_price, is_active, is_special_item, uniplay_denom_id
       FROM packages
       WHERE product_id = ${productId} AND is_active = true
       ORDER BY price
@@ -63,6 +63,7 @@ export const list = api<ListPackagesParams, ListPackagesResponse>(
         discountPrice: finalDiscountPrice,
         isActive: row.is_active,
         isSpecialItem: row.is_special_item || false,
+        uniplayDenomId: row.uniplay_denom_id,
       };
     });
 

@@ -26,7 +26,7 @@ interface ListProductsResponse {
 export const list = api<ListProductsParams, ListProductsResponse>(
   { expose: true, method: "GET", path: "/products" },
   async ({ category }) => {
-    let query = `SELECT id, name, slug, category, icon_url, description, is_active, is_featured, requires_server_id FROM products WHERE is_active = true`;
+    let query = `SELECT id, name, slug, category, icon_url, description, is_active, is_featured, requires_server_id, uniplay_entitas_id FROM products WHERE is_active = true`;
     const params: any[] = [];
 
     if (category) {
@@ -47,6 +47,7 @@ export const list = api<ListProductsParams, ListProductsResponse>(
       isActive: row.is_active,
       isFeatured: row.is_featured || false,
       requiresServerId: row.requires_server_id ?? true,
+      uniplayEntitasId: row.uniplay_entitas_id,
     }));
 
     return { products };
