@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
   const [testingML, setTestingML] = useState(false);
+  const [mlCurlCommand, setMlCurlCommand] = useState("");
   const [mlTestRequest, setMlTestRequest] = useState("");
   const [mlTestResponse, setMlTestResponse] = useState("");
 
@@ -421,11 +422,13 @@ export default function AdminDashboard() {
 
   const handleTestMLInquiry = async () => {
     setTestingML(true);
+    setMlCurlCommand("");
     setMlTestRequest("");
     setMlTestResponse("");
     try {
       const result = await backend.uniplay.testInquiryML();
       
+      setMlCurlCommand(result.curlCommand);
       const formattedRequest = JSON.stringify(result.rawRequest, null, 2);
       const formattedResponse = JSON.stringify(result.rawResponse, null, 2);
       
@@ -808,6 +811,16 @@ export default function AdminDashboard() {
               >
                 {testingML ? "Testing..." : "🧪 Test Inquiry Payment"}
               </Button>
+            )}
+            {mlCurlCommand && (
+              <div className="space-y-2">
+                <Label className="text-slate-300">📋 CURL Command (Copy & Paste ke Terminal):</Label>
+                <Textarea
+                  value={mlCurlCommand}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-yellow-400 font-mono text-xs min-h-[200px]"
+                />
+              </div>
             )}
             {mlTestRequest && (
               <div className="space-y-2">

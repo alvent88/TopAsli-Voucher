@@ -5,6 +5,7 @@ import db from "../db";
 
 export interface TestInquiryMLResponse {
   success: boolean;
+  curlCommand: string;
   rawRequest: {
     entitas_id: string;
     denom_id: string;
@@ -73,6 +74,44 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
 
     console.log("Test request:", testRequest);
 
+    // Get config untuk buat curl command
+    const config = await db.queryRow<{ value: string }>`
+      SELECT value FROM admin_config WHERE key = 'dashboard_config'
+    `;
+    
+    let apiKey = "YOUR_API_KEY";
+    let baseUrl = "https://api-reseller.uniplay.id/v1";
+    
+    if (config) {
+      const dashboardConfig = JSON.parse(config.value);
+      if (dashboardConfig.uniplay) {
+        apiKey = dashboardConfig.uniplay.apiKey || apiKey;
+        baseUrl = dashboardConfig.uniplay.baseUrl || baseUrl;
+      }
+    }
+
+    // Generate timestamp
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const timestamp = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
+
+    // Generate signature (simplified - actual signature in client.ts)
+    const requestBodyWithAuth = {
+      api_key: apiKey,
+      timestamp: timestamp,
+      ...testRequest,
+    };
+
+    // Generate curl command
+    const curlCommand = `curl -X POST '${baseUrl}/inquiry-payment' \\\n` +
+      `  -H 'Content-Type: application/json' \\\n` +
+      `  -H 'UPL-ACCESS-TOKEN: <WILL_BE_GENERATED>' \\\n` +
+      `  -H 'UPL-SIGNATURE: <WILL_BE_GENERATED>' \\\n` +
+      `  -d '${JSON.stringify(requestBodyWithAuth, null, 2).replace(/\n/g, '\\\n  ')}'`;
+
+    console.log("Generated curl command:");
+    console.log(curlCommand);
+
     try {
       const response = await inquiryPayment(testRequest);
       
@@ -96,6 +135,7 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
 
       return {
         success: true,
+        curlCommand,
         rawRequest: testRequest,
         rawResponse: response,
         expectedFormat,
