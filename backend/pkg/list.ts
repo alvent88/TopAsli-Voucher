@@ -11,6 +11,7 @@ export interface Package {
   discountPrice: number | null;
   isActive: boolean;
   isSpecialItem: boolean;
+  uniplayEntitasId?: string | null;
   uniplayDenomId?: string | null;
 }
 
