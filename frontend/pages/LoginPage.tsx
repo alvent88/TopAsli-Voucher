@@ -41,8 +41,6 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await backend.auth.checkUser({ identifier: email });
-      
       console.log("Creating signIn with email:", email);
       await signIn?.create({ identifier: email });
       
