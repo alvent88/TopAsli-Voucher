@@ -41,10 +41,10 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
 
     console.log("=== TEST INQUIRY MOBILE LEGENDS ===");
     
-    // Step 1: Find Mobile Legends package
+    // Step 1: Find Mobile Legends: Bang Bang ID - 3 Diamonds package (ID 1658)
     let mlPackage;
     try {
-      console.log("Step 1: Querying database for Mobile Legends package...");
+      console.log("Step 1: Querying database for Mobile Legends: Bang Bang ID - 3 Diamonds...");
       mlPackage = await db.queryRow<{
         id: number;
         name: string;
@@ -58,10 +58,10 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
           p.uniplay_denom_id
         FROM packages p
         INNER JOIN products pr ON p.product_id = pr.id
-        WHERE pr.name ILIKE '%Mobile Legends%'
+        WHERE pr.name = 'Mobile Legends: Bang Bang ID'
+        AND p.name = '3 Diamonds'
         AND p.uniplay_denom_id IS NOT NULL
         AND pr.uniplay_entitas_id IS NOT NULL
-        ORDER BY p.id
         LIMIT 1
       `;
       console.log("Database query result:", mlPackage);
