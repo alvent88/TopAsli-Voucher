@@ -11,6 +11,7 @@ export interface Product {
   isActive: boolean;
   isFeatured: boolean;
   requiresServerId?: boolean;
+  uniplayEntitasId?: string | null;
 }
 
 interface ListProductsParams {

@@ -89,9 +89,12 @@ export default function PurchaseInquiryPage() {
 
       // Create transaction first
       const createResponse = await backend.transaction.create({
+        productId: inquiryData.productId,
         packageId,
         userId,
-        serverId: serverId || undefined,
+        gameId: serverId || "",
+        inquiryId: inquiryData.inquiryId,
+        username: inquiryData.username,
       });
 
       console.log("Transaction created:", createResponse);

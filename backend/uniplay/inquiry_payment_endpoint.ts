@@ -14,6 +14,7 @@ export interface InquiryPaymentEndpointResponse {
   inquiryId: string;
   username?: string;
   message?: string;
+  productId?: number;
   productName?: string;
   packageName?: string;
   price?: number;
@@ -97,6 +98,7 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentE
         success: true,
         inquiryId: response.inquiry_id,
         username: response.inquiry_info?.username,
+        productId: packageData.product_id,
         productName: packageData.product_name,
         packageName: packageData.package_name,
         price: packageData.package_price,

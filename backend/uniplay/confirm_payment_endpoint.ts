@@ -5,7 +5,7 @@ import { confirmPayment, UniPlayConfirmPaymentResponse } from "./client";
 
 export interface ConfirmPaymentRequest {
   inquiryId: string;
-  transactionId: number;
+  transactionId: string;
 }
 
 export interface ConfirmPaymentEndpointResponse {
@@ -87,6 +87,39 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         throw APIError.internal("No order_id in UniPlay response");
       }
 
+      // Get transaction details to deduct balance
+      const transactionDetails = await db.queryRow<{
+        price: number;
+      }>`
+        SELECT price
+        FROM transactions
+        WHERE id = ${req.transactionId}
+      `;
+
+      if (!transactionDetails) {
+        throw APIError.internal("Transaction details not found");
+      }
+
+      // Deduct balance
+      const userBalance = await db.queryRow<{ balance: number }>`
+        SELECT balance FROM user_balance WHERE user_id = ${auth.userID}
+      `;
+
+      const balance = userBalance?.balance || 0;
+      const newBalance = balance - transactionDetails.price;
+
+      if (newBalance < 0) {
+        throw APIError.invalidArgument(`Insufficient balance. Your balance: Rp ${balance.toLocaleString('id-ID')}, Price: Rp ${transactionDetails.price.toLocaleString('id-ID')}`);
+      }
+
+      await db.exec`
+        UPDATE user_balance
+        SET balance = ${newBalance}
+        WHERE user_id = ${auth.userID}
+      `;
+
+      console.log(`Balance updated: ${balance} -> ${newBalance}`);
+
       // Update transaction with UniPlay order_id
       await db.exec`
         UPDATE transactions
@@ -102,7 +135,13 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
       return {
         success: true,
         orderId: response.order_id,
-        orderInfo: response.order_info,
+        orderInfo: {
+          trxNumber: response.order_info.trx_number,
+          trxDateOrder: response.order_info.trx_date_order,
+          trxItem: response.order_info.trx_item,
+          trxPrice: response.order_info.trx_price,
+          trxStatus: response.order_info.trx_status,
+        },
         message: "Payment confirmed successfully",
       };
     } catch (err: any) {

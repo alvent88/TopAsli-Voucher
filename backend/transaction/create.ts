@@ -13,9 +13,9 @@ const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 interface CreateTransactionParams {
   productId: number;
   packageId: number;
-  paymentMethodId: number;
+  paymentMethodId?: number;
   userId: string;
-  gameId: string;
+  gameId?: string;
   inquiryId?: string;
   username?: string;
 }
@@ -24,17 +24,20 @@ interface CreateTransactionResponse {
   id: string;
   total: number;
   status: string;
+  transactionId: string;
 }
 
 export const create = api<CreateTransactionParams, CreateTransactionResponse>(
   { expose: true, method: "POST", path: "/transactions", auth: true },
-  async ({ productId, packageId, paymentMethodId, userId, gameId, inquiryId, username }) => {
+  async ({ productId, packageId, paymentMethodId = 1, userId, gameId = "", inquiryId, username }) => {
     const auth = getAuthData()!;
     
     console.log("=== CREATE TRANSACTION START ===");
     console.log("User ID:", auth.userID);
     console.log("Product ID:", productId);
     console.log("Package ID:", packageId);
+    console.log("Payment Method ID:", paymentMethodId);
+    console.log("Inquiry ID:", inquiryId);
     
     const pkg = await db.queryRow<{ price: number; name: string; amount: number; unit: string }>`
       SELECT price, name, amount, unit FROM packages WHERE id = ${packageId} AND product_id = ${productId} AND is_active = true
@@ -74,20 +77,31 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     const fee = Math.round(price * paymentMethod.fee_percent / 100) + paymentMethod.fee_fixed;
     const total = price + fee;
     const transactionId = `TRX${Date.now()}`;
+    
+    // Use 'pending' status if inquiryId is provided (new flow), otherwise 'success' (old flow)
+    const status = inquiryId ? 'pending' : 'success';
 
     await db.exec`
       INSERT INTO transactions (id, product_id, package_id, payment_method_id, user_id, game_id, amount, price, fee, total, status, clerk_user_id)
-      VALUES (${transactionId}, ${productId}, ${packageId}, ${paymentMethodId}, ${userId}, ${gameId}, ${pkg.price}, ${price}, ${fee}, ${total}, 'success', ${auth.userID})
+      VALUES (${transactionId}, ${productId}, ${packageId}, ${paymentMethodId}, ${userId}, ${gameId}, ${pkg.price}, ${price}, ${fee}, ${total}, ${status}, ${auth.userID})
     `;
 
+    // Calculate new balance for display (even if not deducted yet in pending status)
     const newBalance = balance - price;
-    await db.exec`
-      UPDATE user_balance
-      SET balance = ${newBalance}
-      WHERE user_id = ${auth.userID}
-    `;
+    
+    // Only deduct balance if status is 'success' (old flow)
+    // In new flow, balance will be deducted after confirm payment
+    if (status === 'success') {
+      await db.exec`
+        UPDATE user_balance
+        SET balance = ${newBalance}
+        WHERE user_id = ${auth.userID}
+      `;
 
-    console.log(`Balance updated: ${balance} -> ${newBalance}`);
+      console.log(`Balance updated: ${balance} -> ${newBalance}`);
+    } else {
+      console.log(`Transaction created with pending status, balance will be deducted after confirmation`);
+    }
 
     const user = await clerkClient.users.getUser(auth.userID);
     const email = user.emailAddresses[0]?.emailAddress || "";
@@ -111,7 +125,7 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     
     try {
       if (inquiryId && hasUniPlayConfig) {
-        const { confirmPaymentEndpoint } = await import("../uniplay/confirm_payment");
+        const { confirmPaymentEndpoint } = await import("../uniplay/confirm_payment_endpoint");
         const confirmResponse = await confirmPaymentEndpoint({
           inquiryId,
           transactionId,
@@ -119,10 +133,10 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
         
         uniplayOrderId = confirmResponse.orderId;
         console.log("✅ UniPlay payment confirmed:", uniplayOrderId);
-        console.log("✅ Transaction Number:", confirmResponse.trxNumber);
-        console.log("✅ Item:", confirmResponse.trxItem);
-        console.log("✅ Price:", confirmResponse.trxPrice);
-        console.log("✅ Status:", confirmResponse.trxStatus);
+        console.log("✅ Transaction Number:", confirmResponse.orderInfo.trxNumber);
+        console.log("✅ Item:", confirmResponse.orderInfo.trxItem);
+        console.log("✅ Price:", confirmResponse.orderInfo.trxPrice);
+        console.log("✅ Status:", confirmResponse.orderInfo.trxStatus);
       } else if (hasUniPlayConfig) {
         console.log("⚠️ No inquiry ID provided, using legacy order creation");
         const productRow = await db.queryRow<{ slug: string }>`
@@ -252,8 +266,9 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
 
     return {
       id: transactionId,
+      transactionId: transactionId,
       total,
-      status: "success",
+      status,
     };
   }
 );
