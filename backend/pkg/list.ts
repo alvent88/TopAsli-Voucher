@@ -25,6 +25,19 @@ interface ListPackagesResponse {
 export const list = api<ListPackagesParams, ListPackagesResponse>(
   { expose: true, method: "GET", path: "/packages" },
   async ({ productId }) => {
+    const globalDiscountRow = await db.queryRow<{ value: string }>`
+      SELECT value FROM admin_config WHERE key = 'global_discount'
+    `;
+
+    let globalDiscountPercent = 0;
+    if (globalDiscountRow) {
+      try {
+        globalDiscountPercent = parseFloat(globalDiscountRow.value);
+      } catch (e) {
+        globalDiscountPercent = 0;
+      }
+    }
+
     const rows = await db.queryAll<any>`
       SELECT id, product_id, name, amount, unit, price, discount_price, is_active, is_special_item
       FROM packages
@@ -32,17 +45,25 @@ export const list = api<ListPackagesParams, ListPackagesResponse>(
       ORDER BY price
     `;
 
-    const packages = rows.map((row) => ({
-      id: row.id,
-      productId: row.product_id,
-      name: row.name,
-      amount: row.amount,
-      unit: row.unit,
-      price: row.price,
-      discountPrice: row.discount_price,
-      isActive: row.is_active,
-      isSpecialItem: row.is_special_item || false,
-    }));
+    const packages = rows.map((row) => {
+      let finalDiscountPrice = row.discount_price;
+      
+      if (!finalDiscountPrice && globalDiscountPercent > 0) {
+        finalDiscountPrice = Math.round(row.price * (100 - globalDiscountPercent) / 100);
+      }
+      
+      return {
+        id: row.id,
+        productId: row.product_id,
+        name: row.name,
+        amount: row.amount,
+        unit: row.unit,
+        price: row.price,
+        discountPrice: finalDiscountPrice,
+        isActive: row.is_active,
+        isSpecialItem: row.is_special_item || false,
+      };
+    });
 
     return { packages };
   }

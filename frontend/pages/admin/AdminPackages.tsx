@@ -435,8 +435,11 @@ export default function AdminPackages() {
                         {formatCurrency(pkg.price)}
                       </TableCell>
                       <TableCell className="text-green-300 font-medium">
-                        {formatCurrency(calculateDiscountedPrice(pkg.price))}
-                        {globalDiscount > 0 && (
+                        {pkg.discountPrice && pkg.discountPrice < pkg.price 
+                          ? formatCurrency(pkg.discountPrice)
+                          : formatCurrency(calculateDiscountedPrice(pkg.price))
+                        }
+                        {!pkg.discountPrice && globalDiscount > 0 && (
                           <span className="ml-2 text-xs text-red-400">(-{globalDiscount}%)</span>
                         )}
                       </TableCell>

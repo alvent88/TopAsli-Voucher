@@ -77,38 +77,81 @@ export default function ProductPage() {
       : selectedPkg?.price;
 
     setLoading(true);
-    try {
-      const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
-        packageId: selectedPackage!,
-        userId,
-        serverId: gameId,
-      });
-
-      navigate("/purchase-confirmation", {
-        state: {
-          productId: product!.id,
-          packageId: selectedPackage,
+    
+    let inquiryId = "";
+    let username = "";
+    let retryAttempt = 0;
+    const maxRetries = 2;
+    
+    while (retryAttempt <= maxRetries) {
+      try {
+        const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
+          packageId: selectedPackage!,
           userId,
-          gameId,
-          productName: product!.name,
-          packageName: selectedPkg?.name,
-          price: finalPrice,
-          originalPrice: selectedPkg?.price,
-          discountPrice: selectedPkg?.discountPrice,
-          inquiryId: inquiryResponse.inquiryId,
-          username: inquiryResponse.username,
-        },
-      });
-    } catch (error: any) {
-      console.error("Inquiry payment failed:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Gagal memvalidasi data pembelian",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+          serverId: gameId,
+        });
+        
+        inquiryId = inquiryResponse.inquiryId;
+        username = inquiryResponse.username || "";
+        
+        if (!username && retryAttempt < maxRetries) {
+          retryAttempt++;
+          toast({
+            title: "Username tidak ditemukan",
+            description: `Mencoba lagi... (${retryAttempt}/${maxRetries})`,
+          });
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        break;
+      } catch (error: any) {
+        console.error("Inquiry payment failed:", error);
+        
+        if (retryAttempt < maxRetries && error.message?.includes("User ID")) {
+          retryAttempt++;
+          toast({
+            title: "Validasi gagal",
+            description: `Mencoba lagi... (${retryAttempt}/${maxRetries})`,
+          });
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        setLoading(false);
+        toast({
+          title: "Error",
+          description: error.message || "Gagal memvalidasi data pembelian. Pastikan User ID dan Game ID benar.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
+    
+    if (!username) {
+      toast({
+        title: "Peringatan",
+        description: "Username tidak dapat divalidasi. Pastikan User ID dan Game ID sudah benar sebelum melanjutkan.",
+      });
+    }
+
+    navigate("/purchase-confirmation", {
+      state: {
+        productId: product!.id,
+        packageId: selectedPackage,
+        userId,
+        gameId,
+        productName: product!.name,
+        packageName: selectedPkg?.name,
+        price: finalPrice,
+        originalPrice: selectedPkg?.price,
+        discountPrice: selectedPkg?.discountPrice,
+        inquiryId,
+        username,
+      },
+    });
+    
+    setLoading(false);
   };
 
   const formatCurrency = (amount: number) => {
