@@ -1,12 +1,7 @@
 import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
 import db from "../db";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 interface ListUsersResponse {
   users: {
@@ -38,74 +33,40 @@ export const listUsers = api<void, ListUsersResponse>(
     }
 
     try {
-      const clerkUsers = await clerkClient.users.getUserList({
-        limit: 500,
-        orderBy: "-created_at",
-      });
+      const dbUsers = await db.query<{
+        clerk_user_id: string;
+        email: string | null;
+        full_name: string | null;
+        phone_number: string | null;
+        birth_date: string | null;
+        created_at: Date;
+      }>`
+        SELECT clerk_user_id, email, full_name, phone_number, birth_date::text as birth_date, created_at
+        FROM users
+        ORDER BY created_at DESC
+      `;
 
-      const users = await Promise.all(clerkUsers.data.map(async (user) => {
-        const metadata = user.unsafeMetadata as any;
-        const publicMeta = user.publicMetadata as any;
-        
+      const users = await Promise.all(dbUsers.map(async (user) => {
         let balance = 0;
         try {
           const balanceRow = await db.queryRow<{ balance: number }>`
-            SELECT balance FROM user_balance WHERE user_id = ${user.id}
+            SELECT balance FROM user_balance WHERE user_id = ${user.clerk_user_id}
           `;
           balance = balanceRow?.balance || 0;
         } catch (err) {
-          console.error(`Failed to get balance for user ${user.id}:`, err);
+          console.error(`Failed to get balance for user ${user.clerk_user_id}:`, err);
         }
 
         let isBanned = false;
         let bannedAt = null;
         let bannedReason = null;
-        let birthDate = null;
-        let fullNameFromDB = null;
-        let phoneFromDB = null;
-        const email = user.emailAddresses[0]?.emailAddress || null;
         
-        try {
-          const userRow = await db.queryRow<{ 
-            birth_date: string | null;
-            full_name: string | null;
-            phone_number: string | null;
-          }>`
-            SELECT birth_date::text as birth_date, full_name, phone_number 
-            FROM users 
-            WHERE clerk_user_id = ${user.id}
-          `;
-          
-          if (userRow) {
-            if (userRow.birth_date) {
-              birthDate = userRow.birth_date.split('T')[0];
-            }
-            fullNameFromDB = userRow.full_name;
-            phoneFromDB = userRow.phone_number;
-          }
-        } catch (err) {
-          const firstName = user.firstName || "";
-          const lastName = user.lastName || "";
-          const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
-          const phoneNumber = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || null;
-          
-          try {
-            await db.exec`
-              INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
-              VALUES (${user.id}, ${email}, ${fullName}, ${phoneNumber}, '2000-01-01', NOW(), NOW())
-            `;
-            birthDate = '2000-01-01';
-          } catch (insertErr) {
-            console.error(`Failed to auto-create user ${user.id}:`, insertErr);
-          }
-        }
-        
-        if (email) {
+        if (user.email) {
           try {
             const registrationRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string }>`
               SELECT is_banned, banned_at, banned_reason
               FROM email_registrations 
-              WHERE email = ${email}
+              WHERE email = ${user.email}
             `;
             if (registrationRow) {
               isBanned = registrationRow.is_banned;
@@ -113,32 +74,25 @@ export const listUsers = api<void, ListUsersResponse>(
               bannedReason = registrationRow.banned_reason;
             }
           } catch (err) {
-            console.error(`Failed to get registration data for user ${user.id}:`, err);
+            console.error(`Failed to get registration data for user ${user.clerk_user_id}:`, err);
           }
         }
         
-        const firstName = user.firstName || null;
-        const lastName = user.lastName || null;
-        const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ") || null;
-        
-        // Priority: Database > Clerk metadata > Clerk firstName/lastName
-        const fullName = fullNameFromDB || metadata?.fullName || fullNameFromClerk || null;
-        
-        // Priority: Database > Clerk phone > metadata phone
-        const phoneNumber = phoneFromDB || user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || publicMeta?.phoneNumber || metadata?.phoneNumber || null;
+        const isSuperAdmin = user.email === "alvent88@gmail.com";
+        const isAdmin = isSuperAdmin;
         
         return {
-          id: user.id,
-          email,
-          phoneNumber,
-          firstName,
-          lastName,
-          fullName,
-          birthDate,
-          createdAt: new Date(user.createdAt).toISOString(),
-          lastSignInAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
-          isAdmin: publicMeta?.isAdmin || false,
-          isSuperAdmin: publicMeta?.isSuperAdmin || false,
+          id: user.clerk_user_id,
+          email: user.email,
+          phoneNumber: user.phone_number,
+          firstName: null,
+          lastName: null,
+          fullName: user.full_name,
+          birthDate: user.birth_date ? user.birth_date.split('T')[0] : null,
+          createdAt: new Date(user.created_at).toISOString(),
+          lastSignInAt: null,
+          isAdmin,
+          isSuperAdmin,
           balance,
           isBanned,
           bannedAt,
@@ -176,7 +130,14 @@ export const deleteUser = api<DeleteUserRequest, DeleteUserResponse>(
     }
 
     try {
-      await clerkClient.users.deleteUser(userId);
+      await db.exec`
+        DELETE FROM users WHERE clerk_user_id = ${userId}
+      `;
+      
+      await db.exec`
+        DELETE FROM user_balance WHERE user_id = ${userId}
+      `;
+      
       return { success: true };
     } catch (err) {
       console.error("Error deleting user:", err);
