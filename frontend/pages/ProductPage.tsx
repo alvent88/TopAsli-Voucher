@@ -25,10 +25,6 @@ export default function ProductPage() {
   const [userId, setUserId] = useState("");
   const [gameId, setGameId] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
-  const [validatedUsername, setValidatedUsername] = useState<string>("");
-  const [validating, setValidating] = useState(false);
-  const [validationError, setValidationError] = useState<string>("");
-  const [gameSupported, setGameSupported] = useState<boolean>(true);
   const [uniplayUsername, setUniplayUsername] = useState<string>("");
   const [uniplayValidating, setUniplayValidating] = useState(false);
 
@@ -37,62 +33,6 @@ export default function ProductPage() {
       loadData();
     }
   }, [slug]);
-
-  const validateUsername = async () => {
-    if (!userId || !product) {
-      setValidatedUsername("");
-      setValidationError("");
-      setGameSupported(true);
-      return;
-    }
-
-    if (product.requiresServerId && !gameId) {
-      setValidatedUsername("");
-      setValidationError("");
-      setGameSupported(true);
-      return;
-    }
-
-    setValidating(true);
-    setValidationError("");
-    
-    try {
-      const response = await authBackend.uniplay.validateUsernameByProduct({
-        productId: product.id,
-        userId,
-        serverId: gameId || undefined,
-      });
-
-      setGameSupported(response.gameSupported);
-
-      if (response.success && response.username) {
-        setValidatedUsername(response.username);
-        setValidationError("");
-      } else {
-        setValidatedUsername("");
-        if (response.gameSupported) {
-          setValidationError(response.message || "Username tidak valid");
-        } else {
-          setValidationError("");
-        }
-      }
-    } catch (error: any) {
-      console.error("Validation error:", error);
-      setValidatedUsername("");
-      setValidationError(error.message || "Gagal memvalidasi username");
-      setGameSupported(true);
-    } finally {
-      setValidating(false);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      validateUsername();
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [userId, gameId, product]);
 
   // Validate with UniPlay when package is selected
   useEffect(() => {
@@ -191,10 +131,9 @@ export default function ProductPage() {
       params.append("serverId", gameId);
     }
 
-    // Prioritas username: UniPlay > API gratis > kosong
-    const finalUsername = uniplayUsername || validatedUsername;
-    if (finalUsername) {
-      params.append("username", finalUsername);
+    // Pass username dari UniPlay inquiry
+    if (uniplayUsername) {
+      params.append("username", uniplayUsername);
     }
 
     navigate(`/purchase-inquiry?${params.toString()}`);
@@ -287,28 +226,6 @@ export default function ProductPage() {
                       placeholder="Masukkan Server ID"
                       className="bg-white/10 border-white/20 text-white"
                     />
-                  </div>
-                )}
-                {validatedUsername && (
-                  <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-green-400 text-sm">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="font-medium">Username: {validatedUsername}</span>
-                    </div>
-                  </div>
-                )}
-                {validationError && gameSupported && (
-                  <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-red-400 text-sm">
-                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                      <span className="font-medium">{validationError}</span>
-                    </div>
-                  </div>
-                )}
-                {validating && (
-                  <div className="text-blue-400 text-sm flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                    Memvalidasi...
                   </div>
                 )}
                 {uniplayUsername && selectedPackage && (
@@ -500,23 +417,12 @@ export default function ProductPage() {
                     !selectedPackage || 
                     (product?.requiresServerId !== false && !gameId) || 
                     loading || 
-                    validating ||
-                    (gameSupported && !validatedUsername)
+                    uniplayValidating
                   }
                   className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
                 >
-                  {validating ? "Memvalidasi..." : loading ? "Memproses..." : "Beli Sekarang"}
+                  {uniplayValidating ? "Memverifikasi..." : loading ? "Memproses..." : "Beli Sekarang"}
                 </Button>
-                {gameSupported && !validatedUsername && !validationError && userId && selectedPackage && (product?.requiresServerId === false || gameId) && !validating && (
-                  <div className="text-yellow-400 text-xs text-center mt-2">
-                    ⚠️ Menunggu validasi username...
-                  </div>
-                )}
-                {validationError && gameSupported && (
-                  <div className="text-red-400 text-xs text-center mt-2">
-                    ❌ {validationError}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
