@@ -35,25 +35,25 @@ export default function ProductPage() {
   }, [slug]);
 
   const validateUsername = async () => {
-    if (!userId || !selectedPackage) {
+    if (!userId || !product) {
       setValidatedUsername("");
       return;
     }
 
-    if (product?.requiresServerId && !gameId) {
+    if (product.requiresServerId && !gameId) {
       setValidatedUsername("");
       return;
     }
 
     setValidating(true);
     try {
-      const response = await authBackend.uniplay.inquiryPaymentEndpoint({
-        packageId: selectedPackage,
+      const response = await authBackend.uniplay.validateUsernameByProduct({
+        productId: product.id,
         userId,
         serverId: gameId || undefined,
       });
 
-      if (response.username) {
+      if (response.success && response.username) {
         setValidatedUsername(response.username);
       } else {
         setValidatedUsername("");
@@ -72,7 +72,7 @@ export default function ProductPage() {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [userId, gameId, selectedPackage]);
+  }, [userId, gameId, product]);
 
   const loadData = async () => {
     try {
@@ -124,93 +124,17 @@ export default function ProductPage() {
       return;
     }
 
-    const selectedPkg = packages.find((p) => p.id === selectedPackage);
-    const finalPrice = selectedPkg?.discountPrice && selectedPkg.discountPrice < selectedPkg.price 
-      ? selectedPkg.discountPrice 
-      : selectedPkg?.price;
+    // Redirect to purchase inquiry page
+    const params = new URLSearchParams({
+      packageId: selectedPackage.toString(),
+      userId,
+    });
 
-    setLoading(true);
-    
-    let inquiryId = "";
-    let username = validatedUsername || "";
-    
-    if (!username) {
-      try {
-        console.log("=== CALLING INQUIRY PAYMENT ===");
-        console.log("Package ID:", selectedPackage);
-        console.log("User ID:", userId);
-        console.log("Server ID:", gameId);
-        
-        const inquiryResponse = await authBackend.uniplay.inquiryPaymentEndpoint({
-          packageId: selectedPackage!,
-          userId,
-          serverId: gameId || undefined,
-        });
-        
-        console.log("=== INQUIRY RESPONSE ===");
-        console.log("Full response:", inquiryResponse);
-        console.log("Inquiry ID:", inquiryResponse.inquiryId);
-        console.log("Username:", inquiryResponse.username);
-        
-        inquiryId = inquiryResponse.inquiryId || "";
-        username = inquiryResponse.username || "";
-        
-        if (!inquiryId && !username) {
-          console.log("⚠️ Package not configured with UniPlay - proceeding without inquiry");
-        } else {
-          console.log("✅ Inquiry successful - proceeding with:", { inquiryId, username });
-        }
-        
-      } catch (error: any) {
-        console.error("Inquiry payment failed:", error);
-        
-        if (error.message?.includes("missing UniPlay configuration")) {
-          toast({
-            title: "⚠️ Produk Belum Dikonfigurasi",
-            description: "Admin perlu sync produk dari UniPlay terlebih dahulu. Hubungi admin untuk mengaktifkan produk ini.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-        
-        console.log("⚠️ Proceeding without inquiry payment");
-        toast({
-          title: "Info",
-          description: "Melanjutkan tanpa validasi UniPlay. Pastikan User ID sudah benar.",
-        });
-      }
-    } else {
-      console.log("✅ Using validated username:", username);
+    if (gameId) {
+      params.append("serverId", gameId);
     }
 
-    console.log("=== NAVIGATING TO CONFIRMATION ===");
-    console.log("State data:", {
-      inquiryId,
-      username,
-      productId: product!.id,
-      packageId: selectedPackage,
-      userId,
-      gameId,
-    });
-
-    navigate("/purchase-confirmation", {
-      state: {
-        productId: product!.id,
-        packageId: selectedPackage,
-        userId,
-        gameId,
-        productName: product!.name,
-        packageName: selectedPkg?.name,
-        price: finalPrice,
-        originalPrice: selectedPkg?.price,
-        discountPrice: selectedPkg?.discountPrice,
-        inquiryId,
-        username,
-      },
-    });
-    
-    setLoading(false);
+    navigate(`/purchase-inquiry?${params.toString()}`);
   };
 
   const formatCurrency = (amount: number) => {

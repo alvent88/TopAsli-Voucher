@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [uniplayConfig, setUniplayConfig] = useState({
     apiKey: "",
     baseUrl: "https://api-reseller.uniplay.id/v1",
+    pincode: "",
   });
   
   const [syncingProducts, setSyncingProducts] = useState(false);
@@ -591,6 +592,19 @@ export default function AdminDashboard() {
                 placeholder="https://api-reseller.uniplay.id/v1"
                 disabled={!canEdit}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="uniplay-pincode" className="text-slate-300">Pincode *</Label>
+              <Input
+                id="uniplay-pincode"
+                type="password"
+                value={uniplayConfig.pincode}
+                onChange={(e) => setUniplayConfig({ ...uniplayConfig, pincode: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white font-mono"
+                placeholder="123456"
+                disabled={!canEdit}
+              />
+              <p className="text-xs text-slate-400">Pincode untuk confirm payment ke UniPlay</p>
             </div>
             {canEdit && (
               <div className="space-y-3">

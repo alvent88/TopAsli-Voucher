@@ -16,6 +16,7 @@ import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import PurchaseConfirmationPage from "./pages/PurchaseConfirmationPage";
+import PurchaseInquiryPage from "./pages/PurchaseInquiryPage";
 import TransactionSuccessPage from "./pages/TransactionSuccessPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -87,6 +88,7 @@ function AppInner() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/purchase-inquiry" element={<PurchaseInquiryPage />} />
           <Route path="/purchase-confirmation" element={<PurchaseConfirmationPage />} />
           <Route path="/transaction-success" element={<TransactionSuccessPage />} />
           <Route path="/transaction/:id" element={<TransactionPage />} />

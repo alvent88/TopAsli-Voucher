@@ -18,6 +18,7 @@ export interface AdminConfig {
   uniplay: {
     apiKey: string;
     baseUrl: string;
+    pincode: string;
   };
 }
 
@@ -103,6 +104,7 @@ export const getConfig = api<void, GetConfigResponse>(
             uniplay: {
               apiKey: "",
               baseUrl: "https://api-reseller.uniplay.id/v1",
+              pincode: "",
             },
           },
         };
