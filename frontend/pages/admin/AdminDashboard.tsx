@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
   const [testingML, setTestingML] = useState(false);
+  const [mlPackageInfo, setMlPackageInfo] = useState("");
   const [mlCurlCommand, setMlCurlCommand] = useState("");
   const [mlTestRequest, setMlTestRequest] = useState("");
   const [mlTestResponse, setMlTestResponse] = useState("");
@@ -422,28 +423,33 @@ export default function AdminDashboard() {
 
   const handleTestMLInquiry = async () => {
     setTestingML(true);
+    setMlPackageInfo("");
     setMlCurlCommand("");
     setMlTestRequest("");
     setMlTestResponse("");
     try {
       const result = await backend.uniplay.testInquiryML();
       
+      setMlPackageInfo(JSON.stringify(result.packageInfo, null, 2));
       setMlCurlCommand(result.curlCommand);
-      const formattedRequest = JSON.stringify(result.rawRequest, null, 2);
-      const formattedResponse = JSON.stringify(result.rawResponse, null, 2);
+      setMlTestRequest(JSON.stringify(result.rawRequest, null, 2));
+      setMlTestResponse(JSON.stringify(result.rawResponse, null, 2));
       
-      setMlTestRequest(formattedRequest);
-      setMlTestResponse(formattedResponse);
-      
-      if (result.isMatchingExpectedFormat) {
+      if (result.success && result.isMatchingExpectedFormat) {
         toast({
           title: "Test Inquiry Berhasil! ✅",
           description: `Username: ${result.rawResponse.inquiry_info?.username || 'N/A'}`,
         });
-      } else {
+      } else if (result.success) {
         toast({
           title: "Response Format Berbeda ⚠️",
           description: "Lihat detail response di textbox",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Test Gagal ❌",
+          description: result.errorDetails || "Lihat detail error di textbox Response",
           variant: "destructive",
         });
       }
@@ -811,6 +817,16 @@ export default function AdminDashboard() {
               >
                 {testingML ? "Testing..." : "🧪 Test Inquiry Payment"}
               </Button>
+            )}
+            {mlPackageInfo && (
+              <div className="space-y-2">
+                <Label className="text-slate-300">📦 Package Info (Mobile Legends):</Label>
+                <Textarea
+                  value={mlPackageInfo}
+                  readOnly
+                  className="bg-slate-800 border-slate-700 text-purple-400 font-mono text-xs min-h-[120px]"
+                />
+              </div>
             )}
             {mlCurlCommand && (
               <div className="space-y-2">

@@ -1,11 +1,16 @@
 import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
-import { inquiryPayment } from "./client";
 import db from "../db";
 
 export interface TestInquiryMLResponse {
   success: boolean;
   curlCommand: string;
+  packageInfo: {
+    id: number;
+    name: string;
+    entitas_id: string;
+    denom_id: string;
+  };
   rawRequest: {
     entitas_id: string;
     denom_id: string;
@@ -22,6 +27,7 @@ export interface TestInquiryMLResponse {
     };
   };
   isMatchingExpectedFormat: boolean;
+  errorDetails?: string;
 }
 
 export const testInquiryML = api<void, TestInquiryMLResponse>(
@@ -35,8 +41,10 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
 
     console.log("=== TEST INQUIRY MOBILE LEGENDS ===");
     
+    // Step 1: Find Mobile Legends package
     let mlPackage;
     try {
+      console.log("Step 1: Querying database for Mobile Legends package...");
       mlPackage = await db.queryRow<{
         id: number;
         name: string;
@@ -48,8 +56,10 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
         INNER JOIN products pr ON p.product_id = pr.id
         WHERE pr.name ILIKE '%Mobile Legends%'
         AND p.uniplay_denom_id IS NOT NULL
+        ORDER BY p.id
         LIMIT 1
       `;
+      console.log("Database query result:", mlPackage);
     } catch (dbError: any) {
       console.error("Database query error:", dbError);
       throw APIError.internal("Failed to query package: " + dbError.message);
@@ -60,11 +70,17 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
     }
 
     if (!mlPackage.uniplay_entitas_id || !mlPackage.uniplay_denom_id) {
-      throw APIError.invalidArgument("Package missing UniPlay configuration. Please sync from UniPlay.");
+      throw APIError.invalidArgument(`Package "${mlPackage.name}" missing UniPlay IDs. Entitas: ${mlPackage.uniplay_entitas_id}, Denom: ${mlPackage.uniplay_denom_id}`);
     }
 
-    console.log("Found package:", mlPackage);
+    console.log("✅ Found package:", {
+      id: mlPackage.id,
+      name: mlPackage.name,
+      entitas_id: mlPackage.uniplay_entitas_id,
+      denom_id: mlPackage.uniplay_denom_id,
+    });
 
+    // Step 2: Prepare request
     const testRequest = {
       entitas_id: mlPackage.uniplay_entitas_id,
       denom_id: mlPackage.uniplay_denom_id,
@@ -72,22 +88,26 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
       server_id: "9227",
     };
 
-    console.log("Test request:", testRequest);
+    console.log("Request payload:", testRequest);
 
-    // Get config untuk buat curl command
-    const config = await db.queryRow<{ value: string }>`
-      SELECT value FROM admin_config WHERE key = 'dashboard_config'
-    `;
-    
+    // Step 3: Get config for curl command
     let apiKey = "YOUR_API_KEY";
     let baseUrl = "https://api-reseller.uniplay.id/v1";
     
-    if (config) {
-      const dashboardConfig = JSON.parse(config.value);
-      if (dashboardConfig.uniplay) {
-        apiKey = dashboardConfig.uniplay.apiKey || apiKey;
-        baseUrl = dashboardConfig.uniplay.baseUrl || baseUrl;
+    try {
+      const config = await db.queryRow<{ value: string }>`
+        SELECT value FROM admin_config WHERE key = 'dashboard_config'
+      `;
+      
+      if (config) {
+        const dashboardConfig = JSON.parse(config.value);
+        if (dashboardConfig.uniplay) {
+          apiKey = dashboardConfig.uniplay.apiKey || apiKey;
+          baseUrl = dashboardConfig.uniplay.baseUrl || baseUrl;
+        }
       }
+    } catch (err) {
+      console.warn("Could not load config for curl command:", err);
     }
 
     // Generate timestamp
@@ -95,7 +115,6 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
     const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
     const timestamp = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
 
-    // Generate signature (simplified - actual signature in client.ts)
     const requestBodyWithAuth = {
       api_key: apiKey,
       timestamp: timestamp,
@@ -103,16 +122,25 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
     };
 
     // Generate curl command
-    const curlCommand = `curl -X POST '${baseUrl}/inquiry-payment' \\\n` +
-      `  -H 'Content-Type: application/json' \\\n` +
-      `  -H 'UPL-ACCESS-TOKEN: <WILL_BE_GENERATED>' \\\n` +
-      `  -H 'UPL-SIGNATURE: <WILL_BE_GENERATED>' \\\n` +
-      `  -d '${JSON.stringify(requestBodyWithAuth, null, 2).replace(/\n/g, '\\\n  ')}'`;
+    const curlCommand = `# Copy this command and run in terminal to test manually
+curl -X POST '${baseUrl}/inquiry-payment' \\
+  -H 'Content-Type: application/json' \\
+  -H 'UPL-ACCESS-TOKEN: <WILL_BE_GENERATED_BY_BACKEND>' \\
+  -H 'UPL-SIGNATURE: <WILL_BE_GENERATED_BY_BACKEND>' \\
+  -d '${JSON.stringify(requestBodyWithAuth, null, 2)}'
 
-    console.log("Generated curl command:");
-    console.log(curlCommand);
+# NOTE: ACCESS-TOKEN and SIGNATURE will be auto-generated by the backend
+# The actual request body sent will include api_key and timestamp
+`;
 
+    console.log("Generated curl command");
+
+    // Step 4: Call UniPlay API
     try {
+      console.log("Step 4: Calling UniPlay inquiry-payment API...");
+      
+      // Import the inquiryPayment function dynamically
+      const { inquiryPayment } = await import("./client");
       const response = await inquiryPayment(testRequest);
       
       console.log("=== INQUIRY RESPONSE ===");
@@ -136,14 +164,48 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
       return {
         success: true,
         curlCommand,
+        packageInfo: {
+          id: mlPackage.id,
+          name: mlPackage.name,
+          entitas_id: mlPackage.uniplay_entitas_id,
+          denom_id: mlPackage.uniplay_denom_id,
+        },
         rawRequest: testRequest,
         rawResponse: response,
         expectedFormat,
         isMatchingExpectedFormat,
       };
     } catch (err: any) {
-      console.error("Test inquiry failed:", err);
-      throw APIError.internal("Test inquiry failed: " + err.message, err);
+      console.error("❌ Test inquiry failed:", err);
+      
+      // Return detailed error info
+      const errorDetails = err.message || String(err);
+      
+      return {
+        success: false,
+        curlCommand,
+        packageInfo: {
+          id: mlPackage.id,
+          name: mlPackage.name,
+          entitas_id: mlPackage.uniplay_entitas_id,
+          denom_id: mlPackage.uniplay_denom_id,
+        },
+        rawRequest: testRequest,
+        rawResponse: {
+          error: errorDetails,
+          stack: err.stack,
+        },
+        expectedFormat: {
+          status: "200",
+          message: "Success",
+          inquiry_id: "INQUIRY ID RESULT",
+          inquiry_info: {
+            username: "jagoanneon",
+          },
+        },
+        isMatchingExpectedFormat: false,
+        errorDetails,
+      };
     }
   }
 );
