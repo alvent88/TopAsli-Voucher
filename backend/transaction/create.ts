@@ -82,8 +82,8 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
     const status = inquiryId ? 'pending' : 'success';
 
     await db.exec`
-      INSERT INTO transactions (id, product_id, package_id, payment_method_id, user_id, game_id, amount, price, fee, total, status, clerk_user_id)
-      VALUES (${transactionId}, ${productId}, ${packageId}, ${paymentMethodId}, ${userId}, ${gameId}, ${pkg.price}, ${price}, ${fee}, ${total}, ${status}, ${auth.userID})
+      INSERT INTO transactions (id, product_id, package_id, payment_method_id, user_id, game_id, amount, price, fee, total, status, clerk_user_id, username)
+      VALUES (${transactionId}, ${productId}, ${packageId}, ${paymentMethodId}, ${userId}, ${gameId}, ${pkg.price}, ${price}, ${fee}, ${total}, ${status}, ${auth.userID}, ${username || null})
     `;
 
     // Calculate new balance for display (even if not deducted yet in pending status)

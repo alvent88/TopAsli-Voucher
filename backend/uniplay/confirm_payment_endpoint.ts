@@ -142,13 +142,15 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
           product_name: string;
           package_name: string;
           price: number;
+          username: string | null;
         }>`
           SELECT 
             t.user_id, 
             t.game_id,
             pr.name as product_name,
             pk.name as package_name,
-            t.price
+            t.price,
+            t.username
           FROM transactions t
           INNER JOIN products pr ON t.product_id = pr.id
           INNER JOIN packages pk ON t.package_id = pk.id
@@ -204,8 +206,8 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
                 }).format(amount);
               };
 
-              const usernameInfo = ''; // Username tidak disimpan di transactions table
-              const message = `✅ *PEMBELIAN BERHASIL - TopAsli*\n\nHalo ${fullName},\n\nPembelian Anda telah berhasil diproses!\n\n📦 *Detail Pembelian*\nProduk: ${transactionData.product_name}\nPaket: ${transactionData.package_name}\nHarga: ${formatCurrency(transactionData.price)}\n\n🎮 *Akun Game*\nUser ID: ${transactionData.user_id}\nGame ID: ${transactionData.game_id}\n\n💰 *Pembayaran*\nTotal: ${formatCurrency(transactionData.price)}\nSisa Saldo: ${formatCurrency(newBalance)}\n\n🆔 *ID Transaksi*\n${req.transactionId}\n\n🎫 *UniPlay Order ID*\n${response.order_id}\n\n⚠️ Item telah diproses dan dikirim ke akun game Anda.\n\nKami dengan senang hati melayani kebutuhan top-up Anda. 🙏`;
+              const usernameInfo = transactionData.username ? `Username: ${transactionData.username}\n` : '';
+              const message = `✅ *PEMBELIAN BERHASIL - TopAsli*\n\nHalo ${fullName},\n\nPembelian Anda telah berhasil diproses!\n\n📦 *Detail Pembelian*\nProduk: ${transactionData.product_name}\nPaket: ${transactionData.package_name}\nHarga: ${formatCurrency(transactionData.price)}\n\n🎮 *Akun Game*\n${usernameInfo}User ID: ${transactionData.user_id}\nGame ID: ${transactionData.game_id}\n\n💰 *Pembayaran*\nTotal: ${formatCurrency(transactionData.price)}\nSisa Saldo: ${formatCurrency(newBalance)}\n\n🆔 *ID Transaksi*\n${req.transactionId}\n\n⚠️ Item telah diproses dan dikirim ke akun game Anda.\n\nKami dengan senang hati melayani kebutuhan top-up Anda. 🙏`;
 
               const formData = new URLSearchParams();
               formData.append('target', formattedPhone);
