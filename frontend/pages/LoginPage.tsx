@@ -62,6 +62,7 @@ export default function LoginPage() {
       sessionStorage.setItem("userId", result.userId);
       sessionStorage.setItem("userEmail", result.email);
       sessionStorage.setItem("userName", result.fullName);
+      sessionStorage.setItem("authToken", result.token);
       sessionStorage.setItem("isLoggedIn", "true");
 
       toast({

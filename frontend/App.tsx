@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ClerkProvider, useUser, useClerk } from "@clerk/clerk-react";
 import { useBackend } from "@/lib/useBackend";
 import { useIdleLogout } from "@/lib/useIdleLogout";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,32 +32,23 @@ import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
 
-const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
-}
-
 function BanChecker() {
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
   const backend = useBackend();
+  const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+  const userEmail = sessionStorage.getItem("userEmail");
 
   useEffect(() => {
     const checkBanStatus = async () => {
-      if (!isLoaded || !user) return;
+      if (!isLoggedIn || !userEmail) return;
 
-      const email = user.primaryEmailAddress?.emailAddress;
-      if (!email) return;
-
-      const banCheckKey = `ban_checked_${email}`;
+      const banCheckKey = `ban_checked_${userEmail}`;
       
       if (sessionStorage.getItem(banCheckKey)) {
         return;
       }
 
       try {
-        const checkResult = await backend.auth.checkUser({ identifier: email });
+        const checkResult = await backend.auth.checkUser({ identifier: userEmail });
         
         if (!checkResult.exists) {
           console.warn("User not found in database");
@@ -66,7 +56,7 @@ function BanChecker() {
       } catch (error: any) {
         if (error.message?.includes("dibanned")) {
           sessionStorage.setItem(banCheckKey, "true");
-          await signOut();
+          sessionStorage.clear();
           window.location.href = "/";
         }
       }
@@ -76,29 +66,28 @@ function BanChecker() {
     const interval = setInterval(checkBanStatus, 10000);
 
     return () => clearInterval(interval);
-  }, [isLoaded, user, backend, signOut]);
+  }, [isLoggedIn, userEmail, backend]);
 
   return null;
 }
 
 function LoginTracker() {
-  const { user, isLoaded } = useUser();
   const backend = useBackend();
+  const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+  const userId = sessionStorage.getItem("userId");
+  const userEmail = sessionStorage.getItem("userEmail");
 
   useEffect(() => {
     const trackLogin = async () => {
-      if (!isLoaded || !user) return;
+      if (!isLoggedIn || !userId) return;
 
-      const loginTrackedKey = `login_tracked_${user.id}`;
+      const loginTrackedKey = `login_tracked_${userId}`;
       
       if (sessionStorage.getItem(loginTrackedKey)) {
         return;
       }
 
       try {
-        const email = user.primaryEmailAddress?.emailAddress;
-        const phoneNumber = user.primaryPhoneNumber?.phoneNumber;
-        
         let ipAddress = 'unknown';
         try {
           const ipResponse = await fetch('https://api.ipify.org?format=json', { 
@@ -115,10 +104,10 @@ function LoginTracker() {
         const userAgent = navigator.userAgent;
         
         await backend.auth.trackLogin({
-          userId: user.id,
-          email: email || undefined,
-          phoneNumber: phoneNumber || undefined,
-          loginType: email ? 'email' : 'phone',
+          userId: userId,
+          email: userEmail || undefined,
+          phoneNumber: undefined,
+          loginType: 'email',
           ipAddress: ipAddress,
           userAgent: userAgent,
         });
@@ -131,12 +120,12 @@ function LoginTracker() {
     };
 
     trackLogin();
-  }, [isLoaded, user, backend]);
+  }, [isLoggedIn, userId, userEmail, backend]);
 
   return null;
 }
 
-function AppInner() {
+export default function App() {
   useIdleLogout();
   
   return (
@@ -183,17 +172,5 @@ function AppInner() {
       </BrowserRouter>
       <Toaster />
     </>
-  );
-}
-
-export default function App() {
-  return (
-    <ClerkProvider 
-      publishableKey={PUBLISHABLE_KEY}
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
-    >
-      <AppInner />
-    </ClerkProvider>
   );
 }

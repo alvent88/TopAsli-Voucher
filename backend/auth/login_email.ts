@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
 import bcrypt from "bcryptjs";
+import { generateToken } from "./custom_auth";
 
 export interface LoginEmailRequest {
   email: string;
@@ -13,6 +14,7 @@ export interface LoginEmailResponse {
   userId: string;
   email: string;
   fullName: string;
+  token: string;
 }
 
 export const loginEmail = api<LoginEmailRequest, LoginEmailResponse>(
@@ -55,6 +57,8 @@ export const loginEmail = api<LoginEmailRequest, LoginEmailResponse>(
       
       console.log("Login successful for user:", user.clerk_user_id);
       console.log("=== LOGIN EMAIL SUCCESS ===");
+      
+      const token = generateToken(user.clerk_user_id, user.email, user.full_name);
 
       return {
         success: true,
@@ -62,6 +66,7 @@ export const loginEmail = api<LoginEmailRequest, LoginEmailResponse>(
         userId: user.clerk_user_id,
         email: user.email,
         fullName: user.full_name,
+        token: token,
       };
     } catch (err: any) {
       console.error("=== LOGIN EMAIL ERROR ===");
