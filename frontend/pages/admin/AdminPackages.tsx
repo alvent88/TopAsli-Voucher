@@ -429,6 +429,7 @@ export default function AdminPackages() {
                     <TableHead className="text-slate-400">Nama Paket</TableHead>
                     <TableHead className="text-slate-400">Harga Asli</TableHead>
                     <TableHead className="text-slate-400">Harga Setelah Diskon</TableHead>
+                    <TableHead className="text-slate-400">Inquiry ID</TableHead>
                     <TableHead className="text-slate-400">Special Item</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400 text-right">Aksi</TableHead>
@@ -451,6 +452,15 @@ export default function AdminPackages() {
                         }
                         {!pkg.discountPrice && globalDiscount > 0 && (
                           <span className="ml-2 text-xs text-red-400">(-{globalDiscount}%)</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-300 font-mono text-xs">
+                        {(pkg as any).inquiryId ? (
+                          <span className="text-blue-400" title={(pkg as any).inquiryId}>
+                            {(pkg as any).inquiryId.substring(0, 12)}...
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">-</span>
                         )}
                       </TableCell>
                       <TableCell>

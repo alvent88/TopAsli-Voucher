@@ -27,6 +27,7 @@ export default function ProductPage() {
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [validatedUsername, setValidatedUsername] = useState<string>("");
   const [validating, setValidating] = useState(false);
+  const [lastInquiryId, setLastInquiryId] = useState<string>("");
 
   useEffect(() => {
     if (slug) {
@@ -58,9 +59,24 @@ export default function ProductPage() {
       } else {
         setValidatedUsername("");
       }
+
+      if (response.inquiryId) {
+        setLastInquiryId(response.inquiryId);
+        
+        try {
+          await authBackend.admin.updatePackageInquiryId({
+            packageId: selectedPackage,
+            inquiryId: response.inquiryId,
+          });
+          console.log(`✅ Inquiry ID saved to package ${selectedPackage}:`, response.inquiryId);
+        } catch (saveError) {
+          console.error("Failed to save inquiry ID:", saveError);
+        }
+      }
     } catch (error) {
       console.error("Validation error:", error);
       setValidatedUsername("");
+      setLastInquiryId("");
     } finally {
       setValidating(false);
     }
