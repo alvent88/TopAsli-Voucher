@@ -10,7 +10,7 @@ export const listAllPackages = api<void, ListAllPackagesResponse>(
   { expose: true, method: "GET", path: "/admin/packages", auth: true },
   async () => {
     const rows = await db.queryAll<any>`
-      SELECT p.id, p.product_id, p.name, p.amount, p.unit, p.price, p.discount_price, p.is_active, p.is_special_item
+      SELECT p.id, p.product_id, p.name, p.amount, p.unit, p.price, p.discount_price, p.is_active, p.is_special_item, p.uniplay_entitas_id, p.uniplay_denom_id
       FROM packages p
       INNER JOIN products pr ON p.product_id = pr.id
       WHERE pr.is_active = true
@@ -27,6 +27,8 @@ export const listAllPackages = api<void, ListAllPackagesResponse>(
       discountPrice: row.discount_price,
       isActive: row.is_active,
       isSpecialItem: row.is_special_item || false,
+      uniplayEntitasId: row.uniplay_entitas_id,
+      uniplayDenomId: row.uniplay_denom_id,
     }));
 
     return { packages };

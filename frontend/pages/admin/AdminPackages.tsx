@@ -3,7 +3,7 @@ import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
 import type { Package } from "~backend/pkg/list";
 import type { Product } from "~backend/product/list";
-import { RefreshCw, Plus, Pencil, Trash2, Package2, Search } from "lucide-react";
+import { RefreshCw, Plus, Pencil, Trash2, Package2, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -48,7 +48,9 @@ export default function AdminPackages() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [submitting, setSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -59,6 +61,8 @@ export default function AdminPackages() {
     price: 0,
     discountPrice: 0,
     isActive: true,
+    uniplayEntitasId: "",
+    uniplayDenomId: "",
   });
 
   useEffect(() => {
@@ -145,6 +149,8 @@ export default function AdminPackages() {
       price: 0,
       discountPrice: 0,
       isActive: true,
+      uniplayEntitasId: "",
+      uniplayDenomId: "",
     });
   };
 
@@ -163,6 +169,8 @@ export default function AdminPackages() {
       price: pkg.price,
       discountPrice: pkg.discountPrice || 0,
       isActive: pkg.isActive,
+      uniplayEntitasId: (pkg as any).uniplayEntitasId || "",
+      uniplayDenomId: (pkg as any).uniplayDenomId || "",
     });
     setEditDialogOpen(true);
   };
@@ -191,6 +199,8 @@ export default function AdminPackages() {
         unit: formData.unit,
         price: formData.price,
         discountPrice: formData.discountPrice > 0 ? formData.discountPrice : undefined,
+        uniplayEntitasId: formData.uniplayEntitasId || undefined,
+        uniplayDenomId: formData.uniplayDenomId || undefined,
       });
       
       toast({
@@ -227,6 +237,8 @@ export default function AdminPackages() {
         price: formData.price,
         discountPrice: formData.discountPrice > 0 ? formData.discountPrice : undefined,
         isActive: formData.isActive,
+        uniplayEntitasId: formData.uniplayEntitasId || undefined,
+        uniplayDenomId: formData.uniplayDenomId || undefined,
       });
       
       toast({
@@ -323,6 +335,44 @@ export default function AdminPackages() {
     }
   };
 
+  const handleSyncUniPlay = (product: Product) => {
+    setSelectedProduct(product);
+    setSyncDialogOpen(true);
+  };
+
+  const submitSync = async () => {
+    if (!selectedProduct) return;
+
+    setSubmitting(true);
+    try {
+      const result = await backend.uniplay.syncUniPlayPackages({
+        productId: selectedProduct.id,
+        productSlug: selectedProduct.slug,
+      });
+
+      toast({
+        title: result.success ? "Berhasil" : "Informasi",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+      });
+
+      if (result.success) {
+        setSyncDialogOpen(false);
+        setSelectedProduct(null);
+        loadData();
+      }
+    } catch (error: any) {
+      console.error("Failed to sync packages:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal sync paket dari UniPlay",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -361,6 +411,41 @@ export default function AdminPackages() {
           className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
         />
       </div>
+
+      {canEdit && (
+        <Card className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-500/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white flex items-center gap-2">
+                <Package2 className="h-5 w-5 text-blue-400" />
+                Auto-Sync dari UniPlay
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-slate-300 text-sm">
+                Pilih produk untuk sync paket otomatis dari UniPlay DTU/Voucher API. 
+                Sistem akan mencocokkan berdasarkan slug produk.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {products.map((product) => (
+                  <Button
+                    key={product.id}
+                    onClick={() => handleSyncUniPlay(product)}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-500/50 bg-blue-950/30 text-blue-300 hover:bg-blue-900/50 hover:text-blue-200"
+                  >
+                    <Download className="mr-2 h-3 w-3" />
+                    Sync {product.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {canEdit && (
         <Card className="bg-slate-900 border-slate-800">
@@ -593,6 +678,30 @@ export default function AdminPackages() {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="uniplayEntitasId" className="text-slate-300">UniPlay Entitas ID</Label>
+                <Input
+                  id="uniplayEntitasId"
+                  value={formData.uniplayEntitasId}
+                  onChange={(e) => setFormData({ ...formData, uniplayEntitasId: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="Dari inquiry-dtu atau inquiry-voucher"
+                />
+                <p className="text-xs text-slate-500">ID produk dari UniPlay API</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="uniplayDenomId" className="text-slate-300">UniPlay Denom ID</Label>
+                <Input
+                  id="uniplayDenomId"
+                  value={formData.uniplayDenomId}
+                  onChange={(e) => setFormData({ ...formData, uniplayDenomId: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="Dari denom list UniPlay"
+                />
+                <p className="text-xs text-slate-500">ID denominasi dari UniPlay API</p>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -690,6 +799,30 @@ export default function AdminPackages() {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-uniplayEntitasId" className="text-slate-300">UniPlay Entitas ID</Label>
+                <Input
+                  id="edit-uniplayEntitasId"
+                  value={formData.uniplayEntitasId}
+                  onChange={(e) => setFormData({ ...formData, uniplayEntitasId: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="Dari inquiry-dtu atau inquiry-voucher"
+                />
+                <p className="text-xs text-slate-500">ID produk dari UniPlay API</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-uniplayDenomId" className="text-slate-300">UniPlay Denom ID</Label>
+                <Input
+                  id="edit-uniplayDenomId"
+                  value={formData.uniplayDenomId}
+                  onChange={(e) => setFormData({ ...formData, uniplayDenomId: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="Dari denom list UniPlay"
+                />
+                <p className="text-xs text-slate-500">ID denominasi dari UniPlay API</p>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="edit-status" className="text-slate-300">Status</Label>
               <Select value={formData.isActive ? "active" : "inactive"} onValueChange={(value) => setFormData({ ...formData, isActive: value === "active" })}>
@@ -761,6 +894,48 @@ export default function AdminPackages() {
               disabled={submitting}
             >
               {submitting ? "Menghapus..." : "Hapus"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Sync Paket dari UniPlay</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Sync otomatis paket dari UniPlay API untuk produk {selectedProduct?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-blue-950/30 border border-blue-500/30 rounded-lg">
+              <p className="text-sm text-blue-300">
+                <strong>Info:</strong> Sistem akan mencari game yang cocok dengan slug "{selectedProduct?.slug}" 
+                di UniPlay DTU list, kemudian membuat/update paket untuk setiap denominasi yang ditemukan.
+              </p>
+            </div>
+            <div className="p-4 bg-yellow-950/30 border border-yellow-500/30 rounded-lg">
+              <p className="text-sm text-yellow-300">
+                <strong>Perhatian:</strong> Paket yang sudah ada dengan UniPlay ID yang sama akan di-update harganya.
+                Paket baru akan dibuat jika belum ada.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="border-slate-700 text-white hover:bg-slate-800"
+              onClick={() => setSyncDialogOpen(false)}
+              disabled={submitting}
+            >
+              Batal
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              onClick={submitSync}
+              disabled={submitting}
+            >
+              {submitting ? "Syncing..." : "Sync Sekarang"}
             </Button>
           </DialogFooter>
         </DialogContent>

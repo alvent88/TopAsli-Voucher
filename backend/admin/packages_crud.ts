@@ -21,6 +21,8 @@ export interface CreatePackageRequest {
   unit: string;
   price: number;
   discountPrice?: number;
+  uniplayEntitasId?: string;
+  uniplayDenomId?: string;
 }
 
 export interface CreatePackageResponse {
@@ -30,7 +32,7 @@ export interface CreatePackageResponse {
 
 export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
   { expose: true, method: "POST", path: "/admin/packages", auth: true },
-  async ({ productId, name, amount, unit, price, discountPrice }) => {
+  async ({ productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId }) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -38,8 +40,8 @@ export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
     }
 
     const row = await db.queryRow<{ id: number }>`
-      INSERT INTO packages (product_id, name, amount, unit, price, discount_price)
-      VALUES (${productId}, ${name}, ${amount}, ${unit}, ${price}, ${discountPrice || null})
+      INSERT INTO packages (product_id, name, amount, unit, price, discount_price, uniplay_entitas_id, uniplay_denom_id)
+      VALUES (${productId}, ${name}, ${amount}, ${unit}, ${price}, ${discountPrice || null}, ${uniplayEntitasId || null}, ${uniplayDenomId || null})
       RETURNING id
     `;
 
@@ -60,6 +62,8 @@ export interface UpdatePackageRequest {
   price?: number;
   discountPrice?: number;
   isActive?: boolean;
+  uniplayEntitasId?: string;
+  uniplayDenomId?: string;
 }
 
 export interface UpdatePackageResponse {
@@ -68,7 +72,7 @@ export interface UpdatePackageResponse {
 
 export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
   { expose: true, method: "PUT", path: "/admin/packages/:packageId", auth: true },
-  async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive }) => {
+  async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId }) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -106,6 +110,14 @@ export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
     if (isActive !== undefined) {
       updates.push(`is_active = $${paramIndex++}`);
       values.push(isActive);
+    }
+    if (uniplayEntitasId !== undefined) {
+      updates.push(`uniplay_entitas_id = $${paramIndex++}`);
+      values.push(uniplayEntitasId);
+    }
+    if (uniplayDenomId !== undefined) {
+      updates.push(`uniplay_denom_id = $${paramIndex++}`);
+      values.push(uniplayDenomId);
     }
 
     if (updates.length === 0) {
