@@ -427,6 +427,7 @@ export default function AdminPackages() {
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
                     <TableHead className="text-slate-400">Produk</TableHead>
                     <TableHead className="text-slate-400">Nama Paket</TableHead>
+                    <TableHead className="text-slate-400">UniPlay Denom ID</TableHead>
                     <TableHead className="text-slate-400">Harga Asli</TableHead>
                     <TableHead className="text-slate-400">Harga Setelah Diskon</TableHead>
                     <TableHead className="text-slate-400">Special Item</TableHead>
@@ -441,6 +442,11 @@ export default function AdminPackages() {
                         {getProductName(pkg.productId)}
                       </TableCell>
                       <TableCell className="text-slate-300">{pkg.name}</TableCell>
+                      <TableCell>
+                        <code className="text-xs text-blue-400">
+                          {pkg.uniplayDenomId ? pkg.uniplayDenomId.substring(0, 20) + '...' : '-'}
+                        </code>
+                      </TableCell>
                       <TableCell className="text-slate-300">
                         {formatCurrency(pkg.price)}
                       </TableCell>

@@ -406,6 +406,7 @@ export default function AdminProducts() {
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
                     <TableHead className="text-slate-400">Icon</TableHead>
                     <TableHead className="text-slate-400">Nama</TableHead>
+                    <TableHead className="text-slate-400">UniPlay Entitas ID</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400">Unggulan</TableHead>
                     <TableHead className="text-slate-400">Perlu Server ID</TableHead>
@@ -433,6 +434,11 @@ export default function AdminProducts() {
                       </TableCell>
                       <TableCell className="text-white font-medium">
                         {product.name}
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-xs text-purple-400">
+                          {product.uniplayEntitasId ? product.uniplayEntitasId.substring(0, 20) + '...' : '-'}
+                        </code>
                       </TableCell>
                       <TableCell>
                         {canEdit ? (
