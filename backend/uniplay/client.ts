@@ -98,23 +98,20 @@ async function getUniPlayConfig() {
   return config.uniplay;
 }
 
-async function generateSignature(apiKey: string, timestamp: string): Promise<string> {
+async function generateSignature(apiKey: string, timestamp: string, bodyJson?: string): Promise<string> {
   try {
-    const jsonArray = {
-      api_key: apiKey,
-      timestamp: timestamp,
-    };
-    
-    const jsonString = JSON.stringify(jsonArray);
-    const hmacKey = `${apiKey}|${jsonString}`;
+    // Create the data to sign
+    // Format: api_key + timestamp (+ optional body for some endpoints)
+    let dataToSign = apiKey + timestamp;
     
     console.log("=== Generating Signature ===");
-    console.log("JSON String:", jsonString);
-    console.log("HMAC Key preview:", hmacKey.substring(0, 50) + "...");
+    console.log("API Key length:", apiKey.length);
+    console.log("Timestamp:", timestamp);
+    console.log("Data to sign:", dataToSign.substring(0, 50) + "...");
     
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(hmacKey);
-    const messageData = encoder.encode(jsonString);
+    const keyData = encoder.encode(apiKey);
+    const messageData = encoder.encode(dataToSign);
     
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
