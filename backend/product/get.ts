@@ -11,7 +11,7 @@ export const get = api<GetProductParams, Product>(
   { expose: true, method: "GET", path: "/products/:slug" },
   async ({ slug }) => {
     const row = await db.queryRow<any>`
-      SELECT id, name, slug, category, icon_url, description, is_active, is_featured
+      SELECT id, name, slug, category, icon_url, description, is_active, is_featured, requires_server_id
       FROM products
       WHERE slug = ${slug} AND is_active = true
     `;
@@ -29,6 +29,7 @@ export const get = api<GetProductParams, Product>(
       description: row.description,
       isActive: row.is_active,
       isFeatured: row.is_featured || false,
+      requiresServerId: row.requires_server_id ?? true,
     };
   }
 );

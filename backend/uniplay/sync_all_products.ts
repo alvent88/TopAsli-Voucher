@@ -57,7 +57,7 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
         console.log(`  - uniplay_entitas_id: ${game.id}`);
         
         const productRow = await db.queryRow<{ id: number }>`
-          INSERT INTO products (name, slug, category, icon_url, description, is_active, uniplay_entitas_id)
+          INSERT INTO products (name, slug, category, icon_url, description, is_active, uniplay_entitas_id, requires_server_id)
           VALUES (
             ${game.name},
             ${slug},
@@ -65,7 +65,8 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
             ${game.image || null},
             ${`Top up ${game.name} - Publisher: ${game.publisher}`},
             true,
-            ${game.id}
+            ${game.id},
+            true
           )
           RETURNING id
         `;

@@ -322,6 +322,29 @@ export default function AdminProducts() {
     }
   };
 
+  const handleToggleServerId = async (product: Product) => {
+    try {
+      await backend.admin.toggleServerIdRequirement({
+        productId: product.id,
+        requiresServerId: !product.requiresServerId,
+      });
+      
+      toast({
+        title: "Berhasil",
+        description: `Produk ${product.requiresServerId ? 'tidak membutuhkan' : 'membutuhkan'} Server ID`,
+      });
+      
+      loadProducts();
+    } catch (error: any) {
+      console.error("Failed to toggle server ID:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengubah kebutuhan Server ID",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -385,6 +408,7 @@ export default function AdminProducts() {
                     <TableHead className="text-slate-400">Nama</TableHead>
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400">Unggulan</TableHead>
+                    <TableHead className="text-slate-400">Perlu Server ID</TableHead>
                     <TableHead className="text-slate-400 text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -443,6 +467,24 @@ export default function AdminProducts() {
                             }
                           >
                             {product.isFeatured ? "★" : "-"}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {canEdit ? (
+                          <Switch
+                            checked={product.requiresServerId ?? true}
+                            onCheckedChange={() => handleToggleServerId(product)}
+                          />
+                        ) : (
+                          <Badge
+                            className={
+                              product.requiresServerId
+                                ? "bg-blue-500/20 text-blue-300"
+                                : "bg-slate-500/20 text-slate-400"
+                            }
+                          >
+                            {product.requiresServerId ? "Ya" : "Tidak"}
                           </Badge>
                         )}
                       </TableCell>

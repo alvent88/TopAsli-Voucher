@@ -25,12 +25,54 @@ export default function ProductPage() {
   const [userId, setUserId] = useState("");
   const [gameId, setGameId] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [validatedUsername, setValidatedUsername] = useState<string>("");
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
     if (slug) {
       loadData();
     }
   }, [slug]);
+
+  const validateUsername = async () => {
+    if (!userId || !selectedPackage) {
+      setValidatedUsername("");
+      return;
+    }
+
+    if (product?.requiresServerId && !gameId) {
+      setValidatedUsername("");
+      return;
+    }
+
+    setValidating(true);
+    try {
+      const response = await authBackend.uniplay.inquiryPaymentEndpoint({
+        packageId: selectedPackage,
+        userId,
+        serverId: gameId || undefined,
+      });
+
+      if (response.username) {
+        setValidatedUsername(response.username);
+      } else {
+        setValidatedUsername("");
+      }
+    } catch (error) {
+      console.error("Validation error:", error);
+      setValidatedUsername("");
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      validateUsername();
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [userId, gameId, selectedPackage]);
 
   const loadData = async () => {
     try {
@@ -62,10 +104,21 @@ export default function ProductPage() {
       return;
     }
 
-    if (!userId || !gameId || !selectedPackage) {
+    const requiresServerId = product?.requiresServerId !== false;
+    
+    if (!userId || !selectedPackage) {
       toast({
         title: "Peringatan",
         description: "Mohon lengkapi semua data",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (requiresServerId && !gameId) {
+      toast({
+        title: "Peringatan",
+        description: "Mohon masukkan Server ID",
         variant: "destructive",
       });
       return;
@@ -79,7 +132,7 @@ export default function ProductPage() {
     setLoading(true);
     
     let inquiryId = "";
-    let username = "";
+    let username = validatedUsername || "";
     
     try {
       console.log("=== CALLING INQUIRY PAYMENT ===");
@@ -271,18 +324,34 @@ export default function ProductPage() {
                     className="bg-white/10 border-white/20 text-white"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="gameId" className="text-white">
-                    Server ID
-                  </Label>
-                  <Input
-                    id="gameId"
-                    value={gameId}
-                    onChange={(e) => setGameId(e.target.value)}
-                    placeholder="Masukkan Server ID"
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                </div>
+                {product?.requiresServerId !== false && (
+                  <div>
+                    <Label htmlFor="gameId" className="text-white">
+                      Server ID
+                    </Label>
+                    <Input
+                      id="gameId"
+                      value={gameId}
+                      onChange={(e) => setGameId(e.target.value)}
+                      placeholder="Masukkan Server ID"
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                )}
+                {validatedUsername && (
+                  <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-green-400 text-sm">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="font-medium">Username: {validatedUsername}</span>
+                    </div>
+                  </div>
+                )}
+                {validating && (
+                  <div className="text-blue-400 text-sm flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                    Memvalidasi...
+                  </div>
+                )}
               </CardContent>
             </Card>
 

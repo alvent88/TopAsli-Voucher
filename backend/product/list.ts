@@ -10,6 +10,7 @@ export interface Product {
   description: string | null;
   isActive: boolean;
   isFeatured: boolean;
+  requiresServerId?: boolean;
 }
 
 interface ListProductsParams {
@@ -24,7 +25,7 @@ interface ListProductsResponse {
 export const list = api<ListProductsParams, ListProductsResponse>(
   { expose: true, method: "GET", path: "/products" },
   async ({ category }) => {
-    let query = `SELECT id, name, slug, category, icon_url, description, is_active, is_featured FROM products WHERE is_active = true`;
+    let query = `SELECT id, name, slug, category, icon_url, description, is_active, is_featured, requires_server_id FROM products WHERE is_active = true`;
     const params: any[] = [];
 
     if (category) {
@@ -44,6 +45,7 @@ export const list = api<ListProductsParams, ListProductsResponse>(
       description: row.description,
       isActive: row.is_active,
       isFeatured: row.is_featured || false,
+      requiresServerId: row.requires_server_id ?? true,
     }));
 
     return { products };

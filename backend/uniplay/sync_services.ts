@@ -74,7 +74,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
           } else {
             // Create new product
             const result = await db.queryRow<{ id: number }>`
-              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, created_at, updated_at)
+              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, requires_server_id, created_at, updated_at)
               VALUES (
                 ${voucher.name},
                 ${slug},
@@ -83,6 +83,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 ${voucher.image},
                 true,
                 ${voucher.id},
+                false,
                 NOW(),
                 NOW()
               )
@@ -195,7 +196,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
           } else {
             // Create new product
             const result = await db.queryRow<{ id: number }>`
-              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, created_at, updated_at)
+              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, requires_server_id, created_at, updated_at)
               VALUES (
                 ${game.name},
                 ${slug},
@@ -204,6 +205,7 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
                 ${game.image},
                 true,
                 ${game.id},
+                true,
                 NOW(),
                 NOW()
               )
