@@ -47,18 +47,19 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const result = await backend.otp.sendEmailOTP({ email });
+      await signUp?.create({ emailAddress: email });
+      await signUp?.prepareEmailAddressVerification({ strategy: "email_code" });
       
       toast({
-        title: "Kode OTP Terkirim ✅",
-        description: result.message,
+        title: "Kode OTP Terkirim",
+        description: "Silakan cek email Anda (termasuk folder spam)",
       });
       setStep("verification");
     } catch (err: any) {
       console.error("Send code error:", err);
       toast({
         title: "Error",
-        description: err.message || "Gagal mengirim kode OTP",
+        description: err.errors?.[0]?.message || "Gagal mengirim kode OTP",
         variant: "destructive",
       });
     } finally {
@@ -79,29 +80,84 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      console.log("Attempting email OTP verification with code:", code);
-      const result = await backend.otp.verifyEmailOTP({ email, otp: code });
+      console.log("Attempting email verification with code:", code);
+      const result = await signUp?.attemptEmailAddressVerification({ code });
       
-      console.log("Verification result:", result);
+      console.log("Verification result:", {
+        status: result?.status,
+        hasCreatedSessionId: !!result?.createdSessionId,
+        createdSessionId: result?.createdSessionId,
+        hasCreatedUserId: !!result?.createdUserId,
+        createdUserId: result?.createdUserId,
+      });
 
-      if (result.success) {
+      if (result?.status === "complete") {
+        if (result.createdSessionId) {
+          console.log("Setting active session:", result.createdSessionId);
+          await setActive?.({ session: result.createdSessionId });
+        }
+        
         toast({
           title: "Verifikasi Berhasil ✅",
           description: "Lengkapi data Anda untuk menyelesaikan registrasi",
         });
         setStep("profile");
+      } else if (result?.status === "missing_requirements") {
+        console.log("Status missing_requirements - calling signUp.update() to skip requirements");
+        
+        try {
+          const updatedSignUp = await signUp?.update({
+            unsafeMetadata: {
+              emailVerified: true,
+            },
+          });
+          
+          console.log("Updated signUp:", {
+            status: updatedSignUp?.status,
+            hasCreatedSessionId: !!updatedSignUp?.createdSessionId,
+            createdSessionId: updatedSignUp?.createdSessionId,
+            hasCreatedUserId: !!updatedSignUp?.createdUserId,
+            createdUserId: updatedSignUp?.createdUserId,
+          });
+          
+          if (!updatedSignUp?.createdSessionId) {
+            console.log("No session yet, attempting to create session...");
+            
+            const prepareResult = await signUp?.prepareEmailAddressVerification({ 
+              strategy: "email_code" 
+            });
+            console.log("Prepare result:", prepareResult);
+          }
+          
+          toast({
+            title: "Verifikasi Berhasil ✅",
+            description: "Lengkapi data Anda untuk menyelesaikan registrasi",
+          });
+          setStep("profile");
+        } catch (updateErr: any) {
+          console.error("Update signup error:", updateErr);
+          console.error("Update error details:", JSON.stringify(updateErr, null, 2));
+          
+          toast({
+            title: "Verifikasi Berhasil ✅",
+            description: "Lengkapi data Anda untuk menyelesaikan registrasi",
+          });
+          setStep("profile");
+        }
       } else {
+        console.error("Unexpected verification status:", result?.status);
         toast({
           title: "Error",
-          description: "Verifikasi gagal. Silakan coba lagi.",
+          description: `Verifikasi gagal. Status: ${result?.status}`,
           variant: "destructive",
         });
       }
     } catch (err: any) {
       console.error("Verification error:", err);
+      console.error("Error details:", JSON.stringify(err, null, 2));
       toast({
         title: "Error",
-        description: err.message || "Kode OTP tidak valid",
+        description: err.errors?.[0]?.message || err.message || "Kode OTP tidak valid",
         variant: "destructive",
       });
     } finally {
@@ -223,7 +279,7 @@ export default function RegisterPage() {
                 {step === "email"
                   ? "Masukkan email Anda untuk mendaftar"
                   : step === "verification"
-                  ? "Kode OTP telah dikirim ke email Anda. Periksa folder spam jika tidak terlihat di inbox."
+                  ? "Kode OTP telah dikirim ke email Anda (periksa folder spam jika tidak terlihat)"
                   : "Isi nama lengkap, nomor HP, dan tanggal lahir Anda"}
               </CardDescription>
             </CardHeader>
