@@ -100,12 +100,11 @@ async function getUniPlayConfig() {
 
 async function generateSignature(apiKey: string, timestamp: string, bodyJson?: string): Promise<string> {
   try {
-    // Create the data to sign
-    // Format: api_key + timestamp (+ optional body for some endpoints)
-    let dataToSign = apiKey + timestamp;
+    // Try method 1: HMAC-SHA512(api_key + timestamp) with api_key as key
+    const dataToSign = apiKey + timestamp;
     
     console.log("=== Generating Signature ===");
-    console.log("API Key length:", apiKey.length);
+    console.log("API Key (first 10 chars):", apiKey.substring(0, 10) + "...");
     console.log("Timestamp:", timestamp);
     console.log("Data to sign:", dataToSign.substring(0, 50) + "...");
     
@@ -125,7 +124,8 @@ async function generateSignature(apiKey: string, timestamp: string, bodyJson?: s
     const signatureArray = Array.from(new Uint8Array(signatureBuffer));
     const signature = signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
     
-    console.log("✅ Signature generated:", signature.substring(0, 40) + "...");
+    console.log("✅ Signature (method 1):", signature.substring(0, 40) + "...");
+    console.log("✅ Full signature length:", signature.length);
     return signature;
   } catch (err) {
     console.error("❌ Error generating signature:", err);
@@ -145,17 +145,27 @@ async function getAccessToken(): Promise<string> {
   try {
     const config = await getUniPlayConfig();
     
+    // Try different timestamp formats
     const now = new Date();
+    
+    // Format 1: YYYY-MM-DD HH:MM:SS (Jakarta time)
     const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-    const timestamp = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
+    const timestamp1 = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
+    
+    // Format 2: Unix timestamp (seconds)
+    const timestamp2 = Math.floor(now.getTime() / 1000).toString();
+    
+    // Format 3: ISO 8601 with timezone
+    const timestamp3 = now.toISOString();
     
     console.log("=== Getting Access Token ===");
-    console.log("Server Time:", now.toISOString());
-    console.log("Jakarta Time:", jakartaTime.toISOString());
-    console.log("Formatted Timestamp:", timestamp);
+    console.log("Trying timestamp format 1 (Jakarta):", timestamp1);
+    console.log("Trying timestamp format 2 (Unix):", timestamp2);
+    console.log("Trying timestamp format 3 (ISO):", timestamp3);
     
-    const signature = await generateSignature(config.apiKey, timestamp);
-    console.log("Signature length:", signature.length);
+    // Try format 1 first (current format)
+    let timestamp = timestamp1;
+    let signature = await generateSignature(config.apiKey, timestamp);
     
     const requestBody = {
       api_key: config.apiKey,
@@ -163,6 +173,10 @@ async function getAccessToken(): Promise<string> {
     };
     
     console.log("Request body:", JSON.stringify(requestBody, null, 2));
+    console.log("Headers:", {
+      "Content-Type": "application/json",
+      "UPL-SIGNATURE": signature.substring(0, 40) + "...",
+    });
     
     const response = await fetch(`${config.baseUrl}/access-token`, {
       method: "POST",
@@ -178,7 +192,43 @@ async function getAccessToken(): Promise<string> {
     console.log("Access token response body:", responseText);
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${responseText}`);
+      // Try format 2 (Unix timestamp)
+      console.log("⚠️ Format 1 failed, trying format 2 (Unix timestamp)...");
+      timestamp = timestamp2;
+      signature = await generateSignature(config.apiKey, timestamp);
+      
+      const requestBody2 = {
+        api_key: config.apiKey,
+        timestamp: timestamp,
+      };
+      
+      const response2 = await fetch(`${config.baseUrl}/access-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "UPL-SIGNATURE": signature,
+        },
+        body: JSON.stringify(requestBody2),
+      });
+      
+      const responseText2 = await response2.text();
+      console.log("Format 2 HTTP status:", response2.status);
+      console.log("Format 2 response:", responseText2);
+      
+      if (!response2.ok) {
+        throw new Error(`All timestamp formats failed. Last error: HTTP ${response2.status}: ${responseText2}`);
+      }
+      
+      const data2 = JSON.parse(responseText2) as AccessTokenResponse;
+      if (data2.status !== "200") {
+        throw new Error(`API Error ${data2.status}: ${data2.message}`);
+      }
+      if (!data2.access_token) {
+        throw new Error(`No access token in response: ${JSON.stringify(data2)}`);
+      }
+      
+      console.log("✅ Access token obtained with format 2 (Unix)");
+      return data2.access_token;
     }
 
     let data;
@@ -198,7 +248,7 @@ async function getAccessToken(): Promise<string> {
       throw new Error(`No access token in response: ${JSON.stringify(data)}`);
     }
     
-    console.log("✅ Access token obtained:", data.access_token.substring(0, 20) + "...");
+    console.log("✅ Access token obtained with format 1 (Jakarta time)");
     console.log("✅ Token expires on:", data.expired_on);
     return data.access_token;
   } catch (err) {
