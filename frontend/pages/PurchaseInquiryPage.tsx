@@ -219,15 +219,6 @@ export default function PurchaseInquiryPage() {
               </div>
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <p className="text-blue-300 text-sm">
-                ℹ️ Inquiry ID: <span className="font-mono text-xs">{inquiryData.inquiryId}</span>
-              </p>
-              <p className="text-blue-300 text-xs mt-2">
-                Pesanan Anda sudah di-inquiry ke UniPlay. Klik "Konfirmasi Pembelian" untuk melanjutkan.
-              </p>
-            </div>
-
             <Button
               onClick={handleConfirmPurchase}
               disabled={confirming}

@@ -96,7 +96,7 @@ export const validateUsernameByProduct = api<ValidateUsernameByProductRequest, V
         return {
           success: false,
           gameSupported: true,
-          message: `Failed to validate: HTTP ${response.status}`,
+          message: "Username Invalid",
         };
       }
 
@@ -108,7 +108,7 @@ export const validateUsernameByProduct = api<ValidateUsernameByProductRequest, V
         return {
           success: false,
           gameSupported: true,
-          message: "Invalid response from validation API",
+          message: "Username Invalid",
         };
       }
 
@@ -125,7 +125,7 @@ export const validateUsernameByProduct = api<ValidateUsernameByProductRequest, V
         return {
           success: false,
           gameSupported: true,
-          message: data.message || "Player not found",
+          message: data.message || "Username Invalid",
         };
       }
     } catch (err: any) {
@@ -139,7 +139,7 @@ export const validateUsernameByProduct = api<ValidateUsernameByProductRequest, V
       return {
         success: false,
         gameSupported: true,
-        message: err.message || "Validation failed",
+        message: "Username Invalid",
       };
     }
   }
