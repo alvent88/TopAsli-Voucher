@@ -8,6 +8,7 @@ export interface TestInquiryMLResponse {
   packageInfo: {
     id: number;
     name: string;
+    productName: string;
     entitas_id: string;
     denom_id: string;
   };
@@ -15,7 +16,7 @@ export interface TestInquiryMLResponse {
     entitas_id: string;
     denom_id: string;
     user_id: string;
-    server_id: string;
+    server_id?: string;
   };
   rawResponse: any;
   expectedFormat: {
@@ -39,58 +40,60 @@ export const testInquiryML = api<void, TestInquiryMLResponse>(
       throw APIError.permissionDenied("Only admin can test inquiry");
     }
 
-    console.log("=== TEST INQUIRY MOBILE LEGENDS ===");
+    console.log("=== TEST INQUIRY FREE FIRE ===");
     
-    // Step 1: Find Mobile Legends: Bang Bang ID - 3 Diamonds package (ID 1658)
-    let mlPackage;
+    // Step 1: Find Free Fire - 5 Diamonds package
+    let testPackage;
     try {
-      console.log("Step 1: Querying database for Mobile Legends: Bang Bang ID - 3 Diamonds...");
-      mlPackage = await db.queryRow<{
+      console.log("Step 1: Querying database for Free Fire - 5 Diamonds...");
+      testPackage = await db.queryRow<{
         id: number;
         name: string;
+        product_name: string;
         uniplay_entitas_id: string | null;
         uniplay_denom_id: string | null;
       }>`
         SELECT 
           p.id, 
-          p.name, 
+          p.name,
+          pr.name as product_name, 
           pr.uniplay_entitas_id, 
           p.uniplay_denom_id
         FROM packages p
         INNER JOIN products pr ON p.product_id = pr.id
-        WHERE pr.name = 'Mobile Legends: Bang Bang ID'
-        AND p.name = '3 Diamonds'
+        WHERE pr.name = 'Free Fire'
+        AND p.name = '5 Diamonds'
         AND p.uniplay_denom_id IS NOT NULL
         AND pr.uniplay_entitas_id IS NOT NULL
         LIMIT 1
       `;
-      console.log("Database query result:", mlPackage);
+      console.log("Database query result:", testPackage);
     } catch (dbError: any) {
       console.error("Database query error:", dbError);
       throw APIError.internal("Failed to query package: " + dbError.message);
     }
 
-    if (!mlPackage) {
-      throw APIError.notFound("Mobile Legends package not found. Please sync from UniPlay first.");
+    if (!testPackage) {
+      throw APIError.notFound("Free Fire package not found. Please sync from UniPlay first.");
     }
 
-    if (!mlPackage.uniplay_entitas_id || !mlPackage.uniplay_denom_id) {
-      throw APIError.invalidArgument(`Package "${mlPackage.name}" missing UniPlay IDs. Entitas: ${mlPackage.uniplay_entitas_id}, Denom: ${mlPackage.uniplay_denom_id}`);
+    if (!testPackage.uniplay_entitas_id || !testPackage.uniplay_denom_id) {
+      throw APIError.invalidArgument(`Package "${testPackage.name}" missing UniPlay IDs. Entitas: ${testPackage.uniplay_entitas_id}, Denom: ${testPackage.uniplay_denom_id}`);
     }
 
     console.log("✅ Found package:", {
-      id: mlPackage.id,
-      name: mlPackage.name,
-      entitas_id: mlPackage.uniplay_entitas_id,
-      denom_id: mlPackage.uniplay_denom_id,
+      id: testPackage.id,
+      name: testPackage.name,
+      product_name: testPackage.product_name,
+      entitas_id: testPackage.uniplay_entitas_id,
+      denom_id: testPackage.uniplay_denom_id,
     });
 
-    // Step 2: Prepare request (ORDER MATTERS!)
+    // Step 2: Prepare request (Free Fire hanya pakai user_id, tanpa server_id)
     const testRequest = {
-      entitas_id: mlPackage.uniplay_entitas_id,
-      denom_id: mlPackage.uniplay_denom_id,
-      user_id: "235791720",
-      server_id: "9227",
+      entitas_id: testPackage.uniplay_entitas_id,
+      denom_id: testPackage.uniplay_denom_id,
+      user_id: "235791720", // Test User ID
     };
 
     console.log("Request payload (in correct order):", testRequest);
@@ -170,10 +173,11 @@ curl -X POST '${baseUrl}/inquiry-payment' \\
         success: true,
         curlCommand,
         packageInfo: {
-          id: mlPackage.id,
-          name: mlPackage.name,
-          entitas_id: mlPackage.uniplay_entitas_id,
-          denom_id: mlPackage.uniplay_denom_id,
+          id: testPackage.id,
+          name: testPackage.name,
+          productName: testPackage.product_name,
+          entitas_id: testPackage.uniplay_entitas_id,
+          denom_id: testPackage.uniplay_denom_id,
         },
         rawRequest: testRequest,
         rawResponse: response,
@@ -190,10 +194,11 @@ curl -X POST '${baseUrl}/inquiry-payment' \\
         success: false,
         curlCommand,
         packageInfo: {
-          id: mlPackage.id,
-          name: mlPackage.name,
-          entitas_id: mlPackage.uniplay_entitas_id,
-          denom_id: mlPackage.uniplay_denom_id,
+          id: testPackage.id,
+          name: testPackage.name,
+          productName: testPackage.product_name,
+          entitas_id: testPackage.uniplay_entitas_id,
+          denom_id: testPackage.uniplay_denom_id,
         },
         rawRequest: testRequest,
         rawResponse: {
