@@ -24,9 +24,11 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
     try {
       console.log("Step 1: Deleting all existing packages...");
       await db.exec`DELETE FROM packages`;
+      console.log(`  All packages deleted`);
       
       console.log("Step 2: Deleting all existing products...");
       await db.exec`DELETE FROM products`;
+      console.log(`  All products deleted`);
       
       console.log("Step 3: Fetching DTU list from UniPlay...");
       const dtuResponse = await getDTUList();
@@ -41,9 +43,16 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
       let packagesCreated = 0;
 
       for (const game of dtuResponse.list_dtu) {
-        console.log(`\nProcessing game: ${game.name} (${game.id})`);
+        console.log(`\n=== Processing game: ${game.name} ===`);
+        console.log(`Game ID (will be entitas_id): ${game.id}`);
+        console.log(`Denoms count: ${game.denom.length}`);
         
         const slug = game.id.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        
+        console.log(`Inserting product with:`);
+        console.log(`  - name: ${game.name}`);
+        console.log(`  - slug: ${slug}`);
+        console.log(`  - uniplay_entitas_id: ${game.id}`);
         
         const productRow = await db.queryRow<{ id: number }>`
           INSERT INTO products (name, slug, category, icon_url, description, is_active, uniplay_entitas_id)
@@ -60,15 +69,27 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
         `;
 
         if (!productRow) {
-          console.error(`Failed to create product for ${game.name}`);
+          console.error(`❌ Failed to create product for ${game.name}`);
           continue;
         }
 
         productsCreated++;
-        console.log(`✅ Created product: ${game.name} (ID: ${productRow.id})`);
-        console.log(`   UniPlay Entitas ID: ${game.id}`);
+        console.log(`✅ Product created with ID: ${productRow.id}`);
+        
+        // Verify product was saved with entitas_id
+        const verifyProduct = await db.queryRow<{ uniplay_entitas_id: string | null }>`
+          SELECT uniplay_entitas_id FROM products WHERE id = ${productRow.id}
+        `;
+        console.log(`  Verification - Product uniplay_entitas_id: ${verifyProduct?.uniplay_entitas_id || 'NULL'}`);
 
         for (const denom of game.denom) {
+          console.log(`\n  --- Creating package: ${denom.package} ---`);
+          console.log(`    Denom ID: ${denom.id}`);
+          console.log(`    Price: ${denom.price}`);
+          console.log(`    Will insert with:`);
+          console.log(`      - uniplay_entitas_id: ${game.id}`);
+          console.log(`      - uniplay_denom_id: ${denom.id}`);
+          
           await db.exec`
             INSERT INTO packages (
               product_id, name, amount, unit, price,
@@ -85,9 +106,23 @@ export const syncAllProducts = api<void, SyncAllProductsResponse>(
               true
             )
           `;
+          
+          // Verify package was saved
+          const verifyPackage = await db.queryRow<{ 
+            id: number;
+            uniplay_entitas_id: string | null;
+            uniplay_denom_id: string | null;
+          }>`
+            SELECT id, uniplay_entitas_id, uniplay_denom_id 
+            FROM packages 
+            WHERE product_id = ${productRow.id} AND name = ${denom.package}
+          `;
+          
+          console.log(`    ✅ Package created with ID: ${verifyPackage?.id}`);
+          console.log(`    Verification - entitas_id: ${verifyPackage?.uniplay_entitas_id || 'NULL'}`);
+          console.log(`    Verification - denom_id: ${verifyPackage?.uniplay_denom_id || 'NULL'}`);
+          
           packagesCreated++;
-          console.log(`  ✅ Created package: ${denom.package} - Rp ${denom.price}`);
-          console.log(`     Entitas ID: ${game.id}, Denom ID: ${denom.id}`);
         }
       }
 
