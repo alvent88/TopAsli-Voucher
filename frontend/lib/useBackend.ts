@@ -8,8 +8,8 @@ export function useBackend() {
   }
   
   return backend.with({
-    headers: {
-      Authorization: `Bearer ${token}`,
+    auth: async () => {
+      return { authorization: `Bearer ${token}` };
     },
   });
 }

@@ -26,84 +26,41 @@ interface ListUsersResponse {
 export const listUsers = api<void, ListUsersResponse>(
   { expose: true, method: "GET", path: "/admin/users", auth: true },
   async () => {
-    const auth = getAuthData()!;
+    const auth = getAuthData();
     
-    if (!auth.isSuperAdmin) {
+    if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Only superadmin can access user list");
     }
 
     try {
-      const dbUsers = await db.query<{
-        clerk_user_id: string;
-        email: string | null;
-        full_name: string | null;
-        phone_number: string | null;
-        birth_date: string | null;
-        created_at: Date;
-      }>`
-        SELECT clerk_user_id, email, full_name, phone_number, birth_date::text as birth_date, created_at
+      const dbUsers = await db.queryAll<any>`
+        SELECT clerk_user_id, email, full_name, phone_number, birth_date, created_at
         FROM users
         ORDER BY created_at DESC
       `;
 
-      const users = await Promise.all(dbUsers.map(async (user) => {
-        let balance = 0;
-        try {
-          const balanceRow = await db.queryRow<{ balance: number }>`
-            SELECT balance FROM user_balance WHERE user_id = ${user.clerk_user_id}
-          `;
-          balance = balanceRow?.balance || 0;
-        } catch (err) {
-          console.error(`Failed to get balance for user ${user.clerk_user_id}:`, err);
-        }
-
-        let isBanned = false;
-        let bannedAt = null;
-        let bannedReason = null;
-        
-        if (user.email) {
-          try {
-            const registrationRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string }>`
-              SELECT is_banned, banned_at, banned_reason
-              FROM email_registrations 
-              WHERE email = ${user.email}
-            `;
-            if (registrationRow) {
-              isBanned = registrationRow.is_banned;
-              bannedAt = registrationRow.banned_at ? new Date(registrationRow.banned_at).toISOString() : null;
-              bannedReason = registrationRow.banned_reason;
-            }
-          } catch (err) {
-            console.error(`Failed to get registration data for user ${user.clerk_user_id}:`, err);
-          }
-        }
-        
-        const isSuperAdmin = user.email === "alvent88@gmail.com";
-        const isAdmin = isSuperAdmin;
-        
-        return {
-          id: user.clerk_user_id,
-          email: user.email,
-          phoneNumber: user.phone_number,
-          firstName: null,
-          lastName: null,
-          fullName: user.full_name,
-          birthDate: user.birth_date ? user.birth_date.split('T')[0] : null,
-          createdAt: new Date(user.created_at).toISOString(),
-          lastSignInAt: null,
-          isAdmin,
-          isSuperAdmin,
-          balance,
-          isBanned,
-          bannedAt,
-          bannedReason,
-        };
+      const users = dbUsers.map((user: any) => ({
+        id: user.clerk_user_id || "",
+        email: user.email || null,
+        phoneNumber: user.phone_number || null,
+        firstName: null,
+        lastName: null,
+        fullName: user.full_name || null,
+        birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
+        createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
+        lastSignInAt: null,
+        isAdmin: user.email === "alvent88@gmail.com",
+        isSuperAdmin: user.email === "alvent88@gmail.com",
+        balance: 0,
+        isBanned: false,
+        bannedAt: null,
+        bannedReason: null,
       }));
 
       return { users };
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching users:", err);
-      throw APIError.internal("Failed to fetch users", err as Error);
+      throw APIError.internal("Failed to fetch users: " + err.message);
     }
   }
 );
