@@ -26,8 +26,8 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
       
       const timestamp = Math.floor(Date.now() / 1000);
       
-      const existingUser = await db.queryRow<{ email: string }>`
-        SELECT email FROM users WHERE email = ${email}
+      const existingUser = await db.queryRow<{ clerk_user_id: string }>`
+        SELECT clerk_user_id FROM users WHERE email = ${email}
       `;
       
       if (existingUser) {
@@ -46,12 +46,14 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
         );
       }
       
+      const generatedUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      
       await db.exec`
         INSERT INTO users (
-          email, full_name, phone_number, birth_date, created_at, updated_at
+          clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at
         )
         VALUES (
-          ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}
+          ${generatedUserId}, ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}
         )
       `;
       
