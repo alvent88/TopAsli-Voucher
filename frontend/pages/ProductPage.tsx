@@ -273,13 +273,13 @@ export default function ProductPage() {
                 </div>
                 <div>
                   <Label htmlFor="gameId" className="text-white">
-                    Game ID / Zone ID
+                    Server ID
                   </Label>
                   <Input
                     id="gameId"
                     value={gameId}
                     onChange={(e) => setGameId(e.target.value)}
-                    placeholder="Masukkan Game ID"
+                    placeholder="Masukkan Server ID"
                     className="bg-white/10 border-white/20 text-white"
                   />
                 </div>

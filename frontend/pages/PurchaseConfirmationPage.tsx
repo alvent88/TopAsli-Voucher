@@ -145,7 +145,7 @@ export default function PurchaseConfirmationPage() {
                 <span className="text-white font-mono text-xs">{userId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Game ID</span>
+                <span className="text-slate-400">Server ID</span>
                 <span className="text-white font-mono text-xs">{gameId}</span>
               </div>
               {username && (
