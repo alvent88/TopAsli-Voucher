@@ -5,8 +5,8 @@ import db from "../db";
 export interface RegisterEmailRequest {
   email: string;
   fullName: string;
-  clerkUserId: string;
-  birthDate?: string;
+  phoneNumber: string;
+  birthDate: string;
 }
 
 export interface RegisterEmailResponse {
@@ -15,82 +15,62 @@ export interface RegisterEmailResponse {
 }
 
 export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
-  { expose: true, method: "POST", path: "/auth/register-email" },
-  async ({ email, fullName, clerkUserId, birthDate }) => {
+  { expose: true, method: "POST", path: "/auth/register-email", auth: false },
+  async ({ email, fullName, phoneNumber, birthDate }) => {
     try {
-      console.log("=== REGISTER EMAIL START ===");
+      console.log("=== REGISTER WITHOUT OTP START ===");
       console.log("Email:", email);
       console.log("Full name:", fullName);
-      console.log("Clerk User ID:", clerkUserId);
+      console.log("Phone number:", phoneNumber);
       console.log("Birth date:", birthDate);
       
       const timestamp = Math.floor(Date.now() / 1000);
       
-      const existing = await db.queryRow<{ 
-        email: string; 
-        last_otp_request_at: number | null;
-        otp_request_count: number;
-      }>`
-        SELECT email, last_otp_request_at, otp_request_count 
-        FROM email_registrations 
-        WHERE email = ${email}
+      const existingUser = await db.queryRow<{ email: string }>`
+        SELECT email FROM users WHERE email = ${email}
       `;
       
-      if (existing?.last_otp_request_at) {
-        const timeSinceLastRequest = timestamp - existing.last_otp_request_at;
-        const MIN_REQUEST_INTERVAL = 60;
-        
-        if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-          const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-          throw APIError.resourceExhausted(
-            `Mohon tunggu ${waitTime} detik sebelum meminta OTP lagi.`
-          );
-        }
+      if (existingUser) {
+        throw APIError.alreadyExists(
+          "Email sudah terdaftar. Silakan login atau gunakan email lain."
+        );
       }
       
-      if (existing) {
-        console.log("Email already registered, updating...");
-        const newRequestCount = existing.otp_request_count + 1;
-        await db.exec`
-          UPDATE email_registrations
-          SET full_name = ${fullName}, 
-              clerk_user_id = ${clerkUserId}, 
-              birth_date = ${birthDate || ''},
-              updated_at = ${timestamp},
-              last_otp_request_at = ${timestamp},
-              otp_request_count = ${newRequestCount}
-          WHERE email = ${email}
-        `;
-      } else {
-        console.log("New email registration, inserting...");
-        await db.exec`
-          INSERT INTO email_registrations (
-            email, full_name, clerk_user_id, birth_date, created_at, updated_at, 
-            last_otp_request_at, otp_request_count
-          )
-          VALUES (
-            ${email}, ${fullName}, ${clerkUserId}, ${birthDate || ''}, ${timestamp}, ${timestamp},
-            ${timestamp}, 1
-          )
-        `;
+      const existingPhone = await db.queryRow<{ phone_number: string }>`
+        SELECT phone_number FROM users WHERE phone_number = ${phoneNumber}
+      `;
+      
+      if (existingPhone) {
+        throw APIError.alreadyExists(
+          "Nomor WhatsApp sudah terdaftar. Silakan gunakan nomor lain."
+        );
       }
       
-      console.log("Email registration saved to database");
-      console.log("=== REGISTER EMAIL SUCCESS ===");
+      await db.exec`
+        INSERT INTO users (
+          email, full_name, phone_number, birth_date, created_at, updated_at, is_active
+        )
+        VALUES (
+          ${email}, ${fullName}, ${phoneNumber}, ${birthDate}, ${timestamp}, ${timestamp}, true
+        )
+      `;
+      
+      console.log("User registered successfully");
+      console.log("=== REGISTER WITHOUT OTP SUCCESS ===");
 
       return {
         success: true,
-        message: "Registrasi email berhasil disimpan",
+        message: "Registrasi berhasil! Silakan login dengan email Anda.",
       };
     } catch (err: any) {
-      console.error("=== REGISTER EMAIL ERROR ===");
+      console.error("=== REGISTER WITHOUT OTP ERROR ===");
       console.error("Error:", err);
       
       if (err instanceof APIError) {
         throw err;
       }
       
-      throw APIError.internal(err.message || "Gagal menyimpan registrasi email");
+      throw APIError.internal(err.message || "Gagal melakukan registrasi");
     }
   }
 );
