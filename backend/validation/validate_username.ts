@@ -126,9 +126,9 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       if (!response.ok) {
         console.error("Validation API error - Status:", response.status);
         return {
-          success: false,
+          success: true,
           valid: false,
-          message: "Validation service unavailable",
+          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
         };
       }
 
@@ -138,9 +138,9 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       } catch (e) {
         console.error("Failed to parse validation response:", e);
         return {
-          success: false,
+          success: true,
           valid: false,
-          message: "Invalid response from validation service",
+          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
         };
       }
 
@@ -165,7 +165,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         return {
           success: true,
           valid: false,
-          message: "Username tidak valid. Silakan periksa kembali User ID dan Server ID Anda",
+          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
         };
       }
 
