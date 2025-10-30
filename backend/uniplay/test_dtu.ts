@@ -50,11 +50,11 @@ export const testDTU = api<{}, TestDTUResponse>(
         timestamp: timestamp,
       });
       
-      const curlCommand = `curl -X POST "${baseUrl}/inquiry-dtu" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${requestBody}'`;
+      const curlCommand = `curl --location '${baseUrl}/inquiry-dtu' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${requestBody}'`;
       
       const response = await getDTUList();
       

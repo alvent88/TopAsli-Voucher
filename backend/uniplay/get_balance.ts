@@ -36,11 +36,11 @@ export const getBalance = api<void, BalanceResponseWithCurl>(
       timestamp: timestamp,
     });
     
-    const curlCommand = `curl -X POST "${baseUrl}/inquiry-saldo" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${requestBody}'`;
+    const curlCommand = `curl --location '${baseUrl}/inquiry-saldo' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${requestBody}'`;
 
     const response = await getUniPlayBalance();
     

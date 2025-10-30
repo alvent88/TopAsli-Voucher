@@ -18,7 +18,7 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
     console.log("User ID:", req.userId);
     console.log("Server ID:", req.serverId);
 
-    // Find Mobile Legends product
+    // Find Mobile Legends:Bang Bang product by exact name
     const product = await db.queryRow<{
       id: number;
       name: string;
@@ -26,18 +26,18 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
     }>`
       SELECT id, name, uniplay_entitas_id
       FROM products
-      WHERE LOWER(name) LIKE '%mobile legends%'
+      WHERE name = 'Mobile Legends:Bang Bang'
       AND uniplay_entitas_id IS NOT NULL
       AND is_active = true
       LIMIT 1
     `;
 
     if (!product) {
-      throw APIError.notFound("Mobile Legends product not found in database");
+      throw APIError.notFound("Mobile Legends:Bang Bang product not found in database. Please run DTU sync first.");
     }
 
     if (!product.uniplay_entitas_id) {
-      throw APIError.invalidArgument("Mobile Legends product does not have UniPlay Entitas ID");
+      throw APIError.invalidArgument("Mobile Legends:Bang Bang product does not have UniPlay Entitas ID");
     }
 
     console.log("Product found:", product.name);
@@ -102,12 +102,12 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
 
     const jsonString = JSON.stringify(requestBody);
 
-    // Generate curl command
-    const curlCommand = `curl -X POST "${baseUrl}/inquiry-payment" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${jsonString}'`;
+    // Generate curl command with proper format
+    const curlCommand = `curl --location '${baseUrl}/inquiry-payment' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${jsonString}'`;
 
     try {
       const response = await inquiryPayment({

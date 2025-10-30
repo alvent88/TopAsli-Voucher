@@ -55,17 +55,17 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
         timestamp: timestamp,
       });
       
-      const voucherListCurl = `curl -X POST "${baseUrl}/inquiry-voucher" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${voucherRequestBody}'`;
+      const voucherListCurl = `curl --location '${baseUrl}/inquiry-voucher' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${voucherRequestBody}'`;
       
-      const dtuListCurl = `curl -X POST "${baseUrl}/inquiry-dtu" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${voucherRequestBody}'`;
+      const dtuListCurl = `curl --location '${baseUrl}/inquiry-dtu' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${voucherRequestBody}'`;
 
       // ==================== SYNC VOUCHERS ====================
       console.log("\n=== Syncing Vouchers ===");

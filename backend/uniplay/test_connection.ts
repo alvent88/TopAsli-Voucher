@@ -56,10 +56,10 @@ export const testConnection = api<void, TestConnectionResponse>(
       console.log("JSON String:", jsonString);
       
       // Generate cURL command
-      const curlCommand = `curl -X POST "${baseUrl}/access-token" \\
-  -H "Content-Type: application/json" \\
-  -H "UPL-SIGNATURE: <akan-di-generate>" \\
-  -d '${jsonString}'`;
+      const curlCommand = `curl --location '${baseUrl}/access-token' \\
+  --header 'Content-Type: application/json' \\
+  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
+  --data '${jsonString}'`;
       
       const encoder = new TextEncoder();
       const keyData = encoder.encode(hmacKey);
