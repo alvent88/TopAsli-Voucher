@@ -159,19 +159,13 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
           game: data.game || product.name,
           message: "Username found",
         };
-      } else if (data.success === false || data.message === "not found" || !data.name) {
-        console.log("❌ Username validation FAILED - User not found");
-        return {
-          success: true,
-          valid: false,
-          message: "Username tidak ditemukan. Silakan periksa User ID dan Server ID Anda",
-        };
       } else {
+        // Any other case - treat as invalid
         console.log("❌ Username validation FAILED");
         return {
           success: true,
           valid: false,
-          message: data.message || "User ID tidak ditemukan",
+          message: "Username tidak valid. Silakan periksa kembali User ID dan Server ID Anda",
         };
       }
 

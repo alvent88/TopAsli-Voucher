@@ -95,24 +95,12 @@ export default function ProductPage() {
         setValidatedUsername(response.username);
         setValidationMessage("");
         console.log("✅ Validation successful - Username:", response.username);
-      } else if (response.success && response.valid === false) {
-        // Username explicitly invalid or not found
-        setValidationStatus("invalid");
-        setValidatedUsername("");
-        setValidationMessage(response.message || "Username tidak ditemukan");
-        console.log("❌ Validation failed - User not found");
-      } else if (!response.success) {
-        // Validation service error - DON'T allow purchase
-        setValidationStatus("invalid");
-        setValidatedUsername("");
-        setValidationMessage("Layanan validasi bermasalah. Silakan coba lagi");
-        console.log("⚠️ Validation service error");
       } else {
-        // Edge case - treat as invalid
+        // Any other case - treat as invalid with consistent message
         setValidationStatus("invalid");
         setValidatedUsername("");
-        setValidationMessage("Tidak dapat memvalidasi username");
-        console.log("⚠️ Unknown validation state");
+        setValidationMessage(response.message || "Username tidak valid. Silakan periksa kembali User ID dan Server ID Anda");
+        console.log("❌ Validation failed");
       }
     } catch (error: any) {
       console.error("❌ Username validation error:", error);
