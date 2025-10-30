@@ -267,11 +267,19 @@ export default function AdminDashboard() {
   const handleSyncPackages = async () => {
     setSyncingPackages(true);
     setUniplayApiResponse("");
+    setUniplayCurlCommand("");
     try {
       const balance = await backend.uniplay.getBalance();
       console.log("Balance response:", balance);
       
-      setUniplayApiResponse(JSON.stringify(balance, null, 2));
+      // Extract curl command
+      if (balance.curlCommand) {
+        setUniplayCurlCommand(balance.curlCommand);
+      }
+      
+      // Remove curlCommand from response before displaying
+      const { curlCommand, ...responseWithoutCurl } = balance as any;
+      setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
       
       if (balance.status === "success" || balance.status === "200") {
         toast({
@@ -303,6 +311,7 @@ export default function AdminDashboard() {
   
   const handleTestDTU = async () => {
     setUniplayApiResponse("");
+    setUniplayCurlCommand("");
     try {
       const result = await backend.uniplay.testDTU();
       console.log("=== Test DTU Full Result ===");
@@ -312,7 +321,14 @@ export default function AdminDashboard() {
       console.log("Raw Response:", result.rawResponse);
       console.log("Error:", result.error);
       
-      setUniplayApiResponse(JSON.stringify(result, null, 2));
+      // Extract curl command
+      if (result.curlCommand) {
+        setUniplayCurlCommand(result.curlCommand);
+      }
+      
+      // Remove curlCommand from response before displaying
+      const { curlCommand, ...responseWithoutCurl } = result;
+      setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
       
       if (result.success) {
         toast({
@@ -410,11 +426,19 @@ export default function AdminDashboard() {
   const handleTestConnection = async () => {
     setTestingConnection(true);
     setUniplayApiResponse("");
+    setUniplayCurlCommand("");
     try {
       const result = await backend.uniplay.testConnection();
       console.log("Test connection result:", result);
       
-      setUniplayApiResponse(JSON.stringify(result, null, 2));
+      // Extract curl command
+      if (result.curlCommand) {
+        setUniplayCurlCommand(result.curlCommand);
+      }
+      
+      // Remove curlCommand from response before displaying
+      const { curlCommand, ...responseWithoutCurl } = result;
+      setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
       
       if (result.success) {
         toast({

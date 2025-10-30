@@ -7,6 +7,7 @@ export interface TestConnectionResponse {
   success: boolean;
   message: string;
   responseCode?: string;
+  curlCommand?: string;
 }
 
 export const testConnection = api<void, TestConnectionResponse>(
@@ -53,6 +54,12 @@ export const testConnection = api<void, TestConnectionResponse>(
       const hmacKey = `${apiKey}|${jsonString}`;
       
       console.log("JSON String:", jsonString);
+      
+      // Generate cURL command
+      const curlCommand = `curl -X POST "${baseUrl}/access-token" \\
+  -H "Content-Type: application/json" \\
+  -H "UPL-SIGNATURE: <akan-di-generate>" \\
+  -d '${jsonString}'`;
       
       const encoder = new TextEncoder();
       const keyData = encoder.encode(hmacKey);
@@ -103,6 +110,7 @@ export const testConnection = api<void, TestConnectionResponse>(
           success: true,
           message: "✅ Connection successful! " + (data.message || ""),
           responseCode: data.status,
+          curlCommand,
         };
       } else {
         // Map error codes from documentation
@@ -123,6 +131,7 @@ export const testConnection = api<void, TestConnectionResponse>(
           success: false,
           message: `❌ Error ${data.status}: ${errorMsg}`,
           responseCode: data.status,
+          curlCommand,
         };
       }
 
