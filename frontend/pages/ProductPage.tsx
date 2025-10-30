@@ -39,6 +39,14 @@ export default function ProductPage() {
 
   // Validate username when userId and serverId (if required) are filled
   useEffect(() => {
+    // Skip validation for voucher category
+    if (product?.category?.toLowerCase() === 'voucher') {
+      setValidationStatus("idle");
+      setValidatedUsername("");
+      setValidationMessage("");
+      return;
+    }
+
     if (!userId || !product) {
       setValidationStatus("idle");
       setValidatedUsername("");
@@ -139,31 +147,48 @@ export default function ProductPage() {
       return;
     }
 
+    const isVoucher = product?.category?.toLowerCase() === 'voucher';
     const requiresServerId = product?.requiresServerId !== false;
     
-    if (!userId || !selectedPackage) {
-      toast({
-        title: "Peringatan",
-        description: "Mohon lengkapi semua data",
-        variant: "destructive",
-      });
-      return;
-    }
+    // For voucher, only package is required
+    if (isVoucher) {
+      if (!selectedPackage) {
+        toast({
+          title: "Peringatan",
+          description: "Silakan pilih voucher",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // For non-voucher, userId is required
+      if (!userId || !selectedPackage) {
+        toast({
+          title: "Peringatan",
+          description: "Mohon lengkapi semua data",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (requiresServerId && !gameId) {
-      toast({
-        title: "Peringatan",
-        description: "Mohon masukkan Server ID",
-        variant: "destructive",
-      });
-      return;
+      if (requiresServerId && !gameId) {
+        toast({
+          title: "Peringatan",
+          description: "Mohon masukkan Server ID",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // Redirect to purchase inquiry page
     const params = new URLSearchParams({
       packageId: selectedPackage.toString(),
-      userId,
     });
+
+    if (!isVoucher && userId) {
+      params.append("userId", userId);
+    }
 
     if (gameId) {
       params.append("serverId", gameId);
@@ -235,61 +260,72 @@ export default function ProductPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="userId" className="text-white">
-                    User ID
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="userId"
-                      value={userId}
-                      onChange={(e) => setUserId(e.target.value)}
-                      placeholder="Masukkan User ID"
-                      className={`bg-white/10 border-white/20 text-white pr-10 ${
-                        validationStatus === "invalid" ? "border-red-500" : ""
-                      } ${validationStatus === "valid" ? "border-green-500" : ""}`}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {validationStatus === "validating" && (
-                        <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
-                      )}
-                      {validationStatus === "valid" && (
-                        <CheckCircle className="h-5 w-5 text-green-400" />
+                {product?.category?.toLowerCase() !== 'voucher' && (
+                  <>
+                    <div>
+                      <Label htmlFor="userId" className="text-white">
+                        User ID
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="userId"
+                          value={userId}
+                          onChange={(e) => setUserId(e.target.value)}
+                          placeholder="Masukkan User ID"
+                          className={`bg-white/10 border-white/20 text-white pr-10 ${
+                            validationStatus === "invalid" ? "border-red-500" : ""
+                          } ${validationStatus === "valid" ? "border-green-500" : ""}`}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {validationStatus === "validating" && (
+                            <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+                          )}
+                          {validationStatus === "valid" && (
+                            <CheckCircle className="h-5 w-5 text-green-400" />
+                          )}
+                          {validationStatus === "invalid" && (
+                            <XCircle className="h-5 w-5 text-red-400" />
+                          )}
+                        </div>
+                      </div>
+                      {validationStatus === "valid" && validatedUsername && (
+                        <div className="mt-2 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>✓ Username ditemukan: {validatedUsername}</span>
+                          </div>
+                        </div>
                       )}
                       {validationStatus === "invalid" && (
-                        <XCircle className="h-5 w-5 text-red-400" />
+                        <div className="mt-2 p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
+                            <XCircle className="h-4 w-4" />
+                            <span>✗ {validationMessage}</span>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  {validationStatus === "valid" && validatedUsername && (
-                    <div className="mt-2 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>✓ Username ditemukan: {validatedUsername}</span>
+                    {product?.requiresServerId !== false && (
+                      <div>
+                        <Label htmlFor="gameId" className="text-white">
+                          Server ID
+                        </Label>
+                        <Input
+                          id="gameId"
+                          value={gameId}
+                          onChange={(e) => setGameId(e.target.value)}
+                          placeholder="Masukkan Server ID"
+                          className="bg-white/10 border-white/20 text-white"
+                        />
                       </div>
-                    </div>
-                  )}
-                  {validationStatus === "invalid" && (
-                    <div className="mt-2 p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
-                      <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
-                        <XCircle className="h-4 w-4" />
-                        <span>✗ {validationMessage}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {product?.requiresServerId !== false && (
-                  <div>
-                    <Label htmlFor="gameId" className="text-white">
-                      Server ID
-                    </Label>
-                    <Input
-                      id="gameId"
-                      value={gameId}
-                      onChange={(e) => setGameId(e.target.value)}
-                      placeholder="Masukkan Server ID"
-                      className="bg-white/10 border-white/20 text-white"
-                    />
+                    )}
+                  </>
+                )}
+                {product?.category?.toLowerCase() === 'voucher' && (
+                  <div className="p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
+                    <p className="text-purple-200 text-sm">
+                      Voucher akan dikirimkan ke email Anda setelah pembayaran berhasil
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -457,11 +493,13 @@ export default function ProductPage() {
                 <Button
                   onClick={handleCheckout}
                   disabled={
-                    !userId || 
-                    !selectedPackage || 
-                    (product?.requiresServerId !== false && !gameId) || 
-                    validationStatus === "invalid" ||
-                    validationStatus === "validating" ||
+                    !selectedPackage ||
+                    (product?.category?.toLowerCase() !== 'voucher' && (
+                      !userId || 
+                      (product?.requiresServerId !== false && !gameId) || 
+                      validationStatus === "invalid" ||
+                      validationStatus === "validating"
+                    )) ||
                     loading
                   }
                   className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
