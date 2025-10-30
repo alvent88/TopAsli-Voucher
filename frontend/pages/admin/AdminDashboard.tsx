@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   });
   
   const [syncingProducts, setSyncingProducts] = useState(false);
+  const [testingVoucher, setTestingVoucher] = useState(false);
   const [syncingPackages, setSyncingPackages] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
@@ -209,58 +210,53 @@ export default function AdminDashboard() {
     }
   };
   
-  const handleSyncProducts = async () => {
-    setSyncingProducts(true);
+  const handleTestVoucher = async () => {
+    setTestingVoucher(true);
     setUniplayApiResponse("");
     setUniplayCurlCommand("");
     try {
-      const result = await backend.uniplay.syncServices();
-      console.log("Sync result:", result);
+      const result = await backend.uniplay.testVoucher();
+      console.log("=== Test Voucher Full Result ===");
+      console.log("Success:", result.success);
+      console.log("Voucher Count:", result.voucherCount);
+      console.log("First Voucher:", result.firstVoucher);
+      console.log("Raw Response:", result.rawResponse);
+      console.log("Error:", result.error);
       
-      // Extract curl commands
-      if (result.curlCommands) {
-        const curlText = `# Voucher List Request:\n${result.curlCommands.voucherListCurl}\n\n# DTU List Request:\n${result.curlCommands.dtuListCurl}`;
-        setUniplayCurlCommand(curlText);
+      // Extract curl command
+      if (result.curlCommand) {
+        setUniplayCurlCommand(result.curlCommand);
       }
       
-      // Remove curlCommands from response before displaying
-      const { curlCommands, ...responseWithoutCurl } = result;
+      // Remove curlCommand from response before displaying
+      const { curlCommand, ...responseWithoutCurl } = result;
       setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
       
       if (result.success) {
         toast({
-          title: "Sync Berhasil! ✅",
-          description: `Vouchers: ${result.voucherCount} | Games: ${result.gameCount} | Baru: ${result.synced} | Update: ${result.updated}`,
+          title: "Test Voucher Berhasil! ✅",
+          description: `Found ${result.voucherCount} vouchers. First: ${result.firstVoucher?.name || "N/A"}`,
         });
-        
-        if (result.errors.length > 0) {
-          console.error("Sync errors:", result.errors);
-          toast({
-            title: "Warning",
-            description: `${result.errors.length} error terjadi. Lihat console untuk detail.`,
-            variant: "destructive",
-          });
-        }
       } else {
         toast({
-          title: "Sync Gagal ❌",
-          description: "Gagal sync dari UniPlay",
+          title: "Test Voucher Gagal ❌",
+          description: result.error || "Unknown error",
           variant: "destructive",
         });
       }
     } catch (error: any) {
-      console.error("Sync error:", error);
+      console.error("Test Voucher error:", error);
       setUniplayApiResponse(JSON.stringify({
         error: error.message || "Unknown error",
         details: error.toString(),
       }, null, 2));
       toast({
         title: "Error",
-        description: error.message || "Gagal sync pricelist dari UniPlay",
+        description: error.message || "Gagal test voucher",
         variant: "destructive",
       });
     } finally {
-      setSyncingProducts(false);
+      setTestingVoucher(false);
     }
   };
   
@@ -756,12 +752,12 @@ export default function AdminDashboard() {
                     🎮 DTU
                   </Button>
                   <Button
-                    onClick={handleSyncProducts}
-                    disabled={syncingProducts}
+                    onClick={handleTestVoucher}
+                    disabled={testingVoucher}
                     variant="outline"
-                    className="border-blue-700 text-blue-400 hover:bg-blue-900/20 text-xs"
+                    className="border-purple-700 text-purple-400 hover:bg-purple-900/20 text-xs"
                   >
-                    {syncingProducts ? "..." : "🔄 Sync"}
+                    {testingVoucher ? "..." : "🎫 Voucher"}
                   </Button>
                   <Button
                     onClick={handleSyncPackages}
