@@ -34,7 +34,7 @@ export default function PurchaseInquiryPage() {
   const preValidatedUsername = searchParams.get("username") || "";
 
   useEffect(() => {
-    if (!packageId || !userId) {
+    if (!packageId) {
       toast({
         title: "Invalid Request",
         description: "Data tidak lengkap",
@@ -100,10 +100,10 @@ export default function PurchaseInquiryPage() {
       const createResponse = await backend.transaction.create({
         productId: inquiryData.productId,
         packageId,
-        userId,
+        userId: userId || "",
         gameId: serverId || "",
         inquiryId: inquiryData.inquiryId,
-        username: inquiryData.username,
+        username: inquiryData.username || "",
       });
 
       console.log("Transaction created:", createResponse);
@@ -193,22 +193,26 @@ export default function PurchaseInquiryPage() {
                 <span className="text-slate-400">Paket:</span>
                 <span className="text-white font-medium">{inquiryData.packageName}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">User ID:</span>
-                <span className="text-white font-mono">{userId}</span>
-              </div>
+              {userId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">User ID:</span>
+                  <span className="text-white font-mono">{userId}</span>
+                </div>
+              )}
               {serverId && (
                 <div className="flex justify-between">
                   <span className="text-slate-400">Server ID:</span>
                   <span className="text-white font-mono">{serverId}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-slate-400">Username:</span>
-                <span className={`font-medium ${username !== "-" ? "text-green-400" : "text-slate-400"}`}>
-                  {username}
-                </span>
-              </div>
+              {username && username !== "-" && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Username:</span>
+                  <span className="text-green-400 font-medium">
+                    {username}
+                  </span>
+                </div>
+              )}
               <div className="border-t border-slate-700 pt-3 mt-3">
                 <div className="flex justify-between text-lg">
                   <span className="text-slate-300 font-medium">Total Harga:</span>
