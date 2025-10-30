@@ -44,13 +44,6 @@ export default function AdminDashboard() {
     webhookUrl: "",
   });
   
-  const [topupConfig, setTopupConfig] = useState({
-    provider: "unipin",
-    apiKey: "",
-    merchantId: "",
-    secretKey: "",
-  });
-  
   const [uniplayConfig, setUniplayConfig] = useState({
     apiKey: "",
     baseUrl: "https://api-reseller.uniplay.id/v1",
@@ -62,11 +55,6 @@ export default function AdminDashboard() {
   const [syncingPackages, setSyncingPackages] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
-  const [validatingUsername, setValidatingUsername] = useState(false);
-  const [validationGame, setValidationGame] = useState("mobile-legends");
-  const [validationUserId, setValidationUserId] = useState("");
-  const [validationServerId, setValidationServerId] = useState("");
-  const [validationResult, setValidationResult] = useState("");
   
   // UniPlay API Response states
   const [uniplayApiResponse, setUniplayApiResponse] = useState("");
@@ -76,13 +64,6 @@ export default function AdminDashboard() {
   const [testingTransaction, setTestingTransaction] = useState(false);
   const [testCurlCommand, setTestCurlCommand] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
-  
-  // Test Isan API states
-  const [testingIsanAPI, setTestingIsanAPI] = useState(false);
-  const [isanGame, setIsanGame] = useState("ml");
-  const [isanUserId, setIsanUserId] = useState("1114917746");
-  const [isanServerId, setIsanServerId] = useState("13486");
-  const [isanApiResponse, setIsanApiResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -104,7 +85,6 @@ export default function AdminDashboard() {
     try {
       const { config } = await backend.admin.getConfig();
       setWhatsappConfig(config.whatsapp);
-      setTopupConfig(config.topup);
       if (config.uniplay) {
         setUniplayConfig(config.uniplay);
       }
@@ -118,7 +98,6 @@ export default function AdminDashboard() {
       await backend.admin.saveConfig({
         config: {
           whatsapp: whatsappConfig,
-          topup: topupConfig,
           uniplay: uniplayConfig,
         },
       });
@@ -521,54 +500,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleTestIsanAPI = async () => {
-    setTestingIsanAPI(true);
-    setIsanApiResponse("");
-
-    try {
-      const result = await backend.validation.testIsanAPI({
-        game: isanGame,
-        userId: isanUserId,
-        serverId: isanServerId || undefined,
-      });
-
-      setIsanApiResponse(JSON.stringify(result, null, 2));
-
-      if (result.success && result.parsedData?.success) {
-        toast({
-          title: "✅ Isan API Test Berhasil!",
-          description: `Username: ${result.parsedData.name || "N/A"}`,
-        });
-      } else if (result.success && result.parsedData) {
-        toast({
-          title: "⚠️ User ID Invalid",
-          description: result.parsedData.message || "User tidak ditemukan",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "❌ Test Gagal",
-          description: result.error || "Unknown error",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Test Isan API error:", error);
-      setIsanApiResponse(JSON.stringify({
-        error: error.message || "Unknown error",
-        details: error.toString(),
-      }, null, 2));
-      
-      toast({
-        title: "Error",
-        description: error.message || "Gagal test Isan API",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingIsanAPI(false);
-    }
-  };
-
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
     try {
@@ -906,83 +837,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Test Isan Username Validation API */}
-        <Card className="bg-slate-900 border-slate-800">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-500/10">
-                <TestTube2 className="h-5 w-5 text-orange-400" />
-              </div>
-              <div>
-                <CardTitle className="text-white">Test Isan Validation API</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Test username validation dengan api.isan.eu.org</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="isan-game" className="text-slate-300">Game</Label>
-              <Select value={isanGame} onValueChange={setIsanGame}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-white">
-                  <SelectItem value="ml" className="text-white hover:bg-slate-800">Mobile Legends (ml)</SelectItem>
-                  <SelectItem value="ff" className="text-white hover:bg-slate-800">Free Fire (ff)</SelectItem>
-                  <SelectItem value="pubgm" className="text-white hover:bg-slate-800">PUBG Mobile (pubgm)</SelectItem>
-                  <SelectItem value="codm" className="text-white hover:bg-slate-800">Call of Duty Mobile (codm)</SelectItem>
-                  <SelectItem value="aov" className="text-white hover:bg-slate-800">Arena of Valor (aov)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="isan-user-id" className="text-slate-300">User ID</Label>
-                <Input
-                  id="isan-user-id"
-                  value={isanUserId}
-                  onChange={(e) => setIsanUserId(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                  placeholder="1114917746"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="isan-server-id" className="text-slate-300">Server ID (optional)</Label>
-                <Input
-                  id="isan-server-id"
-                  value={isanServerId}
-                  onChange={(e) => setIsanServerId(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                  placeholder="13486"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleTestIsanAPI}
-              disabled={testingIsanAPI}
-              className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
-            >
-              {testingIsanAPI ? "Testing..." : "🔍 Test Username Validation"}
-            </Button>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300">API Response</Label>
-              <Textarea
-                value={isanApiResponse}
-                readOnly
-                className="bg-slate-800 border-slate-700 text-orange-400 font-mono text-xs h-96 resize-none"
-                placeholder="Response dari Isan API akan muncul di sini..."
-              />
-            </div>
-
-            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Info:</strong> Test akan memanggil api.isan.eu.org untuk validasi username game
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="bg-slate-900 border-slate-800">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -1054,170 +908,6 @@ export default function AdminDashboard() {
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Catatan:</strong> Tombol Test akan mengirim pesan ke nomor 0818848168. 
               Pastikan FonnteToken sudah di-set di Settings → Secrets.
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-900 border-slate-800">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <ShoppingBag className="h-5 w-5 text-purple-400" />
-              </div>
-              <div>
-                <CardTitle className="text-white">API Provider Topup</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Koneksi ke UniPin/UniPlay/LapakGaming/Codashop</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="provider" className="text-slate-300">Provider</Label>
-              <select
-                id="provider"
-                value={topupConfig.provider}
-                onChange={(e) => setTopupConfig({ ...topupConfig, provider: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md"
-                disabled={!canEdit}
-              >
-                <option value="unipin">UniPin</option>
-                <option value="uniplay">UniPlay</option>
-                <option value="lapakgaming">LapakGaming</option>
-                <option value="codashop">Codashop</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="merchant-id" className="text-slate-300">Merchant ID</Label>
-              <Input
-                id="merchant-id"
-                value={topupConfig.merchantId}
-                onChange={(e) => setTopupConfig({ ...topupConfig, merchantId: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-                placeholder="Merchant ID dari provider"
-                disabled={!canEdit}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="topup-api-key" className="text-slate-300">API Key</Label>
-              <Input
-                id="topup-api-key"
-                type="password"
-                value={topupConfig.apiKey}
-                onChange={(e) => setTopupConfig({ ...topupConfig, apiKey: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-                placeholder="API Key dari provider"
-                disabled={!canEdit}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="secret-key" className="text-slate-300">Secret Key</Label>
-              <Input
-                id="secret-key"
-                type="password"
-                value={topupConfig.secretKey}
-                onChange={(e) => setTopupConfig({ ...topupConfig, secretKey: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-                placeholder="Secret Key dari provider"
-                disabled={!canEdit}
-              />
-            </div>
-            {canEdit && (
-              <Button
-                onClick={handleSaveTopupConfig}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                Simpan Konfigurasi Provider
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-900 border-slate-800">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <TestTube2 className="h-5 w-5 text-purple-400" />
-              </div>
-              <div>
-                <CardTitle className="text-white">Test Username Validation</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Validasi username game menggunakan API isan.eu.org</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="validation-game" className="text-slate-300">Game</Label>
-              <Select value={validationGame} onValueChange={setValidationGame}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="mobile-legends">Mobile Legends</SelectItem>
-                  <SelectItem value="free-fire">Free Fire</SelectItem>
-                  <SelectItem value="genshin-impact">Genshin Impact</SelectItem>
-                  <SelectItem value="valorant">Valorant</SelectItem>
-                  <SelectItem value="call-of-duty-mobile">Call of Duty Mobile</SelectItem>
-                  <SelectItem value="arena-of-valor">Arena of Valor</SelectItem>
-                  <SelectItem value="honkai-star-rail">Honkai: Star Rail</SelectItem>
-                  <SelectItem value="zenless-zone-zero">Zenless Zone Zero</SelectItem>
-                  <SelectItem value="point-blank">Point Blank</SelectItem>
-                  <SelectItem value="lifeafter">LifeAfter</SelectItem>
-                  <SelectItem value="punishing-gray-raven">Punishing: Gray Raven</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="validation-user-id" className="text-slate-300">User ID *</Label>
-              <Input
-                id="validation-user-id"
-                value={validationUserId}
-                onChange={(e) => setValidationUserId(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white font-mono"
-                placeholder="Contoh: 235791720"
-              />
-            </div>
-            {(validationGame === "mobile-legends" || validationGame === "lifeafter" || validationGame === "punishing-gray-raven") && (
-              <div className="space-y-2">
-                <Label htmlFor="validation-server-id" className="text-slate-300">
-                  {validationGame === "mobile-legends" ? "Zone ID" : validationGame === "lifeafter" ? "Server Name" : "Server (AP/EU/NA)"}
-                  {validationGame === "mobile-legends" && " *"}
-                </Label>
-                <Input
-                  id="validation-server-id"
-                  value={validationServerId}
-                  onChange={(e) => setValidationServerId(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                  placeholder={validationGame === "mobile-legends" ? "Contoh: 9227" : validationGame === "lifeafter" ? "Contoh: milestone" : "Contoh: AP"}
-                />
-              </div>
-            )}
-            {canEdit && (
-              <Button
-                onClick={handleValidateUsername}
-                disabled={validatingUsername}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                {validatingUsername ? "Validating..." : "🔍 Validate Username"}
-              </Button>
-            )}
-            {validationResult && (
-              <div className="space-y-2">
-                <Label className="text-slate-300">Validation Result:</Label>
-                <Textarea
-                  value={validationResult}
-                  readOnly
-                  className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs min-h-[200px]"
-                />
-              </div>
-            )}
-            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">ℹ️ Info:</strong>
-              <div className="text-slate-300 mt-2 space-y-1">
-                <div>• API dari <a href="https://github.com/ihsangan/valid" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">github.com/ihsangan/valid</a></div>
-                <div>• Gratis dan tidak perlu API key</div>
-                <div>• Mendukung berbagai game populer</div>
-                <div>• Response format: {JSON.stringify({success: true, name: "Username"})}</div>
-              </div>
             </div>
           </CardContent>
         </Card>
