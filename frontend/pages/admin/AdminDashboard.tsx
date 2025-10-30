@@ -67,6 +67,9 @@ export default function AdminDashboard() {
   const [validationServerId, setValidationServerId] = useState("");
   const [validationResult, setValidationResult] = useState("");
   
+  // UniPlay API Response states
+  const [uniplayApiResponse, setUniplayApiResponse] = useState("");
+  
   // Test UniPlay Transaction states
   const [testingTransaction, setTestingTransaction] = useState(false);
   const [testUserId, setTestUserId] = useState("235791720");
@@ -207,9 +210,12 @@ export default function AdminDashboard() {
   
   const handleSyncProducts = async () => {
     setSyncingProducts(true);
+    setUniplayApiResponse("");
     try {
       const result = await backend.uniplay.syncServices();
       console.log("Sync result:", result);
+      
+      setUniplayApiResponse(JSON.stringify(result, null, 2));
       
       if (result.success) {
         toast({
@@ -234,6 +240,10 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Sync error:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
       toast({
         title: "Error",
         description: error.message || "Gagal sync pricelist dari UniPlay",
@@ -246,9 +256,12 @@ export default function AdminDashboard() {
   
   const handleSyncPackages = async () => {
     setSyncingPackages(true);
+    setUniplayApiResponse("");
     try {
       const balance = await backend.uniplay.getBalance();
       console.log("Balance response:", balance);
+      
+      setUniplayApiResponse(JSON.stringify(balance, null, 2));
       
       if (balance.status === "success" || balance.status === "200") {
         toast({
@@ -264,6 +277,10 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Failed to get balance:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
       toast({
         title: "Error",
         description: error.message || "Gagal cek balance UniPlay",
@@ -275,6 +292,7 @@ export default function AdminDashboard() {
   };
   
   const handleTestDTU = async () => {
+    setUniplayApiResponse("");
     try {
       const result = await backend.uniplay.testDTU();
       console.log("=== Test DTU Full Result ===");
@@ -283,6 +301,8 @@ export default function AdminDashboard() {
       console.log("First Game:", result.firstGame);
       console.log("Raw Response:", result.rawResponse);
       console.log("Error:", result.error);
+      
+      setUniplayApiResponse(JSON.stringify(result, null, 2));
       
       if (result.success) {
         toast({
@@ -298,6 +318,10 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Test DTU error:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
       toast({
         title: "Error",
         description: error.message || "Gagal test DTU",
@@ -375,9 +399,12 @@ export default function AdminDashboard() {
 
   const handleTestConnection = async () => {
     setTestingConnection(true);
+    setUniplayApiResponse("");
     try {
       const result = await backend.uniplay.testConnection();
       console.log("Test connection result:", result);
+      
+      setUniplayApiResponse(JSON.stringify(result, null, 2));
       
       if (result.success) {
         toast({
@@ -393,6 +420,10 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error("Test connection error:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
       toast({
         title: "Error",
         description: error.message || "Gagal test koneksi",
@@ -716,8 +747,19 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             )}
+            
+            <div className="space-y-2">
+              <Label className="text-slate-300">UniPlay API Response</Label>
+              <Textarea
+                value={uniplayApiResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-cyan-400 font-mono text-xs h-64 resize-none"
+                placeholder="Response dari UniPlay API akan muncul di sini..."
+              />
+            </div>
+            
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Info:</strong> Gunakan Run Diagnostic untuk menemukan endpoint yang benar, Test Connection untuk cek koneksi, Sync Pricelist untuk ambil daftar produk.
+              <strong className="text-slate-400">💡 Info:</strong> Gunakan Test Connection, DTU, Sync, atau Balance untuk melihat response dari UniPlay API.
             </div>
           </CardContent>
         </Card>
