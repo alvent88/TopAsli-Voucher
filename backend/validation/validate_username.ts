@@ -58,6 +58,9 @@ function getGameEndpoint(productName: string): { endpoint: string; needsServer: 
   if (lowerName.includes("point blank")) {
     return { endpoint: "/pb", needsServer: false };
   }
+  if (lowerName.includes("magic chess")) {
+    return { endpoint: "/mcgg", needsServer: true };
+  }
   
   return null;
 }
@@ -87,10 +90,9 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       
       if (!gameConfig) {
         console.log("⚠️ Product not supported by validation API");
-        // Product not supported by validation API - allow purchase
         return {
           success: true,
-          valid: true,
+          valid: false,
           message: "Validation not available for this game",
         };
       }
@@ -128,7 +130,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         return {
           success: true,
           valid: false,
-          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
+          message: "Username not found",
         };
       }
 
@@ -140,7 +142,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         return {
           success: true,
           valid: false,
-          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
+          message: "Username not found",
         };
       }
 
@@ -161,11 +163,11 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         };
       } else {
         // Any other case - treat as invalid
-        console.log("❌ Username validation FAILED");
+        console.log("❌ Username validation FAILED - Username not found");
         return {
           success: true,
           valid: false,
-          message: "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda",
+          message: "Username not found",
         };
       }
 

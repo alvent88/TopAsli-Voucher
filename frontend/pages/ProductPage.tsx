@@ -97,7 +97,7 @@ export default function ProductPage() {
         // Any other case - treat as invalid with consistent message
         setValidationStatus("invalid");
         setValidatedUsername("");
-        setValidationMessage(response.message || "Username tidak ditemukan. Silakan periksa kembali User ID dan Server ID Anda");
+        setValidationMessage(response.message || "Username not found");
         console.log("❌ Validation failed");
       }
     } catch (error: any) {
