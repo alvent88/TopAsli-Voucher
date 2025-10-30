@@ -25,8 +25,6 @@ export default function ProductPage() {
   const [userId, setUserId] = useState("");
   const [gameId, setGameId] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
-  const [uniplayUsername, setUniplayUsername] = useState<string>("");
-  const [uniplayValidating, setUniplayValidating] = useState(false);
   
   // Username validation state
   const [validationStatus, setValidationStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
@@ -111,43 +109,6 @@ export default function ProductPage() {
     }
   };
 
-  // Validate with UniPlay when package is selected
-  useEffect(() => {
-    if (selectedPackage && userId && product && (!product.requiresServerId || gameId)) {
-      validateWithUniPlay();
-    } else {
-      setUniplayUsername("");
-    }
-  }, [selectedPackage, userId, gameId, product]);
-
-  const validateWithUniPlay = async () => {
-    if (!selectedPackage || !userId || !product) return;
-
-    const requiresServerId = product.requiresServerId !== false;
-    if (requiresServerId && !gameId) return;
-
-    setUniplayValidating(true);
-    
-    try {
-      const response = await authBackend.uniplay.inquiryPaymentEndpoint({
-        packageId: selectedPackage,
-        userId,
-        serverId: gameId || undefined,
-      });
-
-      if (response.success && response.username) {
-        setUniplayUsername(response.username);
-      } else {
-        setUniplayUsername("");
-      }
-    } catch (error: any) {
-      console.error("UniPlay inquiry error:", error);
-      setUniplayUsername("");
-    } finally {
-      setUniplayValidating(false);
-    }
-  };
-
   const loadData = async () => {
     try {
       const productData = await backend.product.get({ slug: slug! });
@@ -206,11 +167,6 @@ export default function ProductPage() {
 
     if (gameId) {
       params.append("serverId", gameId);
-    }
-
-    // Pass username dari UniPlay inquiry
-    if (uniplayUsername) {
-      params.append("username", uniplayUsername);
     }
 
     navigate(`/purchase-inquiry?${params.toString()}`);
@@ -334,26 +290,6 @@ export default function ProductPage() {
                       placeholder="Masukkan Server ID"
                       className="bg-white/10 border-white/20 text-white"
                     />
-                  </div>
-                )}
-                {uniplayUsername && selectedPackage && (
-                  <div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                      <span className="text-purple-300 text-xs font-semibold">KONFIRMASI UNIPLAY</span>
-                    </div>
-                    <div className="text-purple-100 font-medium">
-                      Username: {uniplayUsername}
-                    </div>
-                    <div className="text-purple-400 text-xs mt-1">
-                      ✓ Data telah diverifikasi dengan UniPlay
-                    </div>
-                  </div>
-                )}
-                {uniplayValidating && selectedPackage && (
-                  <div className="text-purple-400 text-sm flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                    Memverifikasi dengan UniPlay...
                   </div>
                 )}
               </CardContent>
@@ -526,13 +462,11 @@ export default function ProductPage() {
                     (product?.requiresServerId !== false && !gameId) || 
                     validationStatus === "invalid" ||
                     validationStatus === "validating" ||
-                    loading || 
-                    uniplayValidating
+                    loading
                   }
                   className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {validationStatus === "validating" ? "Memvalidasi Username..." : 
-                   uniplayValidating ? "Memverifikasi..." : 
                    validationStatus === "invalid" ? "Username Invalid" :
                    loading ? "Memproses..." : "Beli Sekarang"}
                 </Button>
