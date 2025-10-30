@@ -96,16 +96,16 @@ export const testVoucher = api<{}, TestVoucherResponse>(
           
           const slug = `voucher-${voucher.id.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
-          // Check if product exists by uniplay_entitas_id
-          const existing = await db.queryRow<{ id: number }>`
-            SELECT id FROM products 
-            WHERE uniplay_entitas_id = ${voucher.id}
+          // Check if product exists by uniplay_entitas_id OR name
+          const existing = await db.queryRow<{ id: number; uniplay_entitas_id: string | null }>`
+            SELECT id, uniplay_entitas_id FROM products 
+            WHERE uniplay_entitas_id = ${voucher.id} OR name = ${voucher.name}
           `;
 
           let productId: number;
 
           if (existing) {
-            // Update product
+            // Update product (update entitas_id if it was null or different)
             await db.exec`
               UPDATE products 
               SET 
@@ -113,11 +113,17 @@ export const testVoucher = api<{}, TestVoucherResponse>(
                 category = 'Voucher',
                 description = ${`Publisher: ${voucher.publisher}`},
                 icon_url = ${voucher.image},
+                uniplay_entitas_id = ${voucher.id},
                 updated_at = NOW()
               WHERE id = ${existing.id}
             `;
             productId = existing.id;
-            console.log(`✅ Updated product ID: ${productId}`);
+            
+            if (existing.uniplay_entitas_id === null || existing.uniplay_entitas_id !== voucher.id) {
+              console.log(`✅ Updated product ID: ${productId} (added/updated entitas_id: ${voucher.id})`);
+            } else {
+              console.log(`✅ Updated product ID: ${productId}`);
+            }
           } else {
             // Create new product
             const result = await db.queryRow<{ id: number }>`
@@ -153,25 +159,31 @@ export const testVoucher = api<{}, TestVoucherResponse>(
               
               const price = parseInt(denom.price);
               
-              // Check if package exists by uniplay_denom_id
-              const pkgExists = await db.queryRow<{ id: number }>`
-                SELECT id FROM packages 
+              // Check if package exists by uniplay_denom_id OR name
+              const pkgExists = await db.queryRow<{ id: number; uniplay_denom_id: string | null }>`
+                SELECT id, uniplay_denom_id FROM packages 
                 WHERE product_id = ${productId} 
-                AND uniplay_denom_id = ${denom.id}
+                AND (uniplay_denom_id = ${denom.id} OR name = ${denom.package})
               `;
               
               if (pkgExists) {
-                // Update package
+                // Update package (update denom_id and entitas_id if needed)
                 await db.exec`
                   UPDATE packages
                   SET 
                     name = ${denom.package},
                     price = ${price},
                     uniplay_entitas_id = ${voucher.id},
+                    uniplay_denom_id = ${denom.id},
                     updated_at = NOW()
                   WHERE id = ${pkgExists.id}
                 `;
-                console.log(`  ✅ Updated package ID: ${pkgExists.id}`);
+                
+                if (pkgExists.uniplay_denom_id === null || pkgExists.uniplay_denom_id !== denom.id) {
+                  console.log(`  ✅ Updated package ID: ${pkgExists.id} (added/updated denom_id: ${denom.id})`);
+                } else {
+                  console.log(`  ✅ Updated package ID: ${pkgExists.id}`);
+                }
               } else {
                 // Create new package
                 await db.exec`
