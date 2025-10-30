@@ -74,8 +74,6 @@ export default function AdminDashboard() {
   
   // Test UniPlay Transaction states
   const [testingTransaction, setTestingTransaction] = useState(false);
-  const [testUserId, setTestUserId] = useState("235791720");
-  const [testServerId, setTestServerId] = useState("9227");
   const [testCurlCommand, setTestCurlCommand] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
   
@@ -481,17 +479,12 @@ export default function AdminDashboard() {
     setTestResponseJson("");
 
     try {
-      const requestData = {
-        userId: testUserId,
-        serverId: testServerId || undefined,
-      };
-
       toast({
-        title: "🧪 Testing UniPlay Transaction",
-        description: "Mengirim inquiry untuk ML 3 Diamonds...",
+        title: "🧪 Testing Roblox Voucher",
+        description: "Mengirim inquiry untuk Roblox Gift Card IDR 50K...",
       });
 
-      const result = await backend.uniplay.testInquiry(requestData);
+      const result = await backend.uniplay.testVoucherInquiry();
 
       setTestCurlCommand(result.curlCommand || "");
       
@@ -502,7 +495,7 @@ export default function AdminDashboard() {
       if (result.status === "200") {
         toast({
           title: "✅ Test Berhasil!",
-          description: `Username: ${result.inquiry_info?.username || "N/A"}`,
+          description: `Inquiry ID: ${result.inquiry_id}`,
         });
       } else {
         toast({
@@ -871,41 +864,18 @@ export default function AdminDashboard() {
                 <TestTube2 className="h-5 w-5 text-purple-400" />
               </div>
               <div>
-                <CardTitle className="text-white">Test UniPlay Transaction</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Test inquiry-payment dengan product dan package</p>
+                <CardTitle className="text-white">Test Roblox Voucher</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test inquiry Roblox Gift Card IDR 50K</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="test-user-id" className="text-slate-300">User ID</Label>
-                <Input
-                  id="test-user-id"
-                  value={testUserId}
-                  onChange={(e) => setTestUserId(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                  placeholder="235791720"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="test-server-id" className="text-slate-300">Server ID</Label>
-                <Input
-                  id="test-server-id"
-                  value={testServerId}
-                  onChange={(e) => setTestServerId(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                  placeholder="9227"
-                />
-              </div>
-            </div>
-
             <Button
               onClick={handleTestTransaction}
               disabled={testingTransaction}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {testingTransaction ? "Testing..." : "🧪 Test ML 3 Diamonds"}
+              {testingTransaction ? "Testing..." : "🧪 Test Inquiry Voucher"}
             </Button>
 
             <div className="space-y-3">
@@ -931,7 +901,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Info:</strong> Test akan menggunakan Mobile Legends: Bang Bang - 3 Diamonds dari database
+              <strong className="text-slate-400">💡 Info:</strong> Test akan mencari produk Roblox dan paket 50K dari database, lalu inquiry tanpa user_id/server_id (khusus voucher)
             </div>
           </CardContent>
         </Card>
