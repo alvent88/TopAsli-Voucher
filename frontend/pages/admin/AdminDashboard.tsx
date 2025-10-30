@@ -69,6 +69,7 @@ export default function AdminDashboard() {
   
   // UniPlay API Response states
   const [uniplayApiResponse, setUniplayApiResponse] = useState("");
+  const [uniplayCurlCommand, setUniplayCurlCommand] = useState("");
   
   // Test UniPlay Transaction states
   const [testingTransaction, setTestingTransaction] = useState(false);
@@ -211,11 +212,20 @@ export default function AdminDashboard() {
   const handleSyncProducts = async () => {
     setSyncingProducts(true);
     setUniplayApiResponse("");
+    setUniplayCurlCommand("");
     try {
       const result = await backend.uniplay.syncServices();
       console.log("Sync result:", result);
       
-      setUniplayApiResponse(JSON.stringify(result, null, 2));
+      // Extract curl commands
+      if (result.curlCommands) {
+        const curlText = `# Voucher List Request:\n${result.curlCommands.voucherListCurl}\n\n# DTU List Request:\n${result.curlCommands.dtuListCurl}`;
+        setUniplayCurlCommand(curlText);
+      }
+      
+      // Remove curlCommands from response before displaying
+      const { curlCommands, ...responseWithoutCurl } = result;
+      setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
       
       if (result.success) {
         toast({
@@ -749,6 +759,16 @@ export default function AdminDashboard() {
             )}
             
             <div className="space-y-2">
+              <Label className="text-slate-300">Request cURL</Label>
+              <Textarea
+                value={uniplayCurlCommand}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs h-40 resize-none"
+                placeholder="cURL command akan muncul di sini setelah menekan tombol API..."
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label className="text-slate-300">UniPlay API Response</Label>
               <Textarea
                 value={uniplayApiResponse}
@@ -759,7 +779,7 @@ export default function AdminDashboard() {
             </div>
             
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Info:</strong> Gunakan Test Connection, DTU, Sync, atau Balance untuk melihat response dari UniPlay API.
+              <strong className="text-slate-400">💡 Info:</strong> Gunakan Test Connection, DTU, Sync, atau Balance untuk melihat request dan response dari UniPlay API.
             </div>
           </CardContent>
         </Card>

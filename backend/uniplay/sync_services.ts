@@ -13,6 +13,10 @@ export interface SyncServicesResponse {
   errors: string[];
   voucherCount: number;
   gameCount: number;
+  curlCommands?: {
+    voucherListCurl?: string;
+    dtuListCurl?: string;
+  };
 }
 
 export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
@@ -30,6 +34,38 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
       let synced = 0;
       let updated = 0;
       const errors: string[] = [];
+
+      // Get config for cURL generation
+      const config = await db.queryRow<{ value: string }>`
+        SELECT value FROM admin_config WHERE key = 'dashboard_config'
+      `;
+      
+      const dashboardConfig = config ? JSON.parse(config.value) : null;
+      const apiKey = dashboardConfig?.uniplay?.apiKey || "";
+      const baseUrl = dashboardConfig?.uniplay?.baseUrl || "https://api-reseller.uniplay.id/v1";
+      
+      // Generate timestamp
+      const now = new Date();
+      const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+      const timestamp = jakartaTime.toISOString().slice(0, 19).replace('T', ' ');
+      
+      // Generate cURL commands
+      const voucherRequestBody = JSON.stringify({
+        api_key: apiKey,
+        timestamp: timestamp,
+      });
+      
+      const voucherListCurl = `curl -X POST "${baseUrl}/inquiry-voucher" \\
+  -H "Content-Type: application/json" \\
+  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
+  -H "UPL-SIGNATURE: <akan-di-generate>" \\
+  -d '${voucherRequestBody}'`;
+      
+      const dtuListCurl = `curl -X POST "${baseUrl}/inquiry-dtu" \\
+  -H "Content-Type: application/json" \\
+  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
+  -H "UPL-SIGNATURE: <akan-di-generate>" \\
+  -d '${voucherRequestBody}'`;
 
       // ==================== SYNC VOUCHERS ====================
       console.log("\n=== Syncing Vouchers ===");
@@ -289,6 +325,10 @@ export const syncServices = api<SyncServicesRequest, SyncServicesResponse>(
         errors,
         voucherCount: vouchers.length,
         gameCount: games.length,
+        curlCommands: {
+          voucherListCurl,
+          dtuListCurl,
+        },
       };
     } catch (err) {
       console.error("❌ Failed to sync:", err);
