@@ -89,24 +89,30 @@ export default function ProductPage() {
       console.log("username:", response.username);
       console.log("message:", response.message);
 
-      if (response.success && response.valid && response.username) {
+      if (response.success && response.valid === true && response.username) {
         // Username found and valid
         setValidationStatus("valid");
         setValidatedUsername(response.username);
         setValidationMessage("");
         console.log("✅ Validation successful - Username:", response.username);
       } else if (response.success && response.valid === false) {
-        // Username explicitly invalid
+        // Username explicitly invalid or not found
         setValidationStatus("invalid");
         setValidatedUsername("");
-        setValidationMessage(response.message || "User ID tidak ditemukan");
-        console.log("❌ Validation failed - Invalid user ID");
-      } else {
-        // Validation service error or not available - allow purchase
-        setValidationStatus("idle");
+        setValidationMessage(response.message || "Username tidak ditemukan");
+        console.log("❌ Validation failed - User not found");
+      } else if (!response.success) {
+        // Validation service error - DON'T allow purchase
+        setValidationStatus("invalid");
         setValidatedUsername("");
-        setValidationMessage("");
-        console.log("⚠️ Validation service unavailable - allowing purchase");
+        setValidationMessage("Layanan validasi bermasalah. Silakan coba lagi");
+        console.log("⚠️ Validation service error");
+      } else {
+        // Edge case - treat as invalid
+        setValidationStatus("invalid");
+        setValidatedUsername("");
+        setValidationMessage("Tidak dapat memvalidasi username");
+        console.log("⚠️ Unknown validation state");
       }
     } catch (error: any) {
       console.error("❌ Username validation error:", error);
@@ -323,11 +329,8 @@ export default function ProductPage() {
                     <div className="mt-2 p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
                       <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
                         <XCircle className="h-4 w-4" />
-                        <span>✗ {validationMessage || "User ID atau Server ID tidak valid"}</span>
+                        <span>✗ {validationMessage}</span>
                       </div>
-                      <p className="text-red-300 text-xs mt-1 ml-6">
-                        Silakan periksa kembali User ID dan Server ID Anda
-                      </p>
                     </div>
                   )}
                 </div>
