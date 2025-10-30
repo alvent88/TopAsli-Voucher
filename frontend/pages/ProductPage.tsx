@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useBackend } from "@/lib/useBackend";
 import type { Product } from "~backend/product/list";
 import type { Package } from "~backend/pkg/list";
-import { ArrowLeft, Gamepad2, Flame } from "lucide-react";
+import { ArrowLeft, Gamepad2, Flame, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,12 +27,85 @@ export default function ProductPage() {
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [uniplayUsername, setUniplayUsername] = useState<string>("");
   const [uniplayValidating, setUniplayValidating] = useState(false);
+  
+  // Username validation state
+  const [validationStatus, setValidationStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
+  const [validatedUsername, setValidatedUsername] = useState<string>("");
+  const [validationMessage, setValidationMessage] = useState<string>("");
 
   useEffect(() => {
     if (slug) {
       loadData();
     }
   }, [slug]);
+
+  // Validate username when userId and serverId (if required) are filled
+  useEffect(() => {
+    if (!userId || !product) {
+      setValidationStatus("idle");
+      setValidatedUsername("");
+      setValidationMessage("");
+      return;
+    }
+
+    const requiresServerId = product.requiresServerId !== false;
+    
+    if (requiresServerId && !gameId) {
+      setValidationStatus("idle");
+      setValidatedUsername("");
+      setValidationMessage("");
+      return;
+    }
+
+    // Debounce validation
+    const timer = setTimeout(() => {
+      validateUsernameWithIsanAPI();
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [userId, gameId, product]);
+
+  const validateUsernameWithIsanAPI = async () => {
+    if (!userId || !product) return;
+
+    const requiresServerId = product.requiresServerId !== false;
+    if (requiresServerId && !gameId) return;
+
+    setValidationStatus("validating");
+    setValidatedUsername("");
+    setValidationMessage("");
+
+    try {
+      const response = await authBackend.validation.validateUsername({
+        productId: product.id,
+        userId,
+        serverId: gameId || undefined,
+      });
+
+      console.log("Validation response:", response);
+
+      if (response.success && response.valid && response.username) {
+        setValidationStatus("valid");
+        setValidatedUsername(response.username);
+        setValidationMessage("");
+      } else if (response.success && !response.valid) {
+        setValidationStatus("invalid");
+        setValidatedUsername("");
+        setValidationMessage(response.message || "Username tidak ditemukan atau invalid");
+      } else {
+        // Validation service error or not available - allow purchase
+        setValidationStatus("idle");
+        setValidatedUsername("");
+        setValidationMessage("");
+      }
+    } catch (error: any) {
+      console.error("Username validation error:", error);
+      // Don't block purchase if validation fails
+      setValidationStatus("idle");
+      setValidatedUsername("");
+      setValidationMessage("");
+    }
+  };
 
   // Validate with UniPlay when package is selected
   useEffect(() => {
@@ -206,13 +279,40 @@ export default function ProductPage() {
                   <Label htmlFor="userId" className="text-white">
                     User ID
                   </Label>
-                  <Input
-                    id="userId"
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                    placeholder="Masukkan User ID"
-                    className="bg-white/10 border-white/20 text-white"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="userId"
+                      value={userId}
+                      onChange={(e) => setUserId(e.target.value)}
+                      placeholder="Masukkan User ID"
+                      className={`bg-white/10 border-white/20 text-white pr-10 ${
+                        validationStatus === "invalid" ? "border-red-500" : ""
+                      } ${validationStatus === "valid" ? "border-green-500" : ""}`}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {validationStatus === "validating" && (
+                        <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+                      )}
+                      {validationStatus === "valid" && (
+                        <CheckCircle className="h-5 w-5 text-green-400" />
+                      )}
+                      {validationStatus === "invalid" && (
+                        <XCircle className="h-5 w-5 text-red-400" />
+                      )}
+                    </div>
+                  </div>
+                  {validationStatus === "valid" && validatedUsername && (
+                    <div className="mt-2 flex items-center gap-2 text-green-400 text-sm">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Username: {validatedUsername}</span>
+                    </div>
+                  )}
+                  {validationStatus === "invalid" && validationMessage && (
+                    <div className="mt-2 flex items-center gap-2 text-red-400 text-sm">
+                      <XCircle className="h-4 w-4" />
+                      <span>{validationMessage}</span>
+                    </div>
+                  )}
                 </div>
                 {product?.requiresServerId !== false && (
                   <div>
@@ -416,13 +516,23 @@ export default function ProductPage() {
                     !userId || 
                     !selectedPackage || 
                     (product?.requiresServerId !== false && !gameId) || 
+                    validationStatus === "invalid" ||
+                    validationStatus === "validating" ||
                     loading || 
                     uniplayValidating
                   }
-                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uniplayValidating ? "Memverifikasi..." : loading ? "Memproses..." : "Beli Sekarang"}
+                  {validationStatus === "validating" ? "Memvalidasi Username..." : 
+                   uniplayValidating ? "Memverifikasi..." : 
+                   validationStatus === "invalid" ? "Username Invalid" :
+                   loading ? "Memproses..." : "Beli Sekarang"}
                 </Button>
+                {validationStatus === "invalid" && (
+                  <p className="text-red-400 text-xs text-center">
+                    Silakan periksa kembali User ID dan Server ID Anda
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
