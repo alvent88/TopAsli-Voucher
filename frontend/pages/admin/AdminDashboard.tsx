@@ -83,6 +83,10 @@ export default function AdminDashboard() {
   const [isanUserId, setIsanUserId] = useState("1114917746");
   const [isanServerId, setIsanServerId] = useState("13486");
   const [isanApiResponse, setIsanApiResponse] = useState("");
+  
+  // Test Gmail states
+  const [testingGmail, setTestingGmail] = useState(false);
+  const [gmailResponse, setGmailResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -568,6 +572,49 @@ export default function AdminDashboard() {
       setTestingIsanAPI(false);
     }
   };
+  
+  const handleTestGmail = async () => {
+    setTestingGmail(true);
+    setGmailResponse("");
+    
+    try {
+      toast({
+        title: "🔍 Testing Gmail Connection",
+        description: "Fetching emails from UniPlay...",
+      });
+      
+      const result = await backend.email.testImap();
+      
+      setGmailResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success) {
+        toast({
+          title: "✅ Gmail Test Berhasil!",
+          description: `Found ${result.messageCount} emails from UniPlay`,
+        });
+      } else {
+        toast({
+          title: "❌ Gmail Test Gagal",
+          description: result.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test Gmail error:", error);
+      setGmailResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test Gmail",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingGmail(false);
+    }
+  };
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -979,6 +1026,44 @@ export default function AdminDashboard() {
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Info:</strong> Test akan memanggil api.isan.eu.org untuk validasi username game
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Gmail/Email */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-red-500/10">
+                <MessageSquare className="h-5 w-5 text-red-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test Gmail Connection</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test baca email dari UniPlay</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={handleTestGmail}
+              disabled={testingGmail}
+              className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700"
+            >
+              {testingGmail ? "Testing..." : "📧 Test Read Emails"}
+            </Button>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Email Response</Label>
+              <Textarea
+                value={gmailResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-red-400 font-mono text-xs h-96 resize-none"
+                placeholder="Email data akan muncul di sini..."
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 Info:</strong> Test akan fetch email terbaru dari UniPlay menggunakan Gmail Atom Feed. Pastikan GmailAddress dan GmailAppPassword sudah di-set di Settings.
             </div>
           </CardContent>
         </Card>
