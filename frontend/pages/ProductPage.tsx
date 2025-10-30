@@ -82,24 +82,34 @@ export default function ProductPage() {
         serverId: gameId || undefined,
       });
 
-      console.log("Validation response:", response);
+      console.log("=== Validation Response ===");
+      console.log("Full response:", JSON.stringify(response, null, 2));
+      console.log("success:", response.success);
+      console.log("valid:", response.valid);
+      console.log("username:", response.username);
+      console.log("message:", response.message);
 
       if (response.success && response.valid && response.username) {
+        // Username found and valid
         setValidationStatus("valid");
         setValidatedUsername(response.username);
         setValidationMessage("");
-      } else if (response.success && !response.valid) {
+        console.log("✅ Validation successful - Username:", response.username);
+      } else if (response.success && response.valid === false) {
+        // Username explicitly invalid
         setValidationStatus("invalid");
         setValidatedUsername("");
-        setValidationMessage(response.message || "Username tidak ditemukan atau invalid");
+        setValidationMessage(response.message || "User ID tidak ditemukan");
+        console.log("❌ Validation failed - Invalid user ID");
       } else {
         // Validation service error or not available - allow purchase
         setValidationStatus("idle");
         setValidatedUsername("");
         setValidationMessage("");
+        console.log("⚠️ Validation service unavailable - allowing purchase");
       }
     } catch (error: any) {
-      console.error("Username validation error:", error);
+      console.error("❌ Username validation error:", error);
       // Don't block purchase if validation fails
       setValidationStatus("idle");
       setValidatedUsername("");

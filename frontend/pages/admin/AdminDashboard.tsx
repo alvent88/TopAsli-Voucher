@@ -78,6 +78,13 @@ export default function AdminDashboard() {
   const [testServerId, setTestServerId] = useState("9227");
   const [testCurlCommand, setTestCurlCommand] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
+  
+  // Test Isan API states
+  const [testingIsanAPI, setTestingIsanAPI] = useState(false);
+  const [isanGame, setIsanGame] = useState("ml");
+  const [isanUserId, setIsanUserId] = useState("1114917746");
+  const [isanServerId, setIsanServerId] = useState("13486");
+  const [isanApiResponse, setIsanApiResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -521,6 +528,54 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTestIsanAPI = async () => {
+    setTestingIsanAPI(true);
+    setIsanApiResponse("");
+
+    try {
+      const result = await backend.validation.testIsanAPI({
+        game: isanGame,
+        userId: isanUserId,
+        serverId: isanServerId || undefined,
+      });
+
+      setIsanApiResponse(JSON.stringify(result, null, 2));
+
+      if (result.success && result.parsedData?.success) {
+        toast({
+          title: "✅ Isan API Test Berhasil!",
+          description: `Username: ${result.parsedData.name || "N/A"}`,
+        });
+      } else if (result.success && result.parsedData) {
+        toast({
+          title: "⚠️ User ID Invalid",
+          description: result.parsedData.message || "User tidak ditemukan",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "❌ Test Gagal",
+          description: result.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test Isan API error:", error);
+      setIsanApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test Isan API",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingIsanAPI(false);
+    }
+  };
+
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
     try {
@@ -877,6 +932,83 @@ export default function AdminDashboard() {
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Info:</strong> Test akan menggunakan Mobile Legends: Bang Bang - 3 Diamonds dari database
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Isan Username Validation API */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <TestTube2 className="h-5 w-5 text-orange-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test Isan Validation API</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test username validation dengan api.isan.eu.org</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="isan-game" className="text-slate-300">Game</Label>
+              <Select value={isanGame} onValueChange={setIsanGame}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                  <SelectItem value="ml" className="text-white hover:bg-slate-800">Mobile Legends (ml)</SelectItem>
+                  <SelectItem value="ff" className="text-white hover:bg-slate-800">Free Fire (ff)</SelectItem>
+                  <SelectItem value="pubgm" className="text-white hover:bg-slate-800">PUBG Mobile (pubgm)</SelectItem>
+                  <SelectItem value="codm" className="text-white hover:bg-slate-800">Call of Duty Mobile (codm)</SelectItem>
+                  <SelectItem value="aov" className="text-white hover:bg-slate-800">Arena of Valor (aov)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="isan-user-id" className="text-slate-300">User ID</Label>
+                <Input
+                  id="isan-user-id"
+                  value={isanUserId}
+                  onChange={(e) => setIsanUserId(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white font-mono"
+                  placeholder="1114917746"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="isan-server-id" className="text-slate-300">Server ID (optional)</Label>
+                <Input
+                  id="isan-server-id"
+                  value={isanServerId}
+                  onChange={(e) => setIsanServerId(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white font-mono"
+                  placeholder="13486"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleTestIsanAPI}
+              disabled={testingIsanAPI}
+              className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+            >
+              {testingIsanAPI ? "Testing..." : "🔍 Test Username Validation"}
+            </Button>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">API Response</Label>
+              <Textarea
+                value={isanApiResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-orange-400 font-mono text-xs h-96 resize-none"
+                placeholder="Response dari Isan API akan muncul di sini..."
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 Info:</strong> Test akan memanggil api.isan.eu.org untuk validasi username game
             </div>
           </CardContent>
         </Card>

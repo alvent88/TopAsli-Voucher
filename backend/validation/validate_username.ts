@@ -115,9 +115,12 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       }
 
       console.log("Parsed validation response:", data);
+      console.log("data.success:", data.success);
+      console.log("data.name:", data.name);
 
       // Check validation result
       if (data.success === true && data.name) {
+        console.log("✅ Username validation SUCCESS");
         return {
           success: true,
           valid: true,
@@ -126,10 +129,11 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
           message: "Username found",
         };
       } else {
+        console.log("❌ Username validation FAILED");
         return {
           success: true,
           valid: false,
-          message: data.message || "Username not found or invalid",
+          message: data.message || "User ID tidak ditemukan",
         };
       }
 
