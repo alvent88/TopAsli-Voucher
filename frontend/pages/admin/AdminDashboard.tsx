@@ -219,6 +219,8 @@ export default function AdminDashboard() {
       console.log("=== Test Voucher Full Result ===");
       console.log("Success:", result.success);
       console.log("Voucher Count:", result.voucherCount);
+      console.log("Products Synced:", result.productsSynced);
+      console.log("Packages Created:", result.packagesCreated);
       console.log("First Voucher:", result.firstVoucher);
       console.log("Raw Response:", result.rawResponse);
       console.log("Error:", result.error);
@@ -234,12 +236,12 @@ export default function AdminDashboard() {
       
       if (result.success) {
         toast({
-          title: "Test Voucher Berhasil! ✅",
-          description: `Found ${result.voucherCount} vouchers. First: ${result.firstVoucher?.name || "N/A"}`,
+          title: "✅ Test Voucher Berhasil!",
+          description: `Vouchers: ${result.voucherCount} | Products: ${result.productsSynced} | Packages: ${result.packagesCreated}`,
         });
       } else {
         toast({
-          title: "Test Voucher Gagal ❌",
+          title: "❌ Test Voucher Gagal",
           description: result.error || "Unknown error",
           variant: "destructive",
         });
@@ -313,6 +315,8 @@ export default function AdminDashboard() {
       console.log("=== Test DTU Full Result ===");
       console.log("Success:", result.success);
       console.log("Game Count:", result.gameCount);
+      console.log("Products Synced:", result.productsSynced);
+      console.log("Packages Created:", result.packagesCreated);
       console.log("First Game:", result.firstGame);
       console.log("Raw Response:", result.rawResponse);
       console.log("Error:", result.error);
@@ -328,12 +332,12 @@ export default function AdminDashboard() {
       
       if (result.success) {
         toast({
-          title: "Test DTU Berhasil! ✅",
-          description: `Found ${result.gameCount} games. First: ${result.firstGame?.name || "N/A"}`,
+          title: "✅ Test DTU Berhasil!",
+          description: `Games: ${result.gameCount} | Products: ${result.productsSynced} | Packages: ${result.packagesCreated}`,
         });
       } else {
         toast({
-          title: "Test DTU Gagal ❌",
+          title: "❌ Test DTU Gagal",
           description: result.error || "Unknown error",
           variant: "destructive",
         });

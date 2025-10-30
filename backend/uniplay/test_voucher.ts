@@ -7,6 +7,8 @@ import db from "../db";
 export interface TestVoucherResponse {
   success: boolean;
   voucherCount: number;
+  productsSynced: number;
+  packagesCreated: number;
   firstVoucher?: {
     id: string;
     name: string;
@@ -27,7 +29,7 @@ export const testVoucher = api<{}, TestVoucherResponse>(
     }
 
     try {
-      console.log("📥 Testing Voucher list API...");
+      console.log("📥 Testing Voucher list API and syncing to database...");
       
       // Get config for cURL generation
       const config = await db.queryRow<{ value: string }>`
@@ -48,10 +50,11 @@ export const testVoucher = api<{}, TestVoucherResponse>(
         timestamp: timestamp,
       });
       
-      const curlCommand = `curl --location '${baseUrl}/inquiry-voucher' \\
-  --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
-  --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
-  --data '${requestBody}'`;
+      const curlCommand = `curl -X POST "${baseUrl}/inquiry-voucher" \\
+  -H "Content-Type: application/json" \\
+  -H "UPL-ACCESS-TOKEN: <akan-di-generate>" \\
+  -H "UPL-SIGNATURE: <akan-di-generate>" \\
+  -d '${requestBody}'`;
       
       const response = await getVoucherList();
       
@@ -61,6 +64,8 @@ export const testVoucher = api<{}, TestVoucherResponse>(
         return {
           success: false,
           voucherCount: 0,
+          productsSynced: 0,
+          packagesCreated: 0,
           rawResponse: response,
           error: `API Error: ${response.message || response.status}`,
           curlCommand,
@@ -73,16 +78,141 @@ export const testVoucher = api<{}, TestVoucherResponse>(
         return {
           success: true,
           voucherCount: 0,
+          productsSynced: 0,
+          packagesCreated: 0,
           rawResponse: response,
           curlCommand,
         };
       }
 
+      // Sync vouchers to database
+      let productsSynced = 0;
+      let packagesCreated = 0;
+
+      for (const voucher of vouchers) {
+        try {
+          console.log(`\n=== Processing Voucher: ${voucher.name} ===`);
+          console.log(`Voucher ID (entitas_id): ${voucher.id}`);
+          
+          const slug = `voucher-${voucher.id.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+          // Check if product exists by uniplay_entitas_id
+          const existing = await db.queryRow<{ id: number }>`
+            SELECT id FROM products 
+            WHERE uniplay_entitas_id = ${voucher.id}
+          `;
+
+          let productId: number;
+
+          if (existing) {
+            // Update product
+            await db.exec`
+              UPDATE products 
+              SET 
+                name = ${voucher.name},
+                category = 'Voucher',
+                description = ${`Publisher: ${voucher.publisher}`},
+                icon_url = ${voucher.image},
+                updated_at = NOW()
+              WHERE id = ${existing.id}
+            `;
+            productId = existing.id;
+            console.log(`✅ Updated product ID: ${productId}`);
+          } else {
+            // Create new product
+            const result = await db.queryRow<{ id: number }>`
+              INSERT INTO products (name, slug, category, description, icon_url, is_active, uniplay_entitas_id, requires_server_id, created_at, updated_at)
+              VALUES (
+                ${voucher.name},
+                ${slug},
+                'Voucher',
+                ${`Publisher: ${voucher.publisher}`},
+                ${voucher.image},
+                true,
+                ${voucher.id},
+                false,
+                NOW(),
+                NOW()
+              )
+              RETURNING id
+            `;
+            
+            if (!result) {
+              throw new Error("Failed to create product");
+            }
+            
+            productId = result.id;
+            productsSynced++;
+            console.log(`✅ Created product ID: ${productId}`);
+          }
+
+          // Sync denominations as packages
+          for (const denom of voucher.denom) {
+            try {
+              console.log(`  Processing denom: ${denom.package} (ID: ${denom.id})`);
+              
+              const price = parseInt(denom.price);
+              
+              // Check if package exists by uniplay_denom_id
+              const pkgExists = await db.queryRow<{ id: number }>`
+                SELECT id FROM packages 
+                WHERE product_id = ${productId} 
+                AND uniplay_denom_id = ${denom.id}
+              `;
+              
+              if (pkgExists) {
+                // Update package
+                await db.exec`
+                  UPDATE packages
+                  SET 
+                    name = ${denom.package},
+                    price = ${price},
+                    uniplay_entitas_id = ${voucher.id},
+                    updated_at = NOW()
+                  WHERE id = ${pkgExists.id}
+                `;
+                console.log(`  ✅ Updated package ID: ${pkgExists.id}`);
+              } else {
+                // Create new package
+                await db.exec`
+                  INSERT INTO packages (product_id, name, amount, unit, price, uniplay_entitas_id, uniplay_denom_id, is_active, created_at, updated_at)
+                  VALUES (
+                    ${productId}, 
+                    ${denom.package}, 
+                    1, 
+                    'voucher', 
+                    ${price},
+                    ${voucher.id},
+                    ${denom.id}, 
+                    true, 
+                    NOW(), 
+                    NOW()
+                  )
+                `;
+                packagesCreated++;
+                console.log(`  ✅ Created package with denom_id: ${denom.id}`);
+              }
+            } catch (err) {
+              console.error(`  ✗ Failed to sync denom ${denom.package}:`, err);
+            }
+          }
+        } catch (err) {
+          console.error(`✗ Failed to sync voucher ${voucher.name}:`, err);
+        }
+      }
+
       const firstVoucher = vouchers[0];
+      
+      console.log(`\n✅ Voucher Sync complete:`);
+      console.log(`   - Vouchers found: ${vouchers.length}`);
+      console.log(`   - Products synced: ${productsSynced}`);
+      console.log(`   - Packages created: ${packagesCreated}`);
       
       return {
         success: true,
         voucherCount: vouchers.length,
+        productsSynced,
+        packagesCreated,
         firstVoucher: {
           id: firstVoucher.id,
           name: firstVoucher.name,
@@ -96,6 +226,8 @@ export const testVoucher = api<{}, TestVoucherResponse>(
       return {
         success: false,
         voucherCount: 0,
+        productsSynced: 0,
+        packagesCreated: 0,
         error: err instanceof Error ? err.message : String(err),
       };
     }
