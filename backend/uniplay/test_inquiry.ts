@@ -18,7 +18,7 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
     console.log("User ID:", req.userId);
     console.log("Server ID:", req.serverId);
 
-    // Find Mobile Legends:Bang Bang product by exact name
+    // Find Mobile Legends: Bang Bang ID product by exact name
     const product = await db.queryRow<{
       id: number;
       name: string;
@@ -26,18 +26,18 @@ export const testInquiry = api<TestInquiryRequest, TestInquiryResponse>(
     }>`
       SELECT id, name, uniplay_entitas_id
       FROM products
-      WHERE name = 'Mobile Legends:Bang Bang'
+      WHERE name = 'Mobile Legends: Bang Bang ID'
       AND uniplay_entitas_id IS NOT NULL
       AND is_active = true
       LIMIT 1
     `;
 
     if (!product) {
-      throw APIError.notFound("Mobile Legends:Bang Bang product not found in database. Please run DTU sync first.");
+      throw APIError.notFound("Mobile Legends: Bang Bang ID product not found in database. Please run DTU sync first.");
     }
 
     if (!product.uniplay_entitas_id) {
-      throw APIError.invalidArgument("Mobile Legends:Bang Bang product does not have UniPlay Entitas ID");
+      throw APIError.invalidArgument("Mobile Legends: Bang Bang ID product does not have UniPlay Entitas ID");
     }
 
     console.log("Product found:", product.name);
