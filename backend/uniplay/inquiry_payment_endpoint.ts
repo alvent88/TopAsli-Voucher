@@ -5,7 +5,7 @@ import { inquiryPayment, UniPlayInquiryPaymentResponse } from "./client";
 
 export interface InquiryPaymentRequest {
   packageId: number;
-  userId: string;
+  userId?: string;
   serverId?: string;
 }
 
@@ -39,6 +39,7 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentE
         package_price: number;
         product_id: number;
         product_name: string;
+        product_category: string;
         uniplay_entitas_id: string | null;
         uniplay_denom_id: string | null;
       }>`
@@ -48,6 +49,7 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentE
           p.price as package_price,
           pr.id as product_id,
           pr.name as product_name,
+          pr.category as product_category,
           pr.uniplay_entitas_id,
           p.uniplay_denom_id
         FROM packages p
@@ -74,12 +76,24 @@ export const inquiryPaymentEndpoint = api<InquiryPaymentRequest, InquiryPaymentE
       });
 
       // Call UniPlay inquiry-payment API
-      const inquiryRequest = {
+      const isVoucher = packageData.product_category.toLowerCase() === 'voucher';
+      
+      const inquiryRequest: any = {
         entitas_id: packageData.uniplay_entitas_id,
         denom_id: packageData.uniplay_denom_id,
-        user_id: req.userId,
-        server_id: req.serverId,
       };
+      
+      // Only add user_id and server_id for non-voucher products
+      if (!isVoucher) {
+        if (req.userId) {
+          inquiryRequest.user_id = req.userId;
+        }
+        if (req.serverId) {
+          inquiryRequest.server_id = req.serverId;
+        }
+      }
+      
+      console.log(`Product category: ${packageData.product_category}, is voucher: ${isVoucher}`);
 
       console.log("Calling UniPlay inquiry-payment...");
       const response = await inquiryPayment(inquiryRequest);

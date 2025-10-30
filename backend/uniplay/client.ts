@@ -235,11 +235,14 @@ async function makeRequest<T>(endpoint: string, body: any): Promise<T> {
     
     // Add body keys in specific order based on endpoint
     if (endpoint === "/inquiry-payment" && body.entitas_id) {
-      // inquiry-payment: api_key, timestamp, entitas_id, denom_id, user_id, [server_id]
+      // inquiry-payment: api_key, timestamp, entitas_id, denom_id, [user_id], [server_id]
       orderedBody.entitas_id = body.entitas_id;
       orderedBody.denom_id = body.denom_id;
-      orderedBody.user_id = body.user_id;
-      if (body.server_id) {
+      // Only add user_id and server_id if they are provided (not required for voucher)
+      if (body.user_id !== undefined) {
+        orderedBody.user_id = body.user_id;
+      }
+      if (body.server_id !== undefined) {
         orderedBody.server_id = body.server_id;
       }
     } else if (endpoint === "/confirm-payment" && body.inquiry_id) {
