@@ -312,15 +312,22 @@ export default function ProductPage() {
                     </div>
                   </div>
                   {validationStatus === "valid" && validatedUsername && (
-                    <div className="mt-2 flex items-center gap-2 text-green-400 text-sm">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Username: {validatedUsername}</span>
+                    <div className="mt-2 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
+                        <CheckCircle className="h-4 w-4" />
+                        <span>✓ Username ditemukan: {validatedUsername}</span>
+                      </div>
                     </div>
                   )}
-                  {validationStatus === "invalid" && validationMessage && (
-                    <div className="mt-2 flex items-center gap-2 text-red-400 text-sm">
-                      <XCircle className="h-4 w-4" />
-                      <span>{validationMessage}</span>
+                  {validationStatus === "invalid" && (
+                    <div className="mt-2 p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
+                        <XCircle className="h-4 w-4" />
+                        <span>✗ {validationMessage || "User ID atau Server ID tidak valid"}</span>
+                      </div>
+                      <p className="text-red-300 text-xs mt-1 ml-6">
+                        Silakan periksa kembali User ID dan Server ID Anda
+                      </p>
                     </div>
                   )}
                 </div>

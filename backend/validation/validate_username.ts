@@ -18,20 +18,49 @@ export interface ValidateUsernameResponse {
 const VALIDATION_API_BASE = "https://api.isan.eu.org/nickname";
 
 // Mapping product name to validation endpoint
-const GAME_ENDPOINTS: Record<string, { endpoint: string; needsServer: boolean }> = {
-  "Mobile Legends: Bang Bang": { endpoint: "/ml", needsServer: true },
-  "Mobile Legends: Bang Bang ID": { endpoint: "/ml", needsServer: true },
-  "Free Fire": { endpoint: "/ff", needsServer: false },
-  "PUBG Mobile": { endpoint: "/pubgm", needsServer: false },
-  "Call of Duty Mobile": { endpoint: "/codm", needsServer: false },
-  "Arena of Valor": { endpoint: "/aov", needsServer: false },
-  "Genshin Impact": { endpoint: "/gi", needsServer: false },
-  "Honkai: Star Rail": { endpoint: "/hsr", needsServer: false },
-  "Honkai Impact 3rd": { endpoint: "/hi", needsServer: false },
-  "Zenless Zone Zero": { endpoint: "/zzz", needsServer: false },
-  "Valorant": { endpoint: "/valo", needsServer: false },
-  "Point Blank": { endpoint: "/pb", needsServer: false },
-};
+// Map product names to validation endpoints
+function getGameEndpoint(productName: string): { endpoint: string; needsServer: boolean } | null {
+  const lowerName = productName.toLowerCase();
+  
+  // Mobile Legends variants
+  if (lowerName.includes("mobile legends")) {
+    return { endpoint: "/ml", needsServer: true };
+  }
+  
+  // Other games
+  if (lowerName.includes("free fire")) {
+    return { endpoint: "/ff", needsServer: false };
+  }
+  if (lowerName.includes("pubg")) {
+    return { endpoint: "/pubgm", needsServer: false };
+  }
+  if (lowerName.includes("call of duty")) {
+    return { endpoint: "/codm", needsServer: false };
+  }
+  if (lowerName.includes("arena of valor")) {
+    return { endpoint: "/aov", needsServer: false };
+  }
+  if (lowerName.includes("genshin")) {
+    return { endpoint: "/gi", needsServer: false };
+  }
+  if (lowerName.includes("honkai") && lowerName.includes("star rail")) {
+    return { endpoint: "/hsr", needsServer: false };
+  }
+  if (lowerName.includes("honkai impact")) {
+    return { endpoint: "/hi", needsServer: false };
+  }
+  if (lowerName.includes("zenless")) {
+    return { endpoint: "/zzz", needsServer: false };
+  }
+  if (lowerName.includes("valorant")) {
+    return { endpoint: "/valo", needsServer: false };
+  }
+  if (lowerName.includes("point blank")) {
+    return { endpoint: "/pb", needsServer: false };
+  }
+  
+  return null;
+}
 
 export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameResponse>(
   { expose: true, method: "POST", path: "/validation/username" },
@@ -54,10 +83,11 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("Product name:", product.name);
 
       // Check if product has validation endpoint
-      const gameConfig = GAME_ENDPOINTS[product.name];
+      const gameConfig = getGameEndpoint(product.name);
       
       if (!gameConfig) {
-        // Product not supported by validation API
+        console.log("⚠️ Product not supported by validation API");
+        // Product not supported by validation API - allow purchase
         return {
           success: true,
           valid: true,
@@ -65,7 +95,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         };
       }
 
-      console.log("Validation endpoint:", gameConfig.endpoint);
+      console.log("✅ Product supported - Validation endpoint:", gameConfig.endpoint);
       console.log("Needs server:", gameConfig.needsServer);
 
       // Check if server ID is required
