@@ -288,6 +288,19 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       console.log("Email address:", notification.emailAddress);
       console.log("History ID:", notification.historyId);
 
+      // LAYER 0: Check by historyId first (fastest check)
+      if (notification.historyId) {
+        const processedHistory = await db.queryRow<{ history_id: string }>`
+          SELECT history_id FROM processed_email_messages
+          WHERE history_id = ${notification.historyId}
+        `;
+
+        if (processedHistory) {
+          console.log(`⚠️ History ID ${notification.historyId} already processed, skipping duplicate webhook call`);
+          return { success: true };
+        }
+      }
+
       // Get access token
       const accessToken = await getAccessToken();
 
@@ -357,8 +370,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         
         // Mark this message too to prevent future processing
         await db.exec`
-          INSERT INTO processed_email_messages (message_id, email_subject, email_snippet)
-          VALUES (${latestMessageId}, ${extractHeader(fullMessage.payload.headers, "Subject")}, ${fullMessage.snippet})
+          INSERT INTO processed_email_messages (message_id, email_subject, email_snippet, history_id)
+          VALUES (${latestMessageId}, ${extractHeader(fullMessage.payload.headers, "Subject")}, ${fullMessage.snippet}, ${notification.historyId})
           ON CONFLICT (message_id) DO NOTHING
         `;
         
@@ -391,8 +404,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           
           // Mark this message as processed too (to prevent re-processing)
           await db.exec`
-            INSERT INTO processed_email_messages (message_id, voucher_code, email_subject, email_snippet)
-            VALUES (${latestMessageId}, ${voucherCode}, ${subject}, ${fullMessage.snippet})
+            INSERT INTO processed_email_messages (message_id, voucher_code, email_subject, email_snippet, history_id)
+            VALUES (${latestMessageId}, ${voucherCode}, ${subject}, ${fullMessage.snippet}, ${notification.historyId})
             ON CONFLICT (message_id) DO NOTHING
           `;
           
@@ -523,8 +536,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         
         // Mark this email as processed
         await db.exec`
-          INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone, email_subject, email_snippet)
-          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${phoneReg.phone_number}, ${subject}, ${fullMessage.snippet})
+          INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone, email_subject, email_snippet, history_id)
+          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${phoneReg.phone_number}, ${subject}, ${fullMessage.snippet}, ${notification.historyId})
           ON CONFLICT (message_id) DO NOTHING
         `;
         console.log(`✅ Email ${latestMessageId} marked as processed`);
