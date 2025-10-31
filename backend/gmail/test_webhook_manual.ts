@@ -47,11 +47,16 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
         console.log("Fonnte token set:", fonnteTokenSet);
       }
 
+      const activePhones: string[] = [];
+      for (const cs of activeCsNumbers) {
+        activePhones.push(cs.phone_number);
+      }
+
       return {
         success: true,
         message: "Webhook components check completed",
         csNumbersFound: allCsNumbers.length,
-        csNumbers: Array.from(activeCsNumbers).map(cs => cs.phone_number),
+        csNumbers: activePhones,
         fonnteTokenSet,
       };
     } catch (error: any) {
