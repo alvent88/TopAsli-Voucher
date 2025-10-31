@@ -332,7 +332,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       const latestMessageId = listData.messages[0].id;
       console.log(`Latest message from ${uniplaySenderEmail}: ${latestMessageId}`);
 
-      // Check if we already processed this message (deduplication)
+      // Check if we already processed this message (deduplication by message ID)
       const alreadyProcessed = await db.queryRow<{ message_id: string }>`
         SELECT message_id FROM processed_email_messages
         WHERE message_id = ${latestMessageId}
@@ -357,6 +357,29 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
 
       // Extract voucher code from email
       const voucherCode = extractVoucherCode(body, subject);
+      
+      // Check duplicate by voucher code + subject (same email content)
+      if (voucherCode) {
+        const duplicateVoucher = await db.queryRow<{ message_id: string }>`
+          SELECT message_id FROM processed_email_messages
+          WHERE voucher_code = ${voucherCode}
+            AND email_subject = ${subject}
+            AND processed_at > NOW() - INTERVAL '1 hour'
+        `;
+
+        if (duplicateVoucher) {
+          console.log(`⚠️ Voucher ${voucherCode} with same subject already processed in last hour, skipping duplicate`);
+          
+          // Mark this message as processed too (to prevent re-processing)
+          await db.exec`
+            INSERT INTO processed_email_messages (message_id, voucher_code, email_subject, email_snippet)
+            VALUES (${latestMessageId}, ${voucherCode}, ${subject}, ${fullMessage.snippet})
+            ON CONFLICT (message_id) DO NOTHING
+          `;
+          
+          return { success: true };
+        }
+      }
       
       if (!voucherCode) {
         console.log("❌ No voucher code found in email, sending to CS instead");
@@ -481,8 +504,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         
         // Mark this email as processed
         await db.exec`
-          INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone)
-          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${user.phone_number})
+          INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone, email_subject, email_snippet)
+          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${user.phone_number}, ${subject}, ${fullMessage.snippet})
           ON CONFLICT (message_id) DO NOTHING
         `;
         console.log(`✅ Email ${latestMessageId} marked as processed`);
