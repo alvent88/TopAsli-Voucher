@@ -64,6 +64,10 @@ export default function AdminDashboard() {
   const [testingTransaction, setTestingTransaction] = useState(false);
   const [testCurlCommand, setTestCurlCommand] = useState("");
   const [testResponseJson, setTestResponseJson] = useState("");
+  
+  // Test Gmail states
+  const [testingGmail, setTestingGmail] = useState(false);
+  const [gmailResponse, setGmailResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -499,6 +503,49 @@ export default function AdminDashboard() {
       setTestingTransaction(false);
     }
   };
+  
+  const handleTestGmail = async () => {
+    setTestingGmail(true);
+    setGmailResponse("");
+    
+    try {
+      toast({
+        title: "🔍 Testing Gmail API",
+        description: "Fetching emails from UniPlay...",
+      });
+      
+      const result = await backend.gmail.testGmail();
+      
+      setGmailResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success) {
+        toast({
+          title: "✅ Gmail Test Berhasil!",
+          description: `Found ${result.messageCount} emails from UniPlay`,
+        });
+      } else {
+        toast({
+          title: "❌ Gmail Test Gagal",
+          description: result.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test Gmail error:", error);
+      setGmailResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test Gmail",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingGmail(false);
+    }
+  };
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -833,6 +880,44 @@ export default function AdminDashboard() {
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Info:</strong> Test akan mencari produk Roblox dan paket 50K dari database, lalu inquiry tanpa user_id/server_id (khusus voucher)
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Gmail API */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-red-500/10">
+                <MessageSquare className="h-5 w-5 text-red-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test Gmail API</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test baca email dari UniPlay menggunakan OAuth</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={handleTestGmail}
+              disabled={testingGmail}
+              className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700"
+            >
+              {testingGmail ? "Testing..." : "📧 Test Read Emails"}
+            </Button>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Email Response</Label>
+              <Textarea
+                value={gmailResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-red-400 font-mono text-xs h-96 resize-none"
+                placeholder="Email data akan muncul di sini..."
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-707">
+              <strong className="text-slate-400">💡 Info:</strong> Test akan fetch email dari UniPlay menggunakan Gmail API OAuth. Pastikan 3 secrets sudah di-set di Settings: GmailClientId, GmailClientSecret, GmailRefreshToken
             </div>
           </CardContent>
         </Card>
