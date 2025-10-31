@@ -22,7 +22,10 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
       `;
 
       console.log(`Found ${csNumbers.length} CS numbers in database`);
-      csNumbers.forEach(cs => {
+      
+      // Convert to array for iteration
+      const csArray = Array.from(csNumbers);
+      csArray.forEach(cs => {
         console.log(`- ${cs.phone_number} (active: ${cs.is_active})`);
       });
 
@@ -39,7 +42,7 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
       }
 
       // 3. Get active CS numbers
-      const activeCs = csNumbers.filter(cs => cs.is_active);
+      const activeCs = csArray.filter(cs => cs.is_active);
       console.log(`Active CS numbers: ${activeCs.length}`);
 
       return {
