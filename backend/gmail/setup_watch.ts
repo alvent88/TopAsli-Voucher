@@ -60,7 +60,24 @@ export const setupGmailWatch = api<{}, SetupGmailWatchResponse>(
       const accessToken = await getAccessToken();
       console.log("✅ Access token obtained");
 
-      // Setup watch on Gmail mailbox
+      // FIRST: Stop existing watch to prevent duplicates
+      console.log("Stopping any existing watch...");
+      try {
+        await fetch(
+          "https://gmail.googleapis.com/gmail/v1/users/me/stop",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        console.log("✅ Existing watch stopped");
+      } catch (stopError) {
+        console.log("ℹ️ No existing watch to stop (this is OK)");
+      }
+
+      // THEN: Setup new watch on Gmail mailbox
       const watchRequest = {
         topicName: "projects/topasli-redeem-system/topics/gmail-notifications",
         labelIds: ["INBOX"],
@@ -96,7 +113,7 @@ export const setupGmailWatch = api<{}, SetupGmailWatchResponse>(
 
       return {
         success: true,
-        message: "Gmail watch setup successful! Push notifications are now active.",
+        message: "Gmail watch setup successful! Old watch stopped and new watch activated.",
         historyId: watchResponse.historyId,
         expiration: watchResponse.expiration,
         expirationDate: expirationDate.toISOString(),

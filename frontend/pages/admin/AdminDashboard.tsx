@@ -51,6 +51,7 @@ export default function AdminDashboard() {
   });
   
   const [syncingProducts, setSyncingProducts] = useState(false);
+  const [syncingVouchers, setSyncingVouchers] = useState(false);
   const [syncingPackages, setSyncingPackages] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
@@ -179,6 +180,52 @@ export default function AdminDashboard() {
     }
   };
   
+  const handleSyncVouchers = async () => {
+    setSyncingVouchers(true);
+    setUniplayApiResponse("");
+    setUniplayCurlCommand("");
+    try {
+      const result = await backend.uniplay.testVoucher();
+      console.log("=== Sync Vouchers Result ===");
+      console.log("Success:", result.success);
+      console.log("Voucher Count:", result.voucherCount);
+      console.log("Products Synced:", result.productsSynced);
+      console.log("Packages Created:", result.packagesCreated);
+      
+      if (result.curlCommand) {
+        setUniplayCurlCommand(result.curlCommand);
+      }
+      
+      const { curlCommand, ...responseWithoutCurl } = result;
+      setUniplayApiResponse(JSON.stringify(responseWithoutCurl, null, 2));
+      
+      if (result.success) {
+        toast({
+          title: "✅ Sync Vouchers Berhasil!",
+          description: `Vouchers: ${result.voucherCount} | Products: ${result.productsSynced} | Packages: ${result.packagesCreated}`,
+        });
+      } else {
+        toast({
+          title: "❌ Sync Gagal",
+          description: result.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Sync vouchers error:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      toast({
+        title: "Error",
+        description: error.message || "Gagal sync vouchers",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingVouchers(false);
+    }
+  };
 
   const handleSyncPackages = async () => {
     setSyncingPackages(true);
@@ -621,7 +668,14 @@ export default function AdminDashboard() {
                   >
                     🎮 DTU
                   </Button>
-
+                  <Button
+                    onClick={handleSyncVouchers}
+                    disabled={syncingVouchers}
+                    variant="outline"
+                    className="border-purple-700 text-purple-400 hover:bg-purple-900/20 text-xs"
+                  >
+                    {syncingVouchers ? "..." : "🎫 Voucher"}
+                  </Button>
                   <Button
                     onClick={handleSyncPackages}
                     disabled={syncingPackages}
