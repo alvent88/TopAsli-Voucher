@@ -335,6 +335,17 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       const latestMessageId = listData.messages[0].id;
       console.log(`Latest message from ${uniplaySenderEmail}: ${latestMessageId}`);
 
+      // Check if we already processed this message (deduplication)
+      const alreadyProcessed = await db.queryRow<{ message_id: string }>`
+        SELECT message_id FROM processed_email_messages
+        WHERE message_id = ${latestMessageId}
+      `;
+
+      if (alreadyProcessed) {
+        console.log(`⚠️ Message ${latestMessageId} already processed, skipping to prevent duplicates`);
+        return { success: true };
+      }
+
       // Get full message details
       const fullMessage = await getMessage(accessToken, latestMessageId);
 
@@ -471,6 +482,14 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           WHERE id = ${transaction.id}
         `;
         console.log(`✅ Transaction #${transaction.id} marked as success`);
+        
+        // Mark this email as processed
+        await db.exec`
+          INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone)
+          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${user.phone_number})
+          ON CONFLICT (message_id) DO NOTHING
+        `;
+        console.log(`✅ Email ${latestMessageId} marked as processed`);
         
       } catch (error: any) {
         console.error(`❌ Failed to send voucher to user:`, error.message);

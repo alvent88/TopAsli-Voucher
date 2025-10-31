@@ -66,6 +66,7 @@ export default function AdminDashboard() {
   
   // Setup Gmail Watch states
   const [settingUpGmailWatch, setSettingUpGmailWatch] = useState(false);
+  const [stoppingGmailWatch, setStoppingGmailWatch] = useState(false);
   const [gmailWatchResponse, setGmailWatchResponse] = useState("");
 
   useEffect(() => {
@@ -516,6 +517,48 @@ export default function AdminDashboard() {
     }
   };
   
+  const handleStopGmailWatch = async () => {
+    setStoppingGmailWatch(true);
+    setGmailWatchResponse("");
+    
+    try {
+      toast({
+        title: "⚙️ Stopping Gmail Watch",
+        description: "Deactivating push notifications...",
+      });
+      
+      const result = await backend.gmail.stopGmailWatch();
+      
+      setGmailWatchResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success) {
+        toast({
+          title: "✅ Gmail Watch Stopped!",
+          description: "Push notifications are now disabled",
+        });
+      } else {
+        toast({
+          title: "❌ Stop Failed",
+          description: result.message || "Failed to stop Gmail watch",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Stop Gmail watch error:", error);
+      setGmailWatchResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal stop Gmail watch",
+        variant: "destructive",
+      });
+    } finally {
+      setStoppingGmailWatch(false);
+    }
+  };
 
 
   const handleRunDiagnostic = async () => {
@@ -805,13 +848,23 @@ export default function AdminDashboard() {
               <p className="mt-2"><strong>Expire:</strong> Watch akan expire setelah ~7 hari dan perlu di-renew.</p>
             </div>
 
-            <Button
-              onClick={handleSetupGmailWatch}
-              disabled={settingUpGmailWatch}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-            >
-              {settingUpGmailWatch ? "Setting up..." : "🔔 Activate Gmail Watch"}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleSetupGmailWatch}
+                disabled={settingUpGmailWatch}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                {settingUpGmailWatch ? "Starting..." : "🔔 Activate Watch"}
+              </Button>
+              
+              <Button
+                onClick={handleStopGmailWatch}
+                disabled={stoppingGmailWatch}
+                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700"
+              >
+                {stoppingGmailWatch ? "Stopping..." : "⛔ Stop Watch"}
+              </Button>
+            </div>
 
             <div className="space-y-2">
               <Label className="text-slate-300">Setup Result</Label>
