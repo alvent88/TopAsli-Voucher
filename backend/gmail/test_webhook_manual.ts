@@ -15,21 +15,27 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
     console.log("=== Testing Webhook Components ===");
 
     try {
-      // 1. Check if CS numbers exist
-      const csNumbers = await db.query<{ phone_number: string; is_active: boolean }>`
+      // 1. Get all CS numbers
+      const allCsNumbers = await db.query<{ phone_number: string; is_active: boolean }>`
         SELECT phone_number, is_active FROM whatsapp_cs_numbers 
         ORDER BY id ASC
       `;
 
-      console.log(`Found ${csNumbers.length} CS numbers in database`);
+      console.log(`Found ${allCsNumbers.length} CS numbers in database`);
       
-      // Convert to array for iteration
-      const csArray = Array.from(csNumbers);
-      csArray.forEach(cs => {
-        console.log(`- ${cs.phone_number} (active: ${cs.is_active})`);
-      });
+      // 2. Get only ACTIVE CS numbers with WHERE clause
+      const activeCsNumbers = await db.query<{ phone_number: string }>`
+        SELECT phone_number FROM whatsapp_cs_numbers 
+        WHERE is_active = true
+        ORDER BY id ASC
+      `;
 
-      // 2. Check if Fonnte token is set
+      console.log(`Active CS numbers: ${activeCsNumbers.length}`);
+      for (const cs of activeCsNumbers) {
+        console.log(`- ${cs.phone_number}`);
+      }
+
+      // 3. Check if Fonnte token is set
       const config = await db.queryRow<{ value: string }>`
         SELECT value FROM admin_config WHERE key = 'dashboard_config'
       `;
@@ -41,15 +47,11 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
         console.log("Fonnte token set:", fonnteTokenSet);
       }
 
-      // 3. Get active CS numbers
-      const activeCs = csArray.filter(cs => cs.is_active);
-      console.log(`Active CS numbers: ${activeCs.length}`);
-
       return {
         success: true,
         message: "Webhook components check completed",
-        csNumbersFound: csNumbers.length,
-        csNumbers: activeCs.map(cs => cs.phone_number),
+        csNumbersFound: allCsNumbers.length,
+        csNumbers: Array.from(activeCsNumbers).map(cs => cs.phone_number),
         fonnteTokenSet,
       };
     } catch (error: any) {
