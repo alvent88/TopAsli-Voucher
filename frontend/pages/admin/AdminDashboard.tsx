@@ -68,6 +68,10 @@ export default function AdminDashboard() {
   // Test Gmail states
   const [testingGmail, setTestingGmail] = useState(false);
   const [gmailResponse, setGmailResponse] = useState("");
+  
+  // Test Email Notification states
+  const [testingEmailNotification, setTestingEmailNotification] = useState(false);
+  const [emailNotificationResponse, setEmailNotificationResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -546,6 +550,59 @@ export default function AdminDashboard() {
       setTestingGmail(false);
     }
   };
+  
+  const handleTestEmailNotification = async () => {
+    setTestingEmailNotification(true);
+    setEmailNotificationResponse("");
+    
+    try {
+      toast({
+        title: "🔍 Testing Email Notification",
+        description: "Checking for email from alvent88@gmail.com...",
+      });
+      
+      const result = await backend.gmail.testEmailNotification();
+      
+      setEmailNotificationResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success && result.whatsappSent) {
+        toast({
+          title: "✅ Notification Sent!",
+          description: `Email notification sent to ${result.csNumbers.length} CS number(s)`,
+        });
+      } else if (result.success && result.emailFound && !result.whatsappSent) {
+        toast({
+          title: "⚠️ Email Found, No CS Numbers",
+          description: "Email found but no active CS numbers to send notification",
+        });
+      } else if (result.success && !result.emailFound) {
+        toast({
+          title: "⚠️ No Email Found",
+          description: "No email found from alvent88@gmail.com",
+        });
+      } else {
+        toast({
+          title: "❌ Test Failed",
+          description: result.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test email notification error:", error);
+      setEmailNotificationResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal test email notification",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingEmailNotification(false);
+    }
+  };
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -918,6 +975,59 @@ export default function AdminDashboard() {
 
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-707">
               <strong className="text-slate-400">💡 Info:</strong> Test akan fetch email dari UniPlay menggunakan Gmail API OAuth. Pastikan 3 secrets sudah di-set di Settings: GmailClientId, GmailClientSecret, GmailRefreshToken
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Email to WhatsApp Notification */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <MessageSquare className="h-5 w-5 text-green-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Test Email → WhatsApp</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Test notifikasi email dari alvent88@gmail.com ke WhatsApp CS</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={handleTestEmailNotification}
+              disabled={testingEmailNotification}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              {testingEmailNotification ? "Testing..." : "🔔 Test Email Notification"}
+            </Button>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Notification Result</Label>
+              <Textarea
+                value={emailNotificationResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-green-400 font-mono text-xs h-96 resize-none"
+                placeholder="Hasil test notification akan muncul di sini..."
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 Info:</strong> Test akan:
+              <ul className="mt-2 space-y-1 text-slate-400">
+                <li>• Cari email terbaru dari <strong>alvent88@gmail.com</strong></li>
+                <li>• Ambil isi email (from, subject, body)</li>
+                <li>• Kirim notifikasi ke semua nomor WhatsApp CS yang aktif</li>
+                <li>• WhatsApp CS numbers diambil dari database (tabel whatsapp_cs_numbers)</li>
+              </ul>
+            </div>
+            
+            <div className="text-xs text-yellow-600 bg-yellow-900/20 p-3 rounded-lg border border-yellow-700">
+              <strong className="text-yellow-500">📌 Requirements:</strong>
+              <ul className="mt-2 space-y-1 text-slate-400">
+                <li>• Set 3 Gmail secrets: GmailClientId, GmailClientSecret, GmailRefreshToken</li>
+                <li>• Set FonnteToken di Settings</li>
+                <li>• Tambahkan minimal 1 nomor WhatsApp CS di menu Admin → WhatsApp CS</li>
+              </ul>
             </div>
           </CardContent>
         </Card>
