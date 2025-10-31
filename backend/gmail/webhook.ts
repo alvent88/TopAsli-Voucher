@@ -221,10 +221,10 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       // Get access token
       const accessToken = await getAccessToken();
 
-      // Get the latest message using history API
-      // For simplicity, we'll just get the latest messages and check sender
-      const historyResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${notification.historyId}&historyTypes=messageAdded`,
+      // Instead of using history API, let's just list the latest message
+      // This is more reliable for new emails
+      const listResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1&q=from:alvent88@gmail.com`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -232,61 +232,50 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         }
       );
 
-      if (!historyResponse.ok) {
-        console.log("⚠️ No new history found, skipping");
+      if (!listResponse.ok) {
+        console.log("⚠️ Failed to list messages, skipping");
         return { success: true };
       }
 
-      const historyData = (await historyResponse.json()) as GmailHistoryResponse;
+      const listData = await listResponse.json();
 
-      if (!historyData.history || historyData.history.length === 0) {
-        console.log("⚠️ No history changes, skipping");
+      if (!listData.messages || listData.messages.length === 0) {
+        console.log("⚠️ No messages from alvent88@gmail.com found");
         return { success: true };
       }
 
-      // Process each new message
-      for (const historyItem of historyData.history) {
-        if (!historyItem.messagesAdded) continue;
+      const latestMessageId = listData.messages[0].id;
+      console.log(`Latest message from alvent88@gmail.com: ${latestMessageId}`);
 
-        for (const addedMessage of historyItem.messagesAdded) {
-          const messageId = addedMessage.message.id;
-          console.log(`Processing message ${messageId}...`);
+      // Get full message details
+      const fullMessage = await getMessage(accessToken, latestMessageId);
 
-          // Get full message details
-          const fullMessage = await getMessage(accessToken, messageId);
+      const from = extractHeader(fullMessage.payload.headers, "From");
+      const subject = extractHeader(fullMessage.payload.headers, "Subject");
+      const body = extractEmailBody(fullMessage.payload);
 
-          const from = extractHeader(fullMessage.payload.headers, "From");
-          const subject = extractHeader(fullMessage.payload.headers, "Subject");
-          const body = extractEmailBody(fullMessage.payload);
+      console.log(`Message from: ${from}`);
+      console.log(`Subject: ${subject}`);
 
-          console.log(`Message from: ${from}`);
-          console.log(`Subject: ${subject}`);
+      // Email is already from alvent88@gmail.com (we filtered in the query)
+      console.log("✅ Email from alvent88@gmail.com detected!");
 
-          // Check if from alvent88@gmail.com
-          if (from.toLowerCase().includes("alvent88@gmail.com")) {
-            console.log("✅ Email from alvent88@gmail.com detected!");
+      // Get all active CS numbers
+      const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+        `SELECT phone_number FROM whatsapp_cs_numbers 
+         WHERE is_active = true
+         ORDER BY id ASC`
+      );
 
-            // Get all active CS numbers
-            const csNumbers = await db.query<{ phone_number: string }>`
-              SELECT phone_number FROM whatsapp_cs_numbers 
-              WHERE is_active = true
-              ORDER BY id ASC
-            `;
+      console.log(`Sending to ${csNumbers.length} CS numbers...`);
 
-            console.log(`Sending to ${csNumbers.length} CS numbers...`);
-
-            // Send to all CS numbers
-            for (const cs of csNumbers) {
-              try {
-                await sendWhatsAppNotification(cs.phone_number, from, subject, body);
-                console.log(`✅ Sent to ${cs.phone_number}`);
-              } catch (error: any) {
-                console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
-              }
-            }
-          } else {
-            console.log("⚠️ Email not from alvent88@gmail.com, skipping");
-          }
+      // Send to all CS numbers
+      for (const cs of csNumbers) {
+        try {
+          await sendWhatsAppNotification(cs.phone_number, from, subject, body);
+          console.log(`✅ Sent to ${cs.phone_number}`);
+        } catch (error: any) {
+          console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
         }
       }
 
