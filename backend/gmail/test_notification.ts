@@ -194,7 +194,7 @@ _Notifikasi otomatis dari Gmail_`;
     }),
   });
 
-  const result = await response.json();
+  const result = (await response.json()) as any;
   console.log("WhatsApp send result:", result);
 
   if (!response.ok || result.status === false) {
@@ -256,11 +256,11 @@ export const testEmailNotification = api<{}, TestEmailNotificationResponse>(
       console.log(`✅ Email found: From=${from}, Subject=${subject}`);
 
       // Get WhatsApp CS numbers from database
-      const csNumbers = await db.query<{ phone_number: string }>`
-        SELECT phone_number FROM whatsapp_cs_numbers 
-        WHERE is_active = true
-        ORDER BY id ASC
-      `;
+      const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+        `SELECT phone_number FROM whatsapp_cs_numbers 
+         WHERE is_active = true
+         ORDER BY id ASC`
+      );
 
       if (csNumbers.length === 0) {
         console.log("⚠️ No active CS numbers found");

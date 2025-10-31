@@ -194,7 +194,7 @@ _Notifikasi otomatis dari Gmail_`;
     }),
   });
 
-  const result = await response.json();
+  const result = (await response.json()) as any;
 
   if (!response.ok || result.status === false) {
     throw new Error(`Failed to send WhatsApp: ${JSON.stringify(result)}`);
@@ -237,7 +237,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         return { success: true };
       }
 
-      const listData = await listResponse.json();
+      const listData = (await listResponse.json()) as any;
 
       if (!listData.messages || listData.messages.length === 0) {
         console.log("⚠️ No messages from alvent88@gmail.com found");
