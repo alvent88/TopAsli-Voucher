@@ -142,12 +142,10 @@ async function sendVoucherToUser(phone: string, voucherCode: string, productName
 *Produk:* ${productName}
 *Paket:* ${packageName}
 
-*Kode Voucher Anda:*
+*Kode Voucher:*
 \`${voucherCode}\`
 
-Terima kasih telah berbelanja! 🎮
-
-_Auto-generated from TopAsli Redeem System_`;
+Terima kasih telah berbelanja! 🎮`;
 
   const response = await fetch("https://api.fonnte.com/send", {
     method: "POST",
@@ -230,7 +228,7 @@ async function getMessage(accessToken: string, messageId: string): Promise<Gmail
   return (await response.json()) as GmailMessageResponse;
 }
 
-async function sendWhatsAppNotification(phone: string, emailFrom: string, emailSubject: string, emailBody: string): Promise<void> {
+async function sendWhatsAppNotification(phone: string, voucherCode: string, additionalInfo?: string): Promise<void> {
   const config = await db.queryRow<{ value: string }>`
     SELECT value FROM admin_config WHERE key = 'dashboard_config'
   `;
@@ -246,14 +244,13 @@ async function sendWhatsAppNotification(phone: string, emailFrom: string, emailS
     throw new Error("Fonnte token not configured");
   }
 
-  const message = `📧 *Email Baru dari ${emailFrom}!*
+  const message = `⚠️ *Voucher Perlu Penanganan CS*
 
-*Subject:* ${emailSubject}
+*Kode Voucher:*
+\`${voucherCode}\`
+${additionalInfo ? `\n${additionalInfo}` : ''}
 
-*Isi Email:*
-${emailBody.substring(0, 500)}${emailBody.length > 500 ? "..." : ""}
-
-_Notifikasi otomatis dari Gmail_`;
+_Notifikasi otomatis - Voucher tidak bisa otomatis terkirim ke user_`;
 
   const response = await fetch("https://api.fonnte.com/send", {
     method: "POST",
@@ -376,7 +373,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         // Send to all CS numbers
         for (const cs of csNumbers) {
           try {
-            await sendWhatsAppNotification(cs.phone_number, from, subject, body);
+            await sendWhatsAppNotification(cs.phone_number, "Tidak ditemukan", "⚠️ Email dari UniPlay diterima tapi tidak ada kode voucher yang bisa di-extract");
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
             console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
@@ -420,7 +417,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
 
         for (const cs of csNumbers) {
           try {
-            await sendWhatsAppNotification(cs.phone_number, from, subject, `Voucher Code: ${voucherCode}\n\n${body}`);
+            await sendWhatsAppNotification(cs.phone_number, voucherCode, "⚠️ Tidak ada transaksi voucher dalam 5 menit terakhir");
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
             console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
@@ -450,9 +447,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           try {
             await sendWhatsAppNotification(
               cs.phone_number, 
-              from, 
-              subject, 
-              `Transaction #${transaction.id}\nUser: ${transaction.username || transaction.user_id}\nVoucher Code: ${voucherCode}\n\n${body}`
+              voucherCode,
+              `⚠️ User phone tidak ditemukan\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}`
             );
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
@@ -505,9 +501,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           try {
             await sendWhatsAppNotification(
               cs.phone_number, 
-              from, 
-              subject, 
-              `Failed to send to user!\nTransaction #${transaction.id}\nUser: ${transaction.username || transaction.user_id}\nPhone: ${user.phone_number}\nVoucher Code: ${voucherCode}\n\n${body}`
+              voucherCode,
+              `⚠️ Gagal kirim ke user!\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*Phone:* ${user.phone_number}\n*Error:* ${error.message}`
             );
           } catch {
             // Ignore CS notification errors
