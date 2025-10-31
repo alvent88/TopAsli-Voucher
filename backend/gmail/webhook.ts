@@ -452,13 +452,13 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
 
       console.log(`✅ Found transaction #${transaction.id} for user ${transaction.user_id}`);
 
-      // Get user's phone number
-      const user = await db.queryRow<{ phone_number: string | null }>`
-        SELECT phone_number FROM users WHERE id = ${transaction.user_id}
+      // Get user's phone number from phone_registrations table
+      const phoneReg = await db.queryRow<{ phone_number: string | null }>`
+        SELECT phone_number FROM phone_registrations WHERE clerk_user_id = ${transaction.user_id}
       `;
 
-      if (!user || !user.phone_number) {
-        console.log("⚠️ User phone not found, sending to CS");
+      if (!phoneReg || !phoneReg.phone_number) {
+        console.log("⚠️ User phone not found in phone_registrations, sending to CS");
         
         const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
           `SELECT phone_number FROM whatsapp_cs_numbers 
@@ -471,7 +471,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
             await sendWhatsAppNotification(
               cs.phone_number, 
               voucherCode,
-              `⚠️ User phone tidak ditemukan\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}`
+              `⚠️ User phone tidak ditemukan\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*User ID:* ${transaction.user_id}`
             );
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
@@ -482,12 +482,12 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         return { success: true };
       }
 
-      console.log(`✅ Sending voucher to user phone: ${user.phone_number}`);
+      console.log(`✅ Sending voucher to user phone: ${phoneReg.phone_number}`);
 
       // Send voucher code to user
       try {
         await sendVoucherToUser(
-          user.phone_number, 
+          phoneReg.phone_number, 
           voucherCode, 
           transaction.product_name, 
           transaction.package_name
@@ -505,7 +505,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         // Mark this email as processed
         await db.exec`
           INSERT INTO processed_email_messages (message_id, voucher_code, transaction_id, user_phone, email_subject, email_snippet)
-          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${user.phone_number}, ${subject}, ${fullMessage.snippet})
+          VALUES (${latestMessageId}, ${voucherCode}, ${transaction.id}, ${phoneReg.phone_number}, ${subject}, ${fullMessage.snippet})
           ON CONFLICT (message_id) DO NOTHING
         `;
         console.log(`✅ Email ${latestMessageId} marked as processed`);
@@ -525,7 +525,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
             await sendWhatsAppNotification(
               cs.phone_number, 
               voucherCode,
-              `⚠️ Gagal kirim ke user!\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*Phone:* ${user.phone_number}\n*Error:* ${error.message}`
+              `⚠️ Gagal kirim ke user!\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*Phone:* ${phoneReg.phone_number}\n*Error:* ${error.message}`
             );
           } catch {
             // Ignore CS notification errors
