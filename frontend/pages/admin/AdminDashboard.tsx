@@ -76,6 +76,10 @@ export default function AdminDashboard() {
   // Setup Gmail Watch states
   const [settingUpGmailWatch, setSettingUpGmailWatch] = useState(false);
   const [gmailWatchResponse, setGmailWatchResponse] = useState("");
+  
+  // Test Webhook Manual states
+  const [testingWebhookManual, setTestingWebhookManual] = useState(false);
+  const [webhookManualResponse, setWebhookManualResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -650,6 +654,63 @@ export default function AdminDashboard() {
       setSettingUpGmailWatch(false);
     }
   };
+  
+  const handleTestWebhookManual = async () => {
+    setTestingWebhookManual(true);
+    setWebhookManualResponse("");
+    
+    try {
+      toast({
+        title: "🔍 Testing Webhook Components",
+        description: "Checking CS numbers and Fonnte token...",
+      });
+      
+      const result = await backend.gmail.testWebhookManual();
+      
+      setWebhookManualResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success) {
+        if (result.csNumbers.length > 0 && result.fonnteTokenSet) {
+          toast({
+            title: "✅ All Components Ready!",
+            description: `Found ${result.csNumbers.length} active CS number(s) and Fonnte token is set`,
+          });
+        } else if (result.csNumbers.length === 0) {
+          toast({
+            title: "⚠️ No Active CS Numbers",
+            description: "Please add at least one active CS number",
+            variant: "destructive",
+          });
+        } else if (!result.fonnteTokenSet) {
+          toast({
+            title: "⚠️ Fonnte Token Not Set",
+            description: "Please set FonnteToken in Settings",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "❌ Test Failed",
+          description: result.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Test webhook manual error:", error);
+      setWebhookManualResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Failed to test webhook components",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingWebhookManual(false);
+    }
+  };
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -1132,6 +1193,49 @@ export default function AdminDashboard() {
                 <li>• Watch akan expire setelah ~7 hari</li>
                 <li>• Perlu klik "Activate Gmail Watch" lagi untuk renew</li>
                 <li>• Webhook URL: <code className="text-yellow-400">https://gaming-top-up-platform-d3pg4ec82vjikj791feg.api.lp.dev/gmail/webhook</code></li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Webhook Components */}
+        <Card className="bg-slate-900 border-slate-800">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <TestTube2 className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Debug Webhook Components</CardTitle>
+                <p className="text-sm text-slate-400 mt-1">Check if webhook dapat kirim WhatsApp</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={handleTestWebhookManual}
+              disabled={testingWebhookManual}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              {testingWebhookManual ? "Testing..." : "🔍 Check Webhook Components"}
+            </Button>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Check Result</Label>
+              <Textarea
+                value={webhookManualResponse}
+                readOnly
+                className="bg-slate-800 border-slate-700 text-purple-400 font-mono text-xs h-48 resize-none"
+                placeholder="Check result akan muncul di sini..."
+              />
+            </div>
+
+            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+              <strong className="text-slate-400">💡 What this checks:</strong>
+              <ul className="mt-2 space-y-1 text-slate-400">
+                <li>• CS WhatsApp numbers in database (active & inactive)</li>
+                <li>• FonnteToken is set or not</li>
+                <li>• Shows which phone numbers will receive notifications</li>
               </ul>
             </div>
           </CardContent>
