@@ -372,6 +372,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSaveGmailConfig = async () => {
+    try {
+      await backend.admin.saveConfig({
+        config: {
+          whatsapp: whatsappConfig,
+          topup: {
+            provider: "unipin",
+            apiKey: "",
+            merchantId: "",
+            secretKey: "",
+          },
+          uniplay: uniplayConfig,
+          gmail: gmailConfig,
+        },
+      });
+      
+      toast({
+        title: "Tersimpan ✅",
+        description: "Email pengirim UniPlay berhasil disimpan",
+      });
+    } catch (error: any) {
+      console.error("Failed to save gmail config:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menyimpan konfigurasi email",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCheckTime = async () => {
     try {
       const result = await backend.uniplay.checkTime();
@@ -761,6 +791,13 @@ export default function AdminDashboard() {
                 Email pengirim dari UniPlay yang akan kita ambil kode vouchernya
               </p>
             </div>
+
+            <Button
+              onClick={handleSaveGmailConfig}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              💾 Simpan Email Konfigurasi
+            </Button>
 
             <div className="text-sm text-slate-300 bg-blue-900/20 p-4 rounded-lg border border-blue-700">
               <strong className="text-blue-400">ℹ️ Gmail Watch:</strong>
