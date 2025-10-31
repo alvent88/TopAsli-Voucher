@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import type { Transaction } from "~backend/transaction/get";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import * as XLSX from "xlsx";
 
 export default function AdminTransactions() {
   const backend = useBackend();
@@ -87,6 +88,52 @@ export default function AdminTransactions() {
     return colors[status as keyof typeof colors] || "bg-slate-500/20 text-slate-300";
   };
 
+  const handleExportToXLSX = async () => {
+    try {
+      toast({
+        title: "Mengekspor...",
+        description: "Mohon tunggu, sedang mengunduh data transaksi",
+      });
+
+      const { data } = await backend.admin.exportTransactions();
+
+      const worksheet = XLSX.utils.json_to_sheet(data.map((row) => ({
+        "ID Transaksi": row.id,
+        "Tanggal": row.transactionDate,
+        "Email User": row.userEmail,
+        "User ID": row.userId,
+        "Game ID": row.gameId,
+        "Username": row.username,
+        "Produk": row.productName,
+        "Paket": row.packageName,
+        "Jumlah": row.amount,
+        "Harga": row.price,
+        "Biaya Admin": row.fee,
+        "Total": row.total,
+        "Metode Pembayaran": row.paymentMethod,
+        "Status": row.status,
+      })));
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Transaksi");
+
+      const fileName = `Transaksi_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      toast({
+        title: "Berhasil! ✅",
+        description: `${data.length} transaksi berhasil diekspor ke ${fileName}`,
+      });
+    } catch (error: any) {
+      console.error("Failed to export transactions:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengekspor transaksi",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -105,6 +152,13 @@ export default function AdminTransactions() {
               className="pl-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 w-64"
             />
           </div>
+          <Button
+            onClick={handleExportToXLSX}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            Export XLSX
+          </Button>
           <Button
             onClick={loadTransactions}
             variant="outline"
