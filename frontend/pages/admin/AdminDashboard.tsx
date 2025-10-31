@@ -67,6 +67,7 @@ export default function AdminDashboard() {
   // Setup Gmail Watch states
   const [settingUpGmailWatch, setSettingUpGmailWatch] = useState(false);
   const [stoppingGmailWatch, setStoppingGmailWatch] = useState(false);
+  const [debuggingWebhook, setDebuggingWebhook] = useState(false);
   const [gmailWatchResponse, setGmailWatchResponse] = useState("");
 
   useEffect(() => {
@@ -560,6 +561,57 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDebugWebhook = async () => {
+    setDebuggingWebhook(true);
+    setGmailWatchResponse("");
+    
+    try {
+      toast({
+        title: "🔍 Debugging Webhook",
+        description: "Checking email configuration and latest message...",
+      });
+      
+      const result = await backend.gmail.debugWebhook();
+      
+      setGmailWatchResponse(JSON.stringify(result, null, 2));
+      
+      if (result.success) {
+        if (result.alreadyProcessed) {
+          toast({
+            title: "⚠️ Email Already Processed",
+            description: `Latest email from ${result.latestEmailFrom} was already processed. Try sending a new email.`,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "✅ Debug Complete",
+            description: `Found email from ${result.latestEmailFrom}. Check result below for details.`,
+          });
+        }
+      } else {
+        toast({
+          title: "❌ Debug Failed",
+          description: result.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Debug webhook error:", error);
+      setGmailWatchResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal debug webhook",
+        variant: "destructive",
+      });
+    } finally {
+      setDebuggingWebhook(false);
+    }
+  };
+
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -865,6 +917,14 @@ export default function AdminDashboard() {
                 {stoppingGmailWatch ? "Stopping..." : "⛔ Stop Watch"}
               </Button>
             </div>
+
+            <Button
+              onClick={handleDebugWebhook}
+              disabled={debuggingWebhook}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              {debuggingWebhook ? "Debugging..." : "🔍 Debug Webhook"}
+            </Button>
 
             <div className="space-y-2">
               <Label className="text-slate-300">Setup Result</Label>
