@@ -46,6 +46,10 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Separate products by category
+  const gameProducts = filteredProducts.filter(p => p.category?.toLowerCase() !== 'voucher');
+  const voucherProducts = filteredProducts.filter(p => p.category?.toLowerCase() === 'voucher');
+
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
   return (
@@ -154,37 +158,97 @@ export default function HomePage() {
             <p className="text-slate-500 text-sm mt-2">Coba kata kunci lain</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-            {filteredProducts.map((product) => (
-              <Link key={product.id} to={`/product/${product.slug}`}>
-                <Card className="group relative bg-[#1a1f3a] border-slate-700 hover:border-yellow-500/50 transition-all duration-300 cursor-pointer h-full overflow-hidden before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-br before:from-yellow-400/0 before:via-yellow-500/0 before:to-yellow-400/0 hover:before:from-yellow-400/60 hover:before:via-yellow-500/60 hover:before:to-yellow-400/60 before:transition-all before:duration-300 before:-z-10 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]">
-                  <CardContent className="p-0 relative z-10">
-                    <div className="relative aspect-square overflow-hidden">
-                      {product.iconUrl ? (
-                        <img
-                          src={product.iconUrl}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center">
-                          <Gamepad2 className="h-12 w-12 text-blue-400" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 group-hover:from-yellow-400/20 group-hover:to-yellow-400/10 transition-all duration-300" />
-                    </div>
-                    <div className="p-3 bg-[#1a1f3a]">
-                      <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-yellow-400 transition-colors line-clamp-1">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{product.category}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <>
+            {/* Game Products Section */}
+            {gameProducts.length > 0 && (
+              <div className="mb-16">
+                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                  <Gamepad2 className="h-8 w-8 text-blue-400" />
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                    Game
+                  </span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                  {gameProducts.map((product) => (
+                    <Link key={product.id} to={`/product/${product.slug}`}>
+                      <Card className="group relative bg-[#1a1f3a] border-slate-700 hover:border-yellow-500/50 transition-all duration-300 cursor-pointer h-full overflow-hidden before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-br before:from-yellow-400/0 before:via-yellow-500/0 before:to-yellow-400/0 hover:before:from-yellow-400/60 hover:before:via-yellow-500/60 hover:before:to-yellow-400/60 before:transition-all before:duration-300 before:-z-10 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]">
+                        <CardContent className="p-0 relative z-10">
+                          <div className="relative aspect-square overflow-hidden">
+                            {product.iconUrl ? (
+                              <img
+                                src={product.iconUrl}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center">
+                                <Gamepad2 className="h-12 w-12 text-blue-400" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 group-hover:from-yellow-400/20 group-hover:to-yellow-400/10 transition-all duration-300" />
+                          </div>
+                          <div className="p-3 bg-[#1a1f3a]">
+                            <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-yellow-400 transition-colors line-clamp-1">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{product.category}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Voucher Products Section */}
+            {voucherProducts.length > 0 && (
+              <div className="mb-16">
+                <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+                  <svg className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                  </svg>
+                  <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+                    Voucher
+                  </span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                  {voucherProducts.map((product) => (
+                    <Link key={product.id} to={`/product/${product.slug}`}>
+                      <Card className="group relative bg-[#1a1f3a] border-slate-700 hover:border-purple-500/50 transition-all duration-300 cursor-pointer h-full overflow-hidden before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-br before:from-purple-400/0 before:via-pink-500/0 before:to-purple-400/0 hover:before:from-purple-400/60 hover:before:via-pink-500/60 hover:before:to-purple-400/60 before:transition-all before:duration-300 before:-z-10 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                        <CardContent className="p-0 relative z-10">
+                          <div className="relative aspect-square overflow-hidden">
+                            {product.iconUrl ? (
+                              <img
+                                src={product.iconUrl}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center">
+                                <svg className="h-12 w-12 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-400/0 via-transparent to-pink-400/0 group-hover:from-purple-400/20 group-hover:to-pink-400/10 transition-all duration-300" />
+                          </div>
+                          <div className="p-3 bg-[#1a1f3a]">
+                            <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-purple-400 transition-colors line-clamp-1">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{product.category}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <div className="mt-20 grid md:grid-cols-3 gap-6">
