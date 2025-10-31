@@ -15,27 +15,27 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
     console.log("=== Testing Webhook Components ===");
 
     try {
-      // 1. Get all CS numbers
-      const allCsNumbers = await db.query<{ phone_number: string; is_active: boolean }>`
-        SELECT phone_number, is_active FROM whatsapp_cs_numbers 
-        ORDER BY id ASC
-      `;
-
-      console.log(`Found ${allCsNumbers.length} CS numbers in database`);
+      // Debug: First check raw query result
+      const rawResult = await db.rawQueryAll<{ phone_number: string }>(
+        `SELECT phone_number FROM whatsapp_cs_numbers WHERE is_active = true ORDER BY id ASC`
+      );
       
-      // 2. Get only ACTIVE CS numbers with WHERE clause
-      const activeCsNumbers = await db.query<{ phone_number: string }>`
-        SELECT phone_number FROM whatsapp_cs_numbers 
-        WHERE is_active = true
-        ORDER BY id ASC
-      `;
+      console.log("=== DEBUG RAW RESULT ===");
+      console.log("Type:", typeof rawResult);
+      console.log("Is Array:", Array.isArray(rawResult));
+      console.log("Length:", rawResult.length);
+      console.log("Content:", JSON.stringify(rawResult));
+      
+      const activePhones = rawResult.map(row => row.phone_number);
+      console.log("Active phones:", activePhones);
 
-      console.log(`Active CS numbers: ${activeCsNumbers.length}`);
-      for (const cs of activeCsNumbers) {
-        console.log(`- ${cs.phone_number}`);
-      }
+      // Get all CS numbers count
+      const allCount = await db.rawQueryAll<{ count: string }>(
+        `SELECT COUNT(*) as count FROM whatsapp_cs_numbers`
+      );
+      const totalCount = parseInt(allCount[0].count);
 
-      // 3. Check if Fonnte token is set
+      // Check if Fonnte token is set
       const config = await db.queryRow<{ value: string }>`
         SELECT value FROM admin_config WHERE key = 'dashboard_config'
       `;
@@ -47,15 +47,10 @@ export const testWebhookManual = api<{}, TestWebhookManualResponse>(
         console.log("Fonnte token set:", fonnteTokenSet);
       }
 
-      const activePhones: string[] = [];
-      for (const cs of activeCsNumbers) {
-        activePhones.push(cs.phone_number);
-      }
-
       return {
         success: true,
         message: "Webhook components check completed",
-        csNumbersFound: allCsNumbers.length,
+        csNumbersFound: totalCount,
         csNumbers: activePhones,
         fonnteTokenSet,
       };
