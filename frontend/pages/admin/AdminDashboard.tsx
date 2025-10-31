@@ -50,6 +50,10 @@ export default function AdminDashboard() {
     pincode: "",
   });
   
+  const [gmailConfig, setGmailConfig] = useState({
+    uniplaySenderEmail: "",
+  });
+  
   const [syncingProducts, setSyncingProducts] = useState(false);
   const [syncingVouchers, setSyncingVouchers] = useState(false);
   const [syncingPackages, setSyncingPackages] = useState(false);
@@ -87,6 +91,9 @@ export default function AdminDashboard() {
       if (config.uniplay) {
         setUniplayConfig(config.uniplay);
       }
+      if (config.gmail) {
+        setGmailConfig(config.gmail);
+      }
     } catch (error) {
       console.error("Failed to load config:", error);
     }
@@ -104,6 +111,7 @@ export default function AdminDashboard() {
             secretKey: "",
           },
           uniplay: uniplayConfig,
+          gmail: gmailConfig,
         },
       });
       
@@ -163,6 +171,7 @@ export default function AdminDashboard() {
             secretKey: "",
           },
           uniplay: uniplayConfig,
+          gmail: gmailConfig,
         },
       });
       
@@ -735,6 +744,24 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="uniplay-sender-email" className="text-slate-300">
+                UniPlay Sender Email *
+              </Label>
+              <Input
+                id="uniplay-sender-email"
+                type="email"
+                value={gmailConfig.uniplaySenderEmail}
+                onChange={(e) => setGmailConfig({ ...gmailConfig, uniplaySenderEmail: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white"
+                placeholder="e.g., noreply@uniplay.id"
+                disabled={!canEdit}
+              />
+              <p className="text-xs text-slate-500">
+                Email pengirim dari UniPlay yang akan kita ambil kode vouchernya
+              </p>
+            </div>
+
             <div className="text-sm text-slate-300 bg-blue-900/20 p-4 rounded-lg border border-blue-700">
               <strong className="text-blue-400">ℹ️ Gmail Watch:</strong>
               <p className="mt-2">Gmail Watch harus di-activate agar sistem bisa menerima notifikasi real-time ketika ada email baru masuk.</p>

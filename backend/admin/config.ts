@@ -20,6 +20,9 @@ export interface AdminConfig {
     baseUrl: string;
     pincode: string;
   };
+  gmail: {
+    uniplaySenderEmail: string;
+  };
 }
 
 export interface SaveConfigRequest {
@@ -105,6 +108,9 @@ export const getConfig = api<void, GetConfigResponse>(
               apiKey: "",
               baseUrl: "https://api-reseller.uniplay.id/v1",
               pincode: "",
+            },
+            gmail: {
+              uniplaySenderEmail: "",
             },
           },
         };

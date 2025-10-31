@@ -95,6 +95,80 @@ function decodeBase64Url(data: string): string {
   return Buffer.from(base64, "base64").toString("utf-8");
 }
 
+function extractVoucherCode(emailBody: string, emailSubject: string): string | null {
+  // Common voucher code patterns
+  const patterns = [
+    /code[:\s]+([A-Z0-9-]{4,})/i,
+    /voucher[:\s]+([A-Z0-9-]{4,})/i,
+    /kode[:\s]+([A-Z0-9-]{4,})/i,
+    /gift\s+card[:\s]+([A-Z0-9-]{4,})/i,
+    /redeem\s+code[:\s]+([A-Z0-9-]{4,})/i,
+    /pin[:\s]+([A-Z0-9]{4,})/i,
+    /\b([A-Z0-9]{12,25})\b/,  // Generic alphanumeric 12-25 chars
+  ];
+
+  const fullText = `${emailSubject}\n${emailBody}`;
+  
+  for (const pattern of patterns) {
+    const match = fullText.match(pattern);
+    if (match && match[1]) {
+      console.log(`✅ Voucher code found using pattern: ${pattern}`);
+      return match[1].trim();
+    }
+  }
+
+  console.log("⚠️ No voucher code found in email");
+  return null;
+}
+
+async function sendVoucherToUser(phone: string, voucherCode: string, productName: string, packageName: string): Promise<void> {
+  const config = await db.queryRow<{ value: string }>`
+    SELECT value FROM admin_config WHERE key = 'dashboard_config'
+  `;
+
+  if (!config) {
+    throw new Error("WhatsApp config not found");
+  }
+
+  const dashboardConfig = JSON.parse(config.value);
+  const fonnteToken = dashboardConfig.whatsapp?.fonnteToken;
+
+  if (!fonnteToken) {
+    throw new Error("Fonnte token not configured");
+  }
+
+  const message = `🎉 *Pembelian Berhasil!*
+
+*Produk:* ${productName}
+*Paket:* ${packageName}
+
+*Kode Voucher Anda:*
+\`${voucherCode}\`
+
+Terima kasih telah berbelanja! 🎮
+
+_Auto-generated from TopAsli Redeem System_`;
+
+  const response = await fetch("https://api.fonnte.com/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": fonnteToken,
+    },
+    body: JSON.stringify({
+      target: phone,
+      message: message,
+      countryCode: "62",
+    }),
+  });
+
+  const result = (await response.json()) as any;
+
+  if (!response.ok || result.status === false) {
+    throw new Error(`Failed to send WhatsApp: ${JSON.stringify(result)}`);
+  }
+}
+
 function extractHeader(headers: Array<{ name: string; value: string }>, headerName: string): string {
   const header = headers.find((h) => h.name.toLowerCase() === headerName.toLowerCase());
   return header?.value || "";
@@ -221,10 +295,24 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       // Get access token
       const accessToken = await getAccessToken();
 
-      // Instead of using history API, let's just list the latest message
-      // This is more reliable for new emails
+      // Get UniPlay sender email from config
+      const config = await db.queryRow<{ value: string }>`
+        SELECT value FROM admin_config WHERE key = 'dashboard_config'
+      `;
+
+      let uniplaySenderEmail = "alvent88@gmail.com"; // Default fallback
+      if (config) {
+        const dashboardConfig = JSON.parse(config.value);
+        if (dashboardConfig.gmail?.uniplaySenderEmail) {
+          uniplaySenderEmail = dashboardConfig.gmail.uniplaySenderEmail;
+        }
+      }
+
+      console.log(`Looking for emails from: ${uniplaySenderEmail}`);
+
+      // List the latest message from UniPlay sender
       const listResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1&q=from:alvent88@gmail.com`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=1&q=from:${uniplaySenderEmail}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -240,12 +328,12 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       const listData = (await listResponse.json()) as any;
 
       if (!listData.messages || listData.messages.length === 0) {
-        console.log("⚠️ No messages from alvent88@gmail.com found");
+        console.log(`⚠️ No messages from ${uniplaySenderEmail} found`);
         return { success: true };
       }
 
       const latestMessageId = listData.messages[0].id;
-      console.log(`Latest message from alvent88@gmail.com: ${latestMessageId}`);
+      console.log(`Latest message from ${uniplaySenderEmail}: ${latestMessageId}`);
 
       // Get full message details
       const fullMessage = await getMessage(accessToken, latestMessageId);
@@ -257,25 +345,154 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       console.log(`Message from: ${from}`);
       console.log(`Subject: ${subject}`);
 
-      // Email is already from alvent88@gmail.com (we filtered in the query)
-      console.log("✅ Email from alvent88@gmail.com detected!");
+      console.log(`✅ Email from ${uniplaySenderEmail} detected!`);
 
-      // Get all active CS numbers
-      const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
-        `SELECT phone_number FROM whatsapp_cs_numbers 
-         WHERE is_active = true
-         ORDER BY id ASC`
-      );
+      // Extract voucher code from email
+      const voucherCode = extractVoucherCode(body, subject);
+      
+      if (!voucherCode) {
+        console.log("❌ No voucher code found in email, sending to CS instead");
+        
+        // Get all active CS numbers
+        const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+          `SELECT phone_number FROM whatsapp_cs_numbers 
+           WHERE is_active = true
+           ORDER BY id ASC`
+        );
 
-      console.log(`Sending to ${csNumbers.length} CS numbers...`);
+        console.log(`Sending to ${csNumbers.length} CS numbers...`);
 
-      // Send to all CS numbers
-      for (const cs of csNumbers) {
-        try {
-          await sendWhatsAppNotification(cs.phone_number, from, subject, body);
-          console.log(`✅ Sent to ${cs.phone_number}`);
-        } catch (error: any) {
-          console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
+        // Send to all CS numbers
+        for (const cs of csNumbers) {
+          try {
+            await sendWhatsAppNotification(cs.phone_number, from, subject, body);
+            console.log(`✅ Sent to ${cs.phone_number}`);
+          } catch (error: any) {
+            console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
+          }
+        }
+        
+        return { success: true };
+      }
+
+      console.log(`✅ Voucher code extracted: ${voucherCode}`);
+
+      // Find the most recent pending voucher transaction (within last 5 minutes)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      
+      const transaction = await db.queryRow<{
+        id: number;
+        user_id: string;
+        product_name: string;
+        package_name: string;
+        username: string | null;
+      }>`
+        SELECT t.id, t.user_id, p.name as product_name, pk.name as package_name, t.username
+        FROM transactions t
+        JOIN packages pk ON t.package_id = pk.id
+        JOIN products p ON pk.product_id = p.id
+        WHERE p.category = 'Voucher'
+          AND t.status = 'pending'
+          AND t.created_at >= ${fiveMinutesAgo}
+        ORDER BY t.created_at DESC
+        LIMIT 1
+      `;
+
+      if (!transaction) {
+        console.log("⚠️ No recent voucher transaction found, sending to CS");
+        
+        const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+          `SELECT phone_number FROM whatsapp_cs_numbers 
+           WHERE is_active = true
+           ORDER BY id ASC`
+        );
+
+        for (const cs of csNumbers) {
+          try {
+            await sendWhatsAppNotification(cs.phone_number, from, subject, `Voucher Code: ${voucherCode}\n\n${body}`);
+            console.log(`✅ Sent to ${cs.phone_number}`);
+          } catch (error: any) {
+            console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
+          }
+        }
+        
+        return { success: true };
+      }
+
+      console.log(`✅ Found transaction #${transaction.id} for user ${transaction.user_id}`);
+
+      // Get user's phone number
+      const user = await db.queryRow<{ phone_number: string | null }>`
+        SELECT phone_number FROM users WHERE id = ${transaction.user_id}
+      `;
+
+      if (!user || !user.phone_number) {
+        console.log("⚠️ User phone not found, sending to CS");
+        
+        const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+          `SELECT phone_number FROM whatsapp_cs_numbers 
+           WHERE is_active = true
+           ORDER BY id ASC`
+        );
+
+        for (const cs of csNumbers) {
+          try {
+            await sendWhatsAppNotification(
+              cs.phone_number, 
+              from, 
+              subject, 
+              `Transaction #${transaction.id}\nUser: ${transaction.username || transaction.user_id}\nVoucher Code: ${voucherCode}\n\n${body}`
+            );
+            console.log(`✅ Sent to ${cs.phone_number}`);
+          } catch (error: any) {
+            console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
+          }
+        }
+        
+        return { success: true };
+      }
+
+      console.log(`✅ Sending voucher to user phone: ${user.phone_number}`);
+
+      // Send voucher code to user
+      try {
+        await sendVoucherToUser(
+          user.phone_number, 
+          voucherCode, 
+          transaction.product_name, 
+          transaction.package_name
+        );
+        console.log(`✅ Voucher sent to user ${transaction.user_id}`);
+        
+        // Update transaction status to success
+        await db.exec`
+          UPDATE transactions 
+          SET status = 'success', updated_at = NOW()
+          WHERE id = ${transaction.id}
+        `;
+        console.log(`✅ Transaction #${transaction.id} marked as success`);
+        
+      } catch (error: any) {
+        console.error(`❌ Failed to send voucher to user:`, error.message);
+        
+        // Fallback: Send to CS
+        const csNumbers = await db.rawQueryAll<{ phone_number: string }>(
+          `SELECT phone_number FROM whatsapp_cs_numbers 
+           WHERE is_active = true
+           ORDER BY id ASC`
+        );
+
+        for (const cs of csNumbers) {
+          try {
+            await sendWhatsAppNotification(
+              cs.phone_number, 
+              from, 
+              subject, 
+              `Failed to send to user!\nTransaction #${transaction.id}\nUser: ${transaction.username || transaction.user_id}\nPhone: ${user.phone_number}\nVoucher Code: ${voucherCode}\n\n${body}`
+            );
+          } catch {
+            // Ignore CS notification errors
+          }
         }
       }
 
