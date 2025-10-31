@@ -228,7 +228,7 @@ async function getMessage(accessToken: string, messageId: string): Promise<Gmail
   return (await response.json()) as GmailMessageResponse;
 }
 
-async function sendWhatsAppNotification(phone: string, voucherCode: string, additionalInfo?: string): Promise<void> {
+async function sendWhatsAppNotification(phone: string, emailSnippet: string, additionalInfo?: string): Promise<void> {
   const config = await db.queryRow<{ value: string }>`
     SELECT value FROM admin_config WHERE key = 'dashboard_config'
   `;
@@ -244,13 +244,12 @@ async function sendWhatsAppNotification(phone: string, voucherCode: string, addi
     throw new Error("Fonnte token not configured");
   }
 
-  const message = `⚠️ *Voucher Perlu Penanganan CS*
+  const message = `⚠️ *Email Voucher Baru*
 
-*Kode Voucher:*
-\`${voucherCode}\`
+${emailSnippet}
 ${additionalInfo ? `\n${additionalInfo}` : ''}
 
-_Notifikasi otomatis - Voucher tidak bisa otomatis terkirim ke user_`;
+_Notifikasi otomatis_`;
 
   const response = await fetch("https://api.fonnte.com/send", {
     method: "POST",
@@ -332,7 +331,10 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
       const latestMessageId = listData.messages[0].id;
       console.log(`Latest message from ${uniplaySenderEmail}: ${latestMessageId}`);
 
-      // Check if we already processed this message (deduplication by message ID)
+      // Get full message details first (to get snippet)
+      const fullMessage = await getMessage(accessToken, latestMessageId);
+
+      // LAYER 1: Check if we already processed this exact message ID
       const alreadyProcessed = await db.queryRow<{ message_id: string }>`
         SELECT message_id FROM processed_email_messages
         WHERE message_id = ${latestMessageId}
@@ -343,8 +345,25 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         return { success: true };
       }
 
-      // Get full message details
-      const fullMessage = await getMessage(accessToken, latestMessageId);
+      // LAYER 2: Check if same snippet was processed in last 30 seconds (cooldown)
+      const recentSnippet = await db.queryRow<{ message_id: string }>`
+        SELECT message_id FROM processed_email_messages
+        WHERE email_snippet = ${fullMessage.snippet}
+          AND processed_at > NOW() - INTERVAL '30 seconds'
+      `;
+
+      if (recentSnippet) {
+        console.log(`⚠️ Same email snippet processed ${30} seconds ago, skipping duplicate push notification`);
+        
+        // Mark this message too to prevent future processing
+        await db.exec`
+          INSERT INTO processed_email_messages (message_id, email_subject, email_snippet)
+          VALUES (${latestMessageId}, ${extractHeader(fullMessage.payload.headers, "Subject")}, ${fullMessage.snippet})
+          ON CONFLICT (message_id) DO NOTHING
+        `;
+        
+        return { success: true };
+      }
 
       const from = extractHeader(fullMessage.payload.headers, "From");
       const subject = extractHeader(fullMessage.payload.headers, "Subject");
@@ -396,7 +415,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
         // Send to all CS numbers
         for (const cs of csNumbers) {
           try {
-            await sendWhatsAppNotification(cs.phone_number, "Tidak ditemukan", "⚠️ Email dari UniPlay diterima tapi tidak ada kode voucher yang bisa di-extract");
+            await sendWhatsAppNotification(cs.phone_number, fullMessage.snippet, "⚠️ Tidak ada kode voucher yang bisa di-extract");
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
             console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
@@ -440,7 +459,7 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
 
         for (const cs of csNumbers) {
           try {
-            await sendWhatsAppNotification(cs.phone_number, voucherCode, "⚠️ Tidak ada transaksi voucher dalam 5 menit terakhir");
+            await sendWhatsAppNotification(cs.phone_number, fullMessage.snippet, "⚠️ Tidak ada transaksi voucher dalam 5 menit terakhir");
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
             console.error(`❌ Failed to send to ${cs.phone_number}:`, error.message);
@@ -470,8 +489,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           try {
             await sendWhatsAppNotification(
               cs.phone_number, 
-              voucherCode,
-              `⚠️ User phone tidak ditemukan\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*User ID:* ${transaction.user_id}`
+              fullMessage.snippet,
+              `⚠️ User phone tidak ditemukan\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}`
             );
             console.log(`✅ Sent to ${cs.phone_number}`);
           } catch (error: any) {
@@ -524,8 +543,8 @@ export const webhook = api<PubSubMessage, { success: boolean }>(
           try {
             await sendWhatsAppNotification(
               cs.phone_number, 
-              voucherCode,
-              `⚠️ Gagal kirim ke user!\n*Transaksi:* #${transaction.id}\n*User:* ${transaction.username || transaction.user_id}\n*Phone:* ${phoneReg.phone_number}\n*Error:* ${error.message}`
+              fullMessage.snippet,
+              `⚠️ Gagal kirim ke user!\n*Transaksi:* #${transaction.id}\n*Phone:* ${phoneReg.phone_number}\n*Error:* ${error.message}`
             );
           } catch {
             // Ignore CS notification errors
