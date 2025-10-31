@@ -79,8 +79,8 @@ export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
       }
 
       const result = await db.queryRow<{ id: number }>`
-        INSERT INTO whatsapp_cs_numbers (phone_number, admin_name, added_by)
-        VALUES (${formattedPhone}, ${adminName}, ${auth.userID})
+        INSERT INTO whatsapp_cs_numbers (phone_number, admin_name, is_active, added_by)
+        VALUES (${formattedPhone}, ${adminName}, true, ${auth.userID})
         RETURNING id
       `;
 

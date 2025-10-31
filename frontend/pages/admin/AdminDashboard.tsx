@@ -80,6 +80,9 @@ export default function AdminDashboard() {
   // Test Webhook Manual states
   const [testingWebhookManual, setTestingWebhookManual] = useState(false);
   const [webhookManualResponse, setWebhookManualResponse] = useState("");
+  
+  // Activate All CS states
+  const [activatingAllCS, setActivatingAllCS] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -711,6 +714,44 @@ export default function AdminDashboard() {
       setTestingWebhookManual(false);
     }
   };
+  
+  const handleActivateAllCS = async () => {
+    setActivatingAllCS(true);
+    
+    try {
+      toast({
+        title: "⚙️ Activating CS Numbers",
+        description: "Setting all CS numbers to active...",
+      });
+      
+      const result = await backend.admin.activateAllCS();
+      
+      if (result.success) {
+        toast({
+          title: "✅ CS Numbers Activated!",
+          description: result.message,
+        });
+        
+        // Re-test webhook components
+        await handleTestWebhookManual();
+      } else {
+        toast({
+          title: "❌ Activation Failed",
+          description: "Failed to activate CS numbers",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Activate all CS error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to activate CS numbers",
+        variant: "destructive",
+      });
+    } finally {
+      setActivatingAllCS(false);
+    }
+  };
 
   const handleRunDiagnostic = async () => {
     setRunningDiagnostic(true);
@@ -1212,13 +1253,23 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button
-              onClick={handleTestWebhookManual}
-              disabled={testingWebhookManual}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              {testingWebhookManual ? "Testing..." : "🔍 Check Webhook Components"}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleTestWebhookManual}
+                disabled={testingWebhookManual}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                {testingWebhookManual ? "Testing..." : "🔍 Check Components"}
+              </Button>
+              
+              <Button
+                onClick={handleActivateAllCS}
+                disabled={activatingAllCS}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                {activatingAllCS ? "Activating..." : "✅ Activate All CS"}
+              </Button>
+            </div>
 
             <div className="space-y-2">
               <Label className="text-slate-300">Check Result</Label>
