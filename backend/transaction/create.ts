@@ -6,6 +6,7 @@ import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import { transactionTopic } from "../notification/events";
 import { createOrder as createUniPlayOrder } from "../uniplay/client";
+import { sendTransactionEmail } from "../email/send_transaction_email";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -247,6 +248,44 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
       }
     } else if (status === 'pending') {
       console.log("⏳ Transaction pending - WhatsApp will be sent after confirmation");
+    }
+
+    // Send email receipt for successful transactions
+    if (status === 'success' && email) {
+      try {
+        console.log("📧 Attempting to send email receipt to:", email);
+        
+        await sendTransactionEmail({
+          transactionId,
+          recipientEmail: email,
+          recipientName: fullName,
+          recipientPhone: phoneNumber,
+          productName: product.name,
+          packageName: pkg.name,
+          amount: pkg.amount,
+          unit: pkg.unit,
+          userId,
+          gameId,
+          username: username || undefined,
+          price,
+          fee,
+          total,
+          paymentMethod: paymentMethod.name,
+          status: 'success',
+          createdAt: new Date(),
+          newBalance,
+          uniplayOrderId: uniplayOrderId || undefined,
+        });
+        
+        console.log("✅ Email receipt sent successfully!");
+      } catch (emailError: any) {
+        console.error("❌ Failed to send email receipt:", emailError);
+        console.error("❌ Error details:", emailError.message);
+      }
+    } else if (status === 'pending') {
+      console.log("⏳ Transaction pending - Email will be sent after confirmation");
+    } else if (!email) {
+      console.log("⚠️ No email address - Email receipt skipped");
     }
 
     console.log("=== TRANSACTION COMPLETED SUCCESSFULLY ===");

@@ -2,6 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { confirmPayment, UniPlayConfirmPaymentResponse } from "./client";
+import { sendTransactionEmail } from "../email/send_transaction_email";
 
 export interface ConfirmPaymentRequest {
   inquiryId: string;
@@ -132,9 +133,9 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
 
       console.log("✅ Transaction updated with order_id:", response.order_id);
 
-      // Send WhatsApp notification after successful payment
+      // Send WhatsApp notification and email receipt after successful payment
       try {
-        console.log("=== SENDING WHATSAPP NOTIFICATION ===");
+        console.log("=== SENDING NOTIFICATIONS ===");
         
         const transactionData = await db.queryRow<{
           user_id: string;
@@ -167,14 +168,16 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         const user = await clerkClient.users.getUser(auth.userID);
         const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
         const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
+        const email = user.emailAddresses[0]?.emailAddress || "";
 
-        console.log("User data - Phone:", phoneNumber, "Name:", fullName);
+        console.log("User data - Phone:", phoneNumber, "Name:", fullName, "Email:", email);
 
+        // Send WhatsApp if phone number is available
         if (!phoneNumber) {
           console.log("⚠️ No phone number found, skipping WhatsApp");
         } else if (!transactionData) {
           console.log("⚠️ No transaction data found, skipping WhatsApp");
-        } else {
+        } else if (phoneNumber && transactionData) {
           const configRow = await db.queryRow<{ value: string }>`
             SELECT value FROM admin_config WHERE key = 'dashboard_config'
           `;
@@ -237,9 +240,51 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
             }
           }
         }
-      } catch (waErr) {
-        console.error("❌ Failed to send WhatsApp notification:", waErr);
-        // Don't throw error, continue with response
+        
+        // Send email receipt if email is available
+        if (email && transactionData) {
+          console.log("📧 Attempting to send email receipt to:", email);
+          
+          const paymentMethodData = await db.queryRow<{ name: string }>`
+            SELECT name FROM payment_methods WHERE id = 1
+          `;
+          
+          const pkgData = await db.queryRow<{ amount: number; unit: string }>`
+            SELECT amount, unit FROM packages WHERE id = (
+              SELECT package_id FROM transactions WHERE id = ${req.transactionId}
+            )
+          `;
+          
+          if (paymentMethodData && pkgData) {
+            await sendTransactionEmail({
+              transactionId: req.transactionId,
+              recipientEmail: email,
+              recipientName: fullName,
+              recipientPhone: phoneNumber,
+              productName: transactionData.product_name,
+              packageName: transactionData.package_name,
+              amount: pkgData.amount,
+              unit: pkgData.unit,
+              userId: transactionData.user_id,
+              gameId: transactionData.game_id,
+              username: transactionData.username || undefined,
+              price: transactionData.price,
+              fee: 0,
+              total: transactionData.price,
+              paymentMethod: paymentMethodData.name,
+              status: 'success',
+              createdAt: new Date(),
+              newBalance,
+              uniplayOrderId: response.order_id,
+            });
+            
+            console.log("✅ Email receipt sent successfully!");
+          }
+        } else {
+          console.log("⚠️ No email address or transaction data - Email receipt skipped");
+        }
+      } catch (notificationErr) {
+        console.error("❌ Failed to send notifications:", notificationErr);
       }
 
       return {
