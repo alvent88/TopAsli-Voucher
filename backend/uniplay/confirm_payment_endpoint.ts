@@ -2,7 +2,6 @@ import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { confirmPayment, UniPlayConfirmPaymentResponse } from "./client";
-import { sendTransactionEmail } from "../email/send_transaction_email";
 
 export interface ConfirmPaymentRequest {
   inquiryId: string;
@@ -240,51 +239,8 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
             }
           }
         }
-        
-        // Send email receipt if email is available
-        if (email && transactionData) {
-          console.log("📧 Attempting to send email receipt to:", email);
-          
-          const paymentMethodData = await db.queryRow<{ name: string }>`
-            SELECT name FROM payment_methods WHERE id = 1
-          `;
-          
-          const pkgData = await db.queryRow<{ amount: number; unit: string }>`
-            SELECT amount, unit FROM packages WHERE id = (
-              SELECT package_id FROM transactions WHERE id = ${req.transactionId}
-            )
-          `;
-          
-          if (paymentMethodData && pkgData) {
-            await sendTransactionEmail({
-              transactionId: req.transactionId,
-              recipientEmail: email,
-              recipientName: fullName,
-              recipientPhone: phoneNumber,
-              productName: transactionData.product_name,
-              packageName: transactionData.package_name,
-              amount: pkgData.amount,
-              unit: pkgData.unit,
-              userId: transactionData.user_id,
-              gameId: transactionData.game_id,
-              username: transactionData.username || undefined,
-              price: transactionData.price,
-              fee: 0,
-              total: transactionData.price,
-              paymentMethod: paymentMethodData.name,
-              status: 'success',
-              createdAt: new Date(),
-              newBalance,
-              uniplayOrderId: response.order_id,
-            });
-            
-            console.log("✅ Email receipt sent successfully!");
-          }
-        } else {
-          console.log("⚠️ No email address or transaction data - Email receipt skipped");
-        }
       } catch (notificationErr) {
-        console.error("❌ Failed to send notifications:", notificationErr);
+        console.error("❌ Failed to send WhatsApp notification:", notificationErr);
       }
 
       return {

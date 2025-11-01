@@ -9,9 +9,7 @@
   "dependencies": {
     "@clerk/backend": "^1.27.0",
     "encore.dev": "^1.50.6",
-    "nanoid": "^5.1.2",
-    "pdfkit": "^0.17.0",
-    "resend": "^4.4.1"
+    "nanoid": "^5.1.2"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
