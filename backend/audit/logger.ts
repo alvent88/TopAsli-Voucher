@@ -64,7 +64,7 @@ export async function logAuditAction(
 
     const adminEmail = auth.userID;
 
-    await db.query`
+    await db.exec`
       INSERT INTO audit_logs (
         admin_id,
         admin_email,
