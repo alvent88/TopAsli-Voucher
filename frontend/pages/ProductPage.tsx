@@ -275,14 +275,8 @@ export default function ProductPage() {
                         <Input
                           id="userId"
                           value={userId}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            if (product?.slug === "valorant" && value.includes("#")) {
-                              value = value.replace(/#/g, "%23");
-                            }
-                            setUserId(value);
-                          }}
-                          placeholder={product?.slug === "valorant" ? "Masukkan User ID (contoh: name#tag)" : "Masukkan User ID"}
+                          onChange={(e) => setUserId(e.target.value)}
+                          placeholder={product?.slug === "valorant" ? "Masukkan Riot ID (contoh: yuyun#123)" : "Masukkan User ID"}
                           className={`bg-white/10 border-white/20 text-white pr-10 ${
                             validationStatus === "invalid" ? "border-red-500" : ""
                           } ${validationStatus === "valid" ? "border-green-500" : ""}`}

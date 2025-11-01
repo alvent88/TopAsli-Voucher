@@ -24,19 +24,19 @@ Used as fallback for games not supported by Sandrocods API.
 | Honkai Star Rail | `honkai-star-rail` | `honkai_star_rail` | ❌ No | |
 | Call of Duty Mobile | `cod-mobile` | `call_of_duty` | ❌ No | |
 | Point Blank | `point-blank` | `point_blank` | ❌ No | |
-| Valorant | `valorant` | `valorant` | ❌ No | Format: `name#tag` (auto-encoded) |
 | PUBG Mobile | `pubg-mobile` | `pubg_mobile` | ❌ No | |
 
 ### Games Using Isan.eu.org API ✅
 
-| Game Name | Endpoint | Server Required |
-|-----------|----------|-----------------|
-| Mobile Legends | `/ml` | ✅ Yes |
-| Free Fire | `/ff` | ❌ No |
-| Arena of Valor | `/aov` | ❌ No |
-| Magic Chess | `/mcgg` | ✅ Yes |
-| Zenless Zone Zero | `/zzz` | ❌ No |
-| Honkai Impact | `/hi` | ❌ No |
+| Game Name | Endpoint | Server Required | Notes |
+|-----------|----------|-----------------|-------|
+| Mobile Legends | `/ml` | ✅ Yes | |
+| Free Fire | `/ff` | ❌ No | |
+| Arena of Valor | `/aov` | ❌ No | |
+| Valorant | `/valo` | ❌ No | Format: `name#tag` (auto-encoded to `name%23tag`) |
+| Magic Chess | `/mcgg` | ✅ Yes | |
+| Zenless Zone Zero | `/zzz` | ❌ No | |
+| Honkai Impact | `/hi` | ❌ No | |
 
 ### Games Not Validated ⚠️
 
@@ -194,23 +194,38 @@ const GAME_TYPE_MAP: Record<string, string> = {
 
 ### Valorant Riot ID
 
-Valorant uses Riot ID format: `username#tagline` (e.g., `regards#66762`)
+Valorant uses Riot ID format: `username#tagline` (e.g., `yuyun#123`)
+
+**API Used:** isan.eu.org (`/valo` endpoint)
 
 **How it's handled:**
-1. User enters: `regards#66762`
-2. System replaces `#` with `%23`: `regards%2366762`
-3. API receives properly encoded format
-4. Validation completes successfully
+1. User enters: `yuyun#123`
+2. Frontend displays: `yuyun#123` (unchanged)
+3. Backend encodes for API: `yuyun%23123`
+4. API call: `https://api.isan.eu.org/nickname/valo?id=yuyun%23123`
+5. Validation completes successfully
 
 **Example API call:**
 ```bash
-curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=valorant&userId=regards%2366762&zoneId="
+curl "https://api.isan.eu.org/nickname/valo?id=yuyun%23123"
+```
+
+**Expected Response:**
+```json
+{
+  "success": true,
+  "game": "VALORANT",
+  "id": "yuyun#123",
+  "server": "Indonesia",
+  "name": "YUYUN #123"
+}
 ```
 
 **Frontend behavior:**
-- User can input `#` normally
-- No special input required
-- Encoding happens automatically in backend
+- User inputs `#` normally in the field
+- Value stored as-is with `#` character
+- No visual encoding in the input field
+- Encoding happens only during API call in backend
 
 ## Troubleshooting
 
@@ -222,11 +237,14 @@ curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=valoran
 4. **Test API directly** using curl:
 
 ```bash
-# Genshin Impact
+# Genshin Impact (Sandrocods API)
 curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=genshin_impact&userId=831826798&zoneId=asia"
 
-# Valorant (note the %23 encoding)
-curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=valorant&userId=regards%2366762&zoneId="
+# Valorant (isan.eu.org API - note the %23 encoding)
+curl "https://api.isan.eu.org/nickname/valo?id=yuyun%23123"
+
+# Mobile Legends (isan.eu.org API)
+curl "https://api.isan.eu.org/nickname/ml?id=123456789&server=1234"
 ```
 
 ### Common Issues

@@ -13,7 +13,6 @@ const GAME_TYPE_MAP: Record<string, string> = {
   "honkai-star-rail": "honkai_star_rail",
   "cod-mobile": "call_of_duty",
   "point-blank": "point_blank",
-  "valorant": "valorant",
   "pubg-mobile": "pubg_mobile",
 };
 

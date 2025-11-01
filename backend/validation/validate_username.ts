@@ -81,7 +81,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("Product name:", product.name);
       console.log("Product slug:", product.slug);
 
-      const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends"];
+      const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends", "valorant"];
       
       if (!excludedGames.includes(product.slug)) {
         console.log("🎮 Using Sandrocods API for validation");
@@ -133,7 +133,14 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         };
       }
 
-      let validationUrl = `${VALIDATION_API_BASE}${gameConfig.endpoint}?id=${req.userId}`;
+      let encodedUserId = req.userId;
+      
+      if (product.slug === "valorant" && encodedUserId.includes("#")) {
+        encodedUserId = encodedUserId.replace("#", "%23");
+        console.log("Valorant ID encoded:", req.userId, "->", encodedUserId);
+      }
+
+      let validationUrl = `${VALIDATION_API_BASE}${gameConfig.endpoint}?id=${encodedUserId}`;
       
       if (gameConfig.needsServer && req.serverId) {
         validationUrl += `&server=${req.serverId}`;
