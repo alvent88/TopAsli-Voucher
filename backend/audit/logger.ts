@@ -1,6 +1,11 @@
 import db from "../db";
 import { getAuthData } from "~encore/auth";
 import { Header } from "encore.dev/api";
+import { createClerkClient } from "@clerk/backend";
+import { secret } from "encore.dev/config";
+
+const clerkSecretKey = secret("ClerkSecretKey");
+const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 export type ActionType = 
   | "CREATE"
@@ -62,7 +67,14 @@ export async function logAuditAction(
       return;
     }
 
-    const adminEmail = auth.userID;
+    let adminEmail = auth.userID;
+    
+    try {
+      const user = await clerkClient.users.getUser(auth.userID);
+      adminEmail = user.emailAddresses[0]?.emailAddress || auth.userID;
+    } catch (error) {
+      console.error("Failed to fetch user email from Clerk:", error);
+    }
 
     await db.exec`
       INSERT INTO audit_logs (

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Filter, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, Filter, Search, ChevronLeft, ChevronRight, Download } from "lucide-react";
 
 interface AuditLog {
   id: number;
@@ -119,13 +119,42 @@ export default function AdminAuditLogs() {
     setPage(0);
   };
 
+  const handleDownloadLogs = async () => {
+    try {
+      const response = await authenticatedBackend.audit.exportLogs({
+        actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
+        entityType: entityTypeFilter === "all" ? undefined : entityTypeFilter,
+        adminId: adminIdFilter || undefined,
+      });
+
+      const blob = new Blob([response.csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error("Failed to download audit logs:", err);
+      setError(err.message || "Gagal mendownload audit logs");
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Audit Logs</h1>
-        <p className="text-muted-foreground mt-2">
-          Track all admin actions and system changes
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Audit Logs</h1>
+          <p className="text-muted-foreground mt-2">
+            Track all admin actions and system changes
+          </p>
+        </div>
+        <Button onClick={handleDownloadLogs} className="gap-2">
+          <Download className="w-4 h-4" />
+          Download CSV
+        </Button>
       </div>
 
       <Card>

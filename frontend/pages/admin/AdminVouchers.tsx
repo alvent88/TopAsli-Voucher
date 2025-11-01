@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Ticket, Plus, Trash2, Search, Download, CheckCircle2, Clock, Loader2, RefreshCw, AlertTriangle, QrCode } from "lucide-react";
+import { Ticket, Plus, Trash2, Search, Download, CheckCircle2, Clock, Loader2, RefreshCw, AlertTriangle, QrCode, Upload } from "lucide-react";
 import QRCode from "qrcode";
 import { usePermissions } from "@/lib/usePermissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,6 +83,8 @@ export default function AdminVouchers() {
   const [amount, setAmount] = useState<number>(10000);
   const [quantity, setQuantity] = useState<number>(10);
   const [expiresAt, setExpiresAt] = useState("");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadVouchers();
@@ -156,6 +158,68 @@ export default function AdminVouchers() {
         description: "Gagal menghapus voucher",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDownloadVouchers = async () => {
+    try {
+      const response = await backend.admin.exportVouchers();
+      
+      const blob = new Blob([response.csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `vouchers-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Berhasil",
+        description: "Voucher berhasil didownload",
+      });
+    } catch (error: any) {
+      console.error("Failed to download vouchers:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mendownload voucher",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUploadVouchers = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const text = await file.text();
+      
+      const result = await backend.admin.importVouchers({ csvData: text });
+
+      toast({
+        title: "Upload Berhasil",
+        description: `${result.imported} voucher diimport, ${result.skipped} diskip${result.errors.length > 0 ? `, ${result.errors.length} error` : ""}`,
+      });
+
+      if (result.errors.length > 0) {
+        console.error("Import errors:", result.errors);
+      }
+
+      setUploadDialogOpen(false);
+      loadVouchers();
+    } catch (error: any) {
+      console.error("Failed to upload vouchers:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengupload voucher",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      event.target.value = "";
     }
   };
 
@@ -300,8 +364,26 @@ export default function AdminVouchers() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          <Button
+            onClick={handleDownloadVouchers}
+            variant="outline"
+            size="sm"
+            className="border-blue-600 text-blue-400 hover:bg-blue-900/20 flex-1 lg:flex-none"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download CSV
+          </Button>
           {canEdit && (
             <>
+              <Button
+                onClick={() => setUploadDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="border-green-600 text-green-400 hover:bg-green-900/20 flex-1 lg:flex-none"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload CSV
+              </Button>
               <Button
                 onClick={handleDeleteAll}
                 variant="outline"
@@ -660,6 +742,62 @@ export default function AdminVouchers() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Upload Voucher CSV</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Upload file CSV untuk restore voucher yang telah di-download sebelumnya
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+                <div className="text-sm text-yellow-300">
+                  <p className="font-semibold mb-1">Peringatan:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>File harus dalam format CSV yang di-download dari sistem ini</li>
+                    <li>Voucher yang sudah ada akan diskip</li>
+                    <li>Status claimed akan di-restore sesuai data CSV</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Pilih File CSV</Label>
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={handleUploadVouchers}
+                disabled={uploading}
+                className="bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0 file:mr-4 file:py-2 file:px-4"
+              />
+            </div>
+
+            {uploading && (
+              <div className="flex items-center justify-center gap-2 text-slate-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Mengupload dan memproses...</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setUploadDialogOpen(false)}
+              variant="outline"
+              disabled={uploading}
+              className="border-slate-600 text-white hover:bg-slate-800"
+            >
+              Tutup
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
