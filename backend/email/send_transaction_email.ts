@@ -63,7 +63,7 @@ export const sendTransactionEmail = async (data: TransactionEmailData): Promise<
     const resend = getResendClient();
 
     const { data: emailData, error } = await resend.emails.send({
-      from: "TopAsli <noreply@topasli.com>",
+      from: "Acme <onboarding@resend.dev>",
       to: data.recipientEmail,
       subject: `✅ Transaction Receipt - ${data.transactionId}`,
       html: htmlContent,

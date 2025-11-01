@@ -97,7 +97,7 @@ export const sendReceipt = api<SendReceiptRequest, SendReceiptResponse>(
       const resend = getResendClient();
 
       const { data, error } = await resend.emails.send({
-        from: "TopAsli <noreply@topasli.com>",
+        from: "Acme <onboarding@resend.dev>",
         to: recipientEmail,
         subject: `Transaction Receipt - ${transactionId}`,
         html: htmlContent,
