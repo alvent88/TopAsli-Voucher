@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,32 +63,32 @@ export default function AdminAuditLogs() {
   const [adminIdFilter, setAdminIdFilter] = useState<string>("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const loadLogs = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await backend.audit.list({
-        limit,
-        offset: page * limit,
-        actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
-        entityType: entityTypeFilter === "all" ? undefined : entityTypeFilter,
-        adminId: adminIdFilter || undefined,
-      });
-
-      setLogs(response.logs);
-      setTotal(response.total);
-    } catch (err: any) {
-      console.error("Failed to load audit logs:", err);
-      setError(err.message || "Gagal memuat audit logs");
-    } finally {
-      setLoading(false);
-    }
-  }, [backend, limit, page, actionTypeFilter, entityTypeFilter, adminIdFilter]);
-
   useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await backend.audit.list({
+          limit,
+          offset: page * limit,
+          actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
+          entityType: entityTypeFilter === "all" ? undefined : entityTypeFilter,
+          adminId: adminIdFilter || undefined,
+        });
+
+        setLogs(response.logs);
+        setTotal(response.total);
+      } catch (err: any) {
+        console.error("Failed to load audit logs:", err);
+        setError(err.message || "Gagal memuat audit logs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadLogs();
-  }, [loadLogs]);
+  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter, backend, limit]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
