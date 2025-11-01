@@ -36,17 +36,10 @@ export const validateUsernameWithSandrocods = async (
     console.log("🎮 Validating with sandrocods API");
     console.log("Game slug:", gameSlug);
     console.log("Type name:", typeName);
-    console.log("User ID (original):", userId);
+    console.log("User ID:", userId);
     console.log("Zone ID:", zoneId);
 
-    let processedUserId = userId;
-    
-    if (gameSlug === "valorant" && userId.includes("#")) {
-      processedUserId = userId.replace("#", "%23");
-      console.log("User ID (processed for Valorant):", processedUserId);
-    }
-
-    const url = `${API_BASE_URL}?type_name=${encodeURIComponent(typeName)}&userId=${processedUserId}&zoneId=${encodeURIComponent(zoneId)}`;
+    const url = `${API_BASE_URL}?type_name=${encodeURIComponent(typeName)}&userId=${userId}&zoneId=${encodeURIComponent(zoneId)}`;
     
     console.log("Request URL:", url);
 
