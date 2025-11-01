@@ -1,5 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
+import { validateGenshinUsername } from "./genshin_rapidapi";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -22,12 +23,10 @@ const VALIDATION_API_BASE = "https://api.isan.eu.org/nickname";
 function getGameEndpoint(productName: string): { endpoint: string; needsServer: boolean } | null {
   const lowerName = productName.toLowerCase();
   
-  // Mobile Legends variants
   if (lowerName.includes("mobile legends")) {
     return { endpoint: "/ml", needsServer: true };
   }
   
-  // Other games
   if (lowerName.includes("free fire")) {
     return { endpoint: "/ff", needsServer: false };
   }
@@ -39,9 +38,6 @@ function getGameEndpoint(productName: string): { endpoint: string; needsServer: 
   }
   if (lowerName.includes("arena of valor")) {
     return { endpoint: "/aov", needsServer: false };
-  }
-  if (lowerName.includes("genshin")) {
-    return { endpoint: "/gi", needsServer: false };
   }
   if (lowerName.includes("honkai") && lowerName.includes("star rail")) {
     return { endpoint: "/hsr", needsServer: false };
@@ -74,7 +70,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("User ID:", req.userId);
       console.log("Server ID:", req.serverId);
 
-      // Get product name
       const product = await db.queryRow<{ name: string }>`
         SELECT name FROM products WHERE id = ${req.productId}
       `;
@@ -85,7 +80,31 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       console.log("Product name:", product.name);
 
-      // Check if product has validation endpoint
+      const lowerName = product.name.toLowerCase();
+
+      if (lowerName.includes("genshin")) {
+        console.log("🎮 Using RapidAPI for Genshin Impact validation");
+        
+        const server = req.serverId || "asia";
+        const result = await validateGenshinUsername(req.userId, server);
+        
+        if (result.success && result.username) {
+          return {
+            success: true,
+            valid: true,
+            username: result.username,
+            game: product.name,
+            message: "Username found",
+          };
+        } else {
+          return {
+            success: true,
+            valid: false,
+            message: result.message || "User ID not found",
+          };
+        }
+      }
+
       const gameConfig = getGameEndpoint(product.name);
       
       if (!gameConfig) {
@@ -100,7 +119,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("✅ Product supported - Validation endpoint:", gameConfig.endpoint);
       console.log("Needs server:", gameConfig.needsServer);
 
-      // Check if server ID is required
       if (gameConfig.needsServer && !req.serverId) {
         return {
           success: false,
@@ -109,7 +127,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         };
       }
 
-      // Build validation URL
       let validationUrl = `${VALIDATION_API_BASE}${gameConfig.endpoint}?id=${req.userId}`;
       
       if (gameConfig.needsServer && req.serverId) {
@@ -118,7 +135,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       console.log("Validation URL:", validationUrl);
 
-      // Call validation API
       const response = await fetch(validationUrl);
       const responseText = await response.text();
       
@@ -151,7 +167,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("data.name:", data.name);
       console.log("data.message:", data.message);
 
-      // Check validation result
       if (data.success === true && data.name) {
         console.log("✅ Username validation SUCCESS");
         return {
@@ -162,7 +177,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
           message: "Username found",
         };
       } else {
-        // Any other case - treat as invalid
         console.log("❌ Username validation FAILED - Username not found");
         return {
           success: true,
@@ -174,7 +188,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
     } catch (err) {
       console.error("Username validation error:", err);
       
-      // Don't block purchase if validation fails
       return {
         success: false,
         valid: true,
