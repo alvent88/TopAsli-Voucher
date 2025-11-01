@@ -136,7 +136,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       let encodedUserId = req.userId;
       
       if (product.slug === "valorant" && encodedUserId.includes("#")) {
-        encodedUserId = encodedUserId.replace("#", "%23");
+        encodedUserId = encodedUserId.replace(/#/g, "%23");
         console.log("Valorant ID encoded:", req.userId, "->", encodedUserId);
       }
 
