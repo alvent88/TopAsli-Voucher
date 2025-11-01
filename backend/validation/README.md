@@ -18,14 +18,14 @@ Used as fallback for games not supported by Sandrocods API.
 
 ### Games Using Sandrocods API ✅
 
-| Game Name | Slug | Type Name | Zone ID Required |
-|-----------|------|-----------|------------------|
-| Genshin Impact | `genshin-impact` | `genshin_impact` | ✅ Yes |
-| Honkai Star Rail | `honkai-star-rail` | `honkai_star_rail` | ❌ No |
-| Call of Duty Mobile | `cod-mobile` | `call_of_duty` | ❌ No |
-| Point Blank | `point-blank` | `point_blank` | ❌ No |
-| Valorant | `valorant` | `valorant` | ❌ No |
-| PUBG Mobile | `pubg-mobile` | `pubg_mobile` | ❌ No |
+| Game Name | Slug | Type Name | Zone ID Required | Notes |
+|-----------|------|-----------|------------------|-------|
+| Genshin Impact | `genshin-impact` | `genshin_impact` | ✅ Yes | Server: asia/america/europe/cht |
+| Honkai Star Rail | `honkai-star-rail` | `honkai_star_rail` | ❌ No | |
+| Call of Duty Mobile | `cod-mobile` | `call_of_duty` | ❌ No | |
+| Point Blank | `point-blank` | `point_blank` | ❌ No | |
+| Valorant | `valorant` | `valorant` | ❌ No | Format: `name#tag` (auto-encoded) |
+| PUBG Mobile | `pubg-mobile` | `pubg_mobile` | ❌ No | |
 
 ### Games Using Isan.eu.org API ✅
 
@@ -117,11 +117,21 @@ After 800ms debounce, validation API is called.
 
 ### Example User Flow
 
+**Genshin Impact:**
 1. User selects "Genshin Impact"
 2. Enters User ID: `831826798`
 3. Enters Server ID: `asia`
 4. System validates and shows: "✓ Username ditemukan: PlayerName"
 5. User proceeds to purchase
+
+**Valorant:**
+1. User selects "Valorant"
+2. Enters User ID: `regards#66762`
+3. System automatically converts `#` to `%23`: `regards%2366762`
+4. System validates and shows: "✓ Username ditemukan: PlayerName"
+5. User proceeds to purchase
+
+> **Note for Valorant:** Users should enter their Riot ID in the format `name#tag` (e.g., `regards#66762`). The system will automatically encode the `#` character to `%23` for API compatibility.
 
 ## Error Handling
 
@@ -180,6 +190,28 @@ const GAME_TYPE_MAP: Record<string, string> = {
 2. Test validation with real User ID
 3. Verify username is returned correctly
 
+## Special User ID Formats
+
+### Valorant Riot ID
+
+Valorant uses Riot ID format: `username#tagline` (e.g., `regards#66762`)
+
+**How it's handled:**
+1. User enters: `regards#66762`
+2. System replaces `#` with `%23`: `regards%2366762`
+3. API receives properly encoded format
+4. Validation completes successfully
+
+**Example API call:**
+```bash
+curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=valorant&userId=regards%2366762&zoneId="
+```
+
+**Frontend behavior:**
+- User can input `#` normally
+- No special input required
+- Encoding happens automatically in backend
+
 ## Troubleshooting
 
 ### Validation Not Working
@@ -190,7 +222,11 @@ const GAME_TYPE_MAP: Record<string, string> = {
 4. **Test API directly** using curl:
 
 ```bash
+# Genshin Impact
 curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=genshin_impact&userId=831826798&zoneId=asia"
+
+# Valorant (note the %23 encoding)
+curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=valorant&userId=regards%2366762&zoneId="
 ```
 
 ### Common Issues
@@ -203,6 +239,11 @@ curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=genshin
 - User entered wrong ID
 - Wrong server/zone selected
 - API temporarily unavailable
+
+**Valorant validation fails**
+- Check user entered `#` character (e.g., `name#tag`)
+- Verify tagline is correct
+- System auto-encodes `#` to `%23`
 
 **API Timeout**
 - External API may be slow
