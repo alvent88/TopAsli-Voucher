@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export class Client {
     public readonly admin: admin.ServiceClient
+    public readonly audit: audit.ServiceClient
     public readonly auth: auth.ServiceClient
     public readonly balance: balance.ServiceClient
     public readonly gmail: gmail.ServiceClient
@@ -62,6 +63,7 @@ export class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.admin = new admin.ServiceClient(base)
+        this.audit = new audit.ServiceClient(base)
         this.auth = new auth.ServiceClient(base)
         this.balance = new balance.ServiceClient(base)
         this.gmail = new gmail.ServiceClient(base)
@@ -161,6 +163,7 @@ import {
     toggleProduct as api_admin_toggle_visibility_toggleProduct
 } from "~backend/admin/toggle_visibility";
 import { listTransactions as api_admin_transactions_listTransactions } from "~backend/admin/transactions";
+import { getUniplayBalance as api_admin_uniplay_balance_getUniplayBalance } from "~backend/admin/uniplay_balance";
 import { updateSuperadminPhone as api_admin_update_phone_updateSuperadminPhone } from "~backend/admin/update_phone";
 import { updateTransaction as api_admin_update_transaction_updateTransaction } from "~backend/admin/update_transaction";
 import { getUploadUrl as api_admin_upload_icon_getUploadUrl } from "~backend/admin/upload_icon";
@@ -172,11 +175,19 @@ import {
     unbanUser as api_admin_users_unbanUser
 } from "~backend/admin/users";
 import {
+    exportUsers as api_admin_users_export_exportUsers,
+    importUsers as api_admin_users_export_importUsers
+} from "~backend/admin/users_export";
+import {
     createVoucherBatch as api_admin_vouchers_createVoucherBatch,
     deleteAllVouchers as api_admin_vouchers_deleteAllVouchers,
     deleteVoucher as api_admin_vouchers_deleteVoucher,
     listVouchers as api_admin_vouchers_listVouchers
 } from "~backend/admin/vouchers";
+import {
+    exportVouchers as api_admin_vouchers_export_exportVouchers,
+    importVouchers as api_admin_vouchers_export_importVouchers
+} from "~backend/admin/vouchers_export";
 import {
     addWhatsAppCS as api_admin_whatsapp_cs_addWhatsAppCS,
     deleteWhatsAppCS as api_admin_whatsapp_cs_deleteWhatsAppCS,
@@ -209,11 +220,16 @@ export namespace admin {
             this.demoteFromAdmin = this.demoteFromAdmin.bind(this)
             this.editUser = this.editUser.bind(this)
             this.exportTransactions = this.exportTransactions.bind(this)
+            this.exportUsers = this.exportUsers.bind(this)
+            this.exportVouchers = this.exportVouchers.bind(this)
             this.getConfig = this.getConfig.bind(this)
             this.getGlobalDiscount = this.getGlobalDiscount.bind(this)
             this.getSuperadminPhone = this.getSuperadminPhone.bind(this)
+            this.getUniplayBalance = this.getUniplayBalance.bind(this)
             this.getUploadUrl = this.getUploadUrl.bind(this)
             this.getUserTransactions = this.getUserTransactions.bind(this)
+            this.importUsers = this.importUsers.bind(this)
+            this.importVouchers = this.importVouchers.bind(this)
             this.listAllPackages = this.listAllPackages.bind(this)
             this.listAllProducts = this.listAllProducts.bind(this)
             this.listTransactions = this.listTransactions.bind(this)
@@ -354,6 +370,18 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_export_transactions_exportTransactions>
         }
 
+        public async exportUsers(): Promise<ResponseType<typeof api_admin_users_export_exportUsers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/users/export`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_export_exportUsers>
+        }
+
+        public async exportVouchers(): Promise<ResponseType<typeof api_admin_vouchers_export_exportVouchers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/export`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_export_exportVouchers>
+        }
+
         public async getConfig(): Promise<ResponseType<typeof api_admin_config_getConfig>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/config/get`, {method: "GET", body: undefined})
@@ -372,6 +400,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_config_getSuperadminPhone>
         }
 
+        public async getUniplayBalance(): Promise<ResponseType<typeof api_admin_uniplay_balance_getUniplayBalance>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/uniplay/balance`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_uniplay_balance_getUniplayBalance>
+        }
+
         public async getUploadUrl(params: RequestType<typeof api_admin_upload_icon_getUploadUrl>): Promise<ResponseType<typeof api_admin_upload_icon_getUploadUrl>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/upload-icon-url`, {method: "POST", body: JSON.stringify(params)})
@@ -382,6 +416,18 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/transactions`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_user_transactions_getUserTransactions>
+        }
+
+        public async importUsers(params: RequestType<typeof api_admin_users_export_importUsers>): Promise<ResponseType<typeof api_admin_users_export_importUsers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/users/import`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_export_importUsers>
+        }
+
+        public async importVouchers(params: RequestType<typeof api_admin_vouchers_export_importVouchers>): Promise<ResponseType<typeof api_admin_vouchers_export_importVouchers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/import`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_export_importVouchers>
         }
 
         public async listAllPackages(): Promise<ResponseType<typeof api_admin_packages_listAllPackages>> {
@@ -567,6 +613,37 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/whatsapp-cs/${encodeURIComponent(params.id)}`, {method: "PUT", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_whatsapp_cs_updateWhatsAppCS>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { exportLogs as api_audit_export_exportLogs } from "~backend/audit/export";
+import { list as api_audit_list_list } from "~backend/audit/list";
+
+export namespace audit {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.exportLogs = this.exportLogs.bind(this)
+            this.list = this.list.bind(this)
+        }
+
+        public async exportLogs(params: RequestType<typeof api_audit_export_exportLogs>): Promise<ResponseType<typeof api_audit_export_exportLogs>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/audit/export`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_audit_export_exportLogs>
+        }
+
+        public async list(params: RequestType<typeof api_audit_list_list>): Promise<ResponseType<typeof api_audit_list_list>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/audit/list`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_audit_list_list>
         }
     }
 }

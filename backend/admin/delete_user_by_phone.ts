@@ -1,9 +1,10 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -21,7 +22,7 @@ export interface DeleteUserByPhoneResponse {
 
 export const deleteUserByPhone = api<DeleteUserByPhoneRequest, DeleteUserByPhoneResponse>(
   { expose: true, method: "POST", path: "/admin/delete-user-by-phone" },
-  async ({ phoneNumber }) => {
+  async ({ phoneNumber }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     console.log("=== DELETE USER BY PHONE START ===");
     console.log("Phone number:", phoneNumber);
 
@@ -90,6 +91,14 @@ export const deleteUserByPhone = api<DeleteUserByPhoneRequest, DeleteUserByPhone
       }
 
       console.log("=== DELETE USER BY PHONE SUCCESS ===");
+      
+      await logAuditAction({
+        actionType: "DELETE",
+        entityType: "USER",
+        entityId: registrationRow?.clerk_user_id || formattedPhone,
+        oldValues: { phoneNumber: formattedPhone },
+        metadata: { deletedFromClerk, deletedFromDatabase },
+      }, ipAddress, userAgent);
 
       return {
         success: true,

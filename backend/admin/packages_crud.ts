@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface Package {
   id: number;
@@ -32,7 +33,7 @@ export interface CreatePackageResponse {
 
 export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
   { expose: true, method: "POST", path: "/admin/packages", auth: true },
-  async ({ productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId }) => {
+  async ({ productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -48,6 +49,13 @@ export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
     if (!row) {
       throw APIError.internal("Failed to create package");
     }
+    
+    await logAuditAction({
+      actionType: "CREATE",
+      entityType: "PACKAGE",
+      entityId: row.id.toString(),
+      newValues: { productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId },
+    }, ipAddress, userAgent);
 
     return { success: true, id: row.id };
   }
@@ -72,7 +80,7 @@ export interface UpdatePackageResponse {
 
 export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
   { expose: true, method: "PUT", path: "/admin/packages/:packageId", auth: true },
-  async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId }) => {
+  async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -127,8 +135,30 @@ export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
     updates.push(`updated_at = NOW()`);
     values.push(packageId);
 
+    const oldPackage = await db.queryRow<{ product_id: number; name: string; amount: number; unit: string; price: number; discount_price: number | null; is_active: boolean; uniplay_entitas_id: string | null; uniplay_denom_id: string | null }>` 
+      SELECT product_id, name, amount, unit, price, discount_price, is_active, uniplay_entitas_id, uniplay_denom_id FROM packages WHERE id = ${packageId}
+    `;
+    
     const query = `UPDATE packages SET ${updates.join(", ")} WHERE id = $${paramIndex}`;
     await db.rawQueryAll(query, ...values);
+    
+    await logAuditAction({
+      actionType: "UPDATE",
+      entityType: "PACKAGE",
+      entityId: packageId.toString(),
+      oldValues: oldPackage ? {
+        productId: oldPackage.product_id,
+        name: oldPackage.name,
+        amount: oldPackage.amount,
+        unit: oldPackage.unit,
+        price: oldPackage.price,
+        discountPrice: oldPackage.discount_price,
+        isActive: oldPackage.is_active,
+        uniplayEntitasId: oldPackage.uniplay_entitas_id,
+        uniplayDenomId: oldPackage.uniplay_denom_id,
+      } : undefined,
+      newValues: { productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId },
+    }, ipAddress, userAgent);
 
     return { success: true };
   }
@@ -144,14 +174,25 @@ export interface DeletePackageResponse {
 
 export const deletePackage = api<DeletePackageRequest, DeletePackageResponse>(
   { expose: true, method: "DELETE", path: "/admin/packages/:packageId", auth: true },
-  async ({ packageId }) => {
+  async ({ packageId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
       throw APIError.permissionDenied("Only admin can delete packages");
     }
 
+    const pkg = await db.queryRow<{ name: string; amount: number; price: number }>` 
+      SELECT name, amount, price FROM packages WHERE id = ${packageId}
+    `;
+    
     await db.exec`DELETE FROM packages WHERE id = ${packageId}`;
+    
+    await logAuditAction({
+      actionType: "DELETE",
+      entityType: "PACKAGE",
+      entityId: packageId.toString(),
+      oldValues: pkg ? { name: pkg.name, amount: pkg.amount, price: pkg.price } : undefined,
+    }, ipAddress, userAgent);
 
     return { success: true };
   }

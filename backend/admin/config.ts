@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface AdminConfig {
   whatsapp: {
@@ -47,7 +48,7 @@ export interface GetGlobalDiscountResponse {
 
 export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
   { expose: true, method: "POST", path: "/admin/config/save", auth: true },
-  async ({ config }) => {
+  async ({ config }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -57,12 +58,24 @@ export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
     try {
       const configJson = JSON.stringify(config);
       
+      const oldConfigRow = await db.queryRow<{ value: string }>` 
+        SELECT value FROM admin_config WHERE key = 'dashboard_config'
+      `;
+      
       await db.exec`
         INSERT INTO admin_config (key, value, updated_at)
         VALUES ('dashboard_config', ${configJson}, NOW())
         ON CONFLICT (key) 
         DO UPDATE SET value = ${configJson}, updated_at = NOW()
       `;
+      
+      await logAuditAction({
+        actionType: "UPDATE",
+        entityType: "CONFIG",
+        entityId: "dashboard_config",
+        oldValues: oldConfigRow ? JSON.parse(oldConfigRow.value) : undefined,
+        newValues: config,
+      }, ipAddress, userAgent);
 
       return { success: true };
     } catch (err) {
@@ -161,7 +174,7 @@ export const getSuperadminPhone = api<GetSuperadminPhoneRequest, GetSuperadminPh
 
 export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDiscountResponse>(
   { expose: true, method: "POST", path: "/admin/config/global-discount", auth: true },
-  async ({ discount }) => {
+  async ({ discount }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -169,12 +182,24 @@ export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDisco
     }
 
     try {
+      const oldDiscountRow = await db.queryRow<{ value: string }>` 
+        SELECT value FROM admin_config WHERE key = 'global_discount'
+      `;
+      
       await db.exec`
         INSERT INTO admin_config (key, value, updated_at)
         VALUES ('global_discount', ${discount.toString()}, NOW())
         ON CONFLICT (key) 
         DO UPDATE SET value = ${discount.toString()}, updated_at = NOW()
       `;
+      
+      await logAuditAction({
+        actionType: "UPDATE",
+        entityType: "CONFIG",
+        entityId: "global_discount",
+        oldValues: oldDiscountRow ? { discount: parseFloat(oldDiscountRow.value) } : undefined,
+        newValues: { discount },
+      }, ipAddress, userAgent);
 
       return { success: true };
     } catch (err) {

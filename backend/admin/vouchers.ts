@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface Voucher {
   code: string;
@@ -130,7 +131,7 @@ function generateVoucherCode(): string {
 
 export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBatchResponse>(
   { expose: true, method: "POST", path: "/admin/vouchers/batch", auth: true },
-  async ({ amount, quantity, expiresAt }) => {
+  async ({ amount, quantity, expiresAt }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -183,6 +184,13 @@ export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBa
       }
 
       console.log("=== CREATE VOUCHER BATCH SUCCESS ===");
+      
+      await logAuditAction({
+        actionType: "CREATE",
+        entityType: "VOUCHER",
+        newValues: { amount, quantity, expiresAt, codes },
+        metadata: { batchSize: quantity, codesGenerated: codes.length },
+      }, ipAddress, userAgent);
 
       return { success: true, codes };
     } catch (err: any) {
@@ -208,7 +216,7 @@ export interface DeleteVoucherResponse {
 
 export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/:code", auth: true },
-  async ({ code }) => {
+  async ({ code }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -216,7 +224,19 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
     }
 
     try {
+      const voucher = await db.queryRow<{ code: string; amount: number; claimed_by_email: string | null }>` 
+        SELECT code, amount, claimed_by_email FROM vouchers WHERE code = ${code}
+      `;
+      
       await db.exec`DELETE FROM vouchers WHERE code = ${code}`;
+      
+      await logAuditAction({
+        actionType: "DELETE",
+        entityType: "VOUCHER",
+        entityId: code,
+        oldValues: voucher ? { code: voucher.code, amount: voucher.amount, claimedBy: voucher.claimed_by_email } : { code },
+      }, ipAddress, userAgent);
+      
       return { success: true };
     } catch (err) {
       console.error("Delete voucher error:", err);
@@ -232,7 +252,7 @@ export interface DeleteAllVouchersResponse {
 
 export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/all/delete", auth: true },
-  async () => {
+  async (_, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -246,6 +266,12 @@ export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
       await db.exec`DELETE FROM vouchers`;
       
       console.log(`Deleted ${count} vouchers`);
+      
+      await logAuditAction({
+        actionType: "DELETE",
+        entityType: "VOUCHER",
+        metadata: { action: "deleteAll", deletedCount: count },
+      }, ipAddress, userAgent);
       
       return { success: true, deletedCount: count };
     } catch (err) {

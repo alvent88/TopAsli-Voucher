@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface Product {
   id: number;
@@ -29,7 +30,7 @@ export interface CreateProductResponse {
 
 export const createProduct = api<CreateProductRequest, CreateProductResponse>(
   { expose: true, method: "POST", path: "/admin/products", auth: true },
-  async ({ name, slug, category, description, iconUrl }) => {
+  async ({ name, slug, category, description, iconUrl }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -45,6 +46,13 @@ export const createProduct = api<CreateProductRequest, CreateProductResponse>(
     if (!row) {
       throw APIError.internal("Failed to create product");
     }
+    
+    await logAuditAction({
+      actionType: "CREATE",
+      entityType: "PRODUCT",
+      entityId: row.id.toString(),
+      newValues: { name, slug, category, description, iconUrl },
+    }, ipAddress, userAgent);
 
     return { success: true, id: row.id };
   }
@@ -66,7 +74,7 @@ export interface UpdateProductResponse {
 
 export const updateProduct = api<UpdateProductRequest, UpdateProductResponse>(
   { expose: true, method: "PUT", path: "/admin/products/:productId", auth: true },
-  async ({ productId, name, slug, category, description, iconUrl, isActive }) => {
+  async ({ productId, name, slug, category, description, iconUrl, isActive }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -109,8 +117,27 @@ export const updateProduct = api<UpdateProductRequest, UpdateProductResponse>(
     updates.push(`updated_at = NOW()`);
     values.push(productId);
 
+    const oldProduct = await db.queryRow<{ name: string; slug: string; category: string; description: string | null; icon_url: string | null; is_active: boolean }>` 
+      SELECT name, slug, category, description, icon_url, is_active FROM products WHERE id = ${productId}
+    `;
+    
     const query = `UPDATE products SET ${updates.join(", ")} WHERE id = $${paramIndex}`;
     await db.rawQueryAll(query, ...values);
+    
+    await logAuditAction({
+      actionType: "UPDATE",
+      entityType: "PRODUCT",
+      entityId: productId.toString(),
+      oldValues: oldProduct ? {
+        name: oldProduct.name,
+        slug: oldProduct.slug,
+        category: oldProduct.category,
+        description: oldProduct.description,
+        iconUrl: oldProduct.icon_url,
+        isActive: oldProduct.is_active,
+      } : undefined,
+      newValues: { name, slug, category, description, iconUrl, isActive },
+    }, ipAddress, userAgent);
 
     return { success: true };
   }
@@ -126,14 +153,25 @@ export interface DeleteProductResponse {
 
 export const deleteProduct = api<DeleteProductRequest, DeleteProductResponse>(
   { expose: true, method: "DELETE", path: "/admin/products/:productId", auth: true },
-  async ({ productId }) => {
+  async ({ productId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
       throw APIError.permissionDenied("Only admin can delete products");
     }
 
+    const product = await db.queryRow<{ name: string; slug: string }>` 
+      SELECT name, slug FROM products WHERE id = ${productId}
+    `;
+    
     await db.exec`DELETE FROM products WHERE id = ${productId}`;
+    
+    await logAuditAction({
+      actionType: "DELETE",
+      entityType: "PRODUCT",
+      entityId: productId.toString(),
+      oldValues: product ? { name: product.name, slug: product.slug } : undefined,
+    }, ipAddress, userAgent);
 
     return { success: true };
   }

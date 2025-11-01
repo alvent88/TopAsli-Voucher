@@ -1,8 +1,9 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
+import { logAuditAction } from "../audit/logger";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -19,7 +20,7 @@ export interface PromoteToAdminResponse {
 
 export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/promote", auth: true },
-  async ({ userId, role }) => {
+  async ({ userId, role }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -50,6 +51,15 @@ export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>
       });
 
       console.log(`User promoted to ${role} successfully`);
+      
+      await logAuditAction({
+        actionType: "PROMOTE",
+        entityType: "ADMIN",
+        entityId: userId,
+        oldValues: { isAdmin: currentIsAdmin, isSuperAdmin: currentIsSuperAdmin },
+        newValues: { isAdmin: role === "admin" || role === "superadmin", isSuperAdmin: role === "superadmin" },
+        metadata: { role, targetUserEmail: user.emailAddresses[0]?.emailAddress },
+      }, ipAddress, userAgent);
 
       return {
         success: true,
@@ -79,7 +89,7 @@ export interface DemoteFromAdminResponse {
 
 export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/demote", auth: true },
-  async ({ userId }) => {
+  async ({ userId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -113,6 +123,15 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
       });
 
       console.log("User demoted from admin successfully");
+      
+      await logAuditAction({
+        actionType: "PROMOTE",
+        entityType: "ADMIN",
+        entityId: userId,
+        oldValues: { isAdmin: currentIsAdmin, isSuperAdmin: currentIsSuperAdmin },
+        newValues: { isAdmin: false, isSuperAdmin: false },
+        metadata: { action: "demote", targetUserEmail: user.emailAddresses[0]?.emailAddress },
+      }, ipAddress, userAgent);
 
       return {
         success: true,

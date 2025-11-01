@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface ToggleServerIdRequest {
   productId: number;
@@ -16,7 +17,7 @@ export interface ToggleServerIdResponse {
 
 export const toggleServerIdRequirement = api<ToggleServerIdRequest, ToggleServerIdResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-server-id", auth: true },
-  async (req: ToggleServerIdRequest) => {
+  async (req: ToggleServerIdRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -31,6 +32,14 @@ export const toggleServerIdRequirement = api<ToggleServerIdRequest, ToggleServer
       `;
 
       console.log(`✅ Product ${req.productId} requires_server_id set to ${req.requiresServerId}`);
+      
+      await logAuditAction({
+        actionType: "TOGGLE",
+        entityType: "PRODUCT",
+        entityId: req.productId.toString(),
+        newValues: { requiresServerId: req.requiresServerId },
+        metadata: { action: "serverIdRequirement" },
+      }, ipAddress, userAgent);
 
       return {
         success: true,

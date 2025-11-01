@@ -1,8 +1,9 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
+import { logAuditAction } from "../audit/logger";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -18,7 +19,7 @@ export interface SetAdminResponse {
 
 export const setAdmin = api<SetAdminRequest, SetAdminResponse>(
   { expose: true, method: "POST", path: "/admin/set-admin" },
-  async ({ email }) => {
+  async ({ email }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     console.log("=== SET ADMIN START ===");
     console.log("Email:", email);
 
@@ -43,6 +44,15 @@ export const setAdmin = api<SetAdminRequest, SetAdminResponse>(
       });
 
       console.log("User promoted to admin successfully");
+      
+      await logAuditAction({
+        actionType: "PROMOTE",
+        entityType: "ADMIN",
+        entityId: user.id,
+        oldValues: { isAdmin: user.publicMetadata?.isAdmin || false },
+        newValues: { isAdmin: true },
+        metadata: { targetUserEmail: email },
+      }, ipAddress, userAgent);
 
       return {
         success: true,
@@ -73,7 +83,7 @@ export interface UpdatePhoneResponse {
 
 export const updateUserPhone = api<UpdatePhoneRequest, UpdatePhoneResponse>(
   { expose: true, method: "POST", path: "/admin/update-phone" },
-  async ({ email, phoneNumber }) => {
+  async ({ email, phoneNumber }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     console.log("=== UPDATE USER PHONE START ===");
     console.log("Email:", email);
     console.log("New phone:", phoneNumber);
@@ -112,6 +122,15 @@ export const updateUserPhone = api<UpdatePhoneRequest, UpdatePhoneResponse>(
       });
 
       console.log("Phone number updated successfully");
+      
+      await logAuditAction({
+        actionType: "UPDATE",
+        entityType: "USER",
+        entityId: user.id,
+        oldValues: { phoneNumber: user.publicMetadata?.phoneNumber },
+        newValues: { phoneNumber: formattedPhone },
+        metadata: { targetUserEmail: email },
+      }, ipAddress, userAgent);
 
       return {
         success: true,

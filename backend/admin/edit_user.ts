@@ -1,9 +1,10 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -23,7 +24,7 @@ export interface EditUserResponse {
 
 export const editUser = api<EditUserRequest, EditUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/edit", auth: true },
-  async ({ userId, fullName, email, phoneNumber, balance }) => {
+  async ({ userId, fullName, email, phoneNumber, balance }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -39,6 +40,19 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
     try {
       const user = await clerkClient.users.getUser(userId);
+      
+      const oldValues: any = {
+        fullName: user.unsafeMetadata?.fullName,
+        email: user.emailAddresses[0]?.emailAddress,
+        phoneNumber: user.publicMetadata?.phoneNumber,
+      };
+      
+      const balanceResult = await db.queryRow<{ balance: number }>` 
+        SELECT balance FROM user_balance WHERE user_id = ${userId}
+      `;
+      if (balanceResult) {
+        oldValues.balance = balanceResult.balance;
+      }
       
       const updates: any = {};
 
@@ -118,6 +132,19 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       console.log("User updated successfully");
+      
+      await logAuditAction({
+        actionType: "UPDATE",
+        entityType: "USER",
+        entityId: userId,
+        oldValues,
+        newValues: { fullName, email, phoneNumber, balance },
+        metadata: {
+          fieldsUpdated: Object.keys({ fullName, email, phoneNumber, balance }).filter(
+            (key) => (({ fullName, email, phoneNumber, balance } as any)[key]) !== undefined
+          ),
+        },
+      }, ipAddress, userAgent);
 
       return {
         success: true,

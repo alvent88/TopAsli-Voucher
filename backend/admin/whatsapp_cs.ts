@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface WhatsAppCSNumber {
   id: number;
@@ -63,7 +64,7 @@ export interface AddWhatsAppCSResponse {
 
 export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
   { expose: true, method: "POST", path: "/admin/whatsapp-cs", auth: true },
-  async ({ phoneNumber, adminName }) => {
+  async ({ phoneNumber, adminName }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -83,6 +84,13 @@ export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
         VALUES (${formattedPhone}, ${adminName}, true, ${auth.userID})
         RETURNING id
       `;
+      
+      await logAuditAction({
+        actionType: "CREATE",
+        entityType: "WHATSAPP_CS",
+        entityId: result!.id.toString(),
+        newValues: { phoneNumber: formattedPhone, adminName, isActive: true },
+      }, ipAddress, userAgent);
 
       return { success: true, id: result!.id };
     } catch (err: any) {
@@ -110,7 +118,7 @@ export interface UpdateWhatsAppCSResponse {
 
 export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSResponse>(
   { expose: true, method: "PUT", path: "/admin/whatsapp-cs/:id", auth: true },
-  async ({ id, phoneNumber, adminName, isActive }) => {
+  async ({ id, phoneNumber, adminName, isActive }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -118,6 +126,10 @@ export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSRes
     }
 
     try {
+      const oldCS = await db.queryRow<{ phone_number: string; admin_name: string; is_active: boolean }>` 
+        SELECT phone_number, admin_name, is_active FROM whatsapp_cs_numbers WHERE id = ${id}
+      `;
+      
       const updates: string[] = [];
       const params: any[] = [];
       let paramIndex = 1;
@@ -149,6 +161,18 @@ export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSRes
       const query = `UPDATE whatsapp_cs_numbers SET ${updates.join(", ")} WHERE id = $${paramIndex}`;
 
       await db.rawQueryAll(query, ...params);
+      
+      await logAuditAction({
+        actionType: "UPDATE",
+        entityType: "WHATSAPP_CS",
+        entityId: id.toString(),
+        oldValues: oldCS ? {
+          phoneNumber: oldCS.phone_number,
+          adminName: oldCS.admin_name,
+          isActive: oldCS.is_active,
+        } : undefined,
+        newValues: { phoneNumber, adminName, isActive },
+      }, ipAddress, userAgent);
 
       return { success: true };
     } catch (err) {
@@ -168,7 +192,7 @@ export interface DeleteWhatsAppCSResponse {
 
 export const deleteWhatsAppCS = api<DeleteWhatsAppCSRequest, DeleteWhatsAppCSResponse>(
   { expose: true, method: "DELETE", path: "/admin/whatsapp-cs/:id", auth: true },
-  async ({ id }) => {
+  async ({ id }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -176,7 +200,19 @@ export const deleteWhatsAppCS = api<DeleteWhatsAppCSRequest, DeleteWhatsAppCSRes
     }
 
     try {
+      const cs = await db.queryRow<{ phone_number: string; admin_name: string }>` 
+        SELECT phone_number, admin_name FROM whatsapp_cs_numbers WHERE id = ${id}
+      `;
+      
       await db.rawQueryAll(`DELETE FROM whatsapp_cs_numbers WHERE id = $1`, id);
+      
+      await logAuditAction({
+        actionType: "DELETE",
+        entityType: "WHATSAPP_CS",
+        entityId: id.toString(),
+        oldValues: cs ? { phoneNumber: cs.phone_number, adminName: cs.admin_name } : undefined,
+      }, ipAddress, userAgent);
+      
       return { success: true };
     } catch (err) {
       console.error("Delete WhatsApp CS error:", err);

@@ -1,7 +1,8 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
 
 export interface ToggleProductRequest {
   productId: number;
@@ -16,7 +17,7 @@ export interface ToggleProductResponse {
 
 export const toggleProduct = api<ToggleProductRequest, ToggleProductResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-product", auth: true },
-  async (req: ToggleProductRequest) => {
+  async (req: ToggleProductRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -31,6 +32,14 @@ export const toggleProduct = api<ToggleProductRequest, ToggleProductResponse>(
       `;
 
       console.log(`✅ Product ${req.productId} set to ${req.isActive ? 'active' : 'inactive'}`);
+      
+      await logAuditAction({
+        actionType: "TOGGLE",
+        entityType: "PRODUCT",
+        entityId: req.productId.toString(),
+        newValues: { isActive: req.isActive },
+        metadata: { action: "visibility" },
+      }, ipAddress, userAgent);
 
       return {
         success: true,
@@ -59,7 +68,7 @@ export interface TogglePackageResponse {
 
 export const togglePackage = api<TogglePackageRequest, TogglePackageResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-package", auth: true },
-  async (req: TogglePackageRequest) => {
+  async (req: TogglePackageRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -74,6 +83,14 @@ export const togglePackage = api<TogglePackageRequest, TogglePackageResponse>(
       `;
 
       console.log(`✅ Package ${req.packageId} set to ${req.isActive ? 'active' : 'inactive'}`);
+      
+      await logAuditAction({
+        actionType: "TOGGLE",
+        entityType: "PACKAGE",
+        entityId: req.packageId.toString(),
+        newValues: { isActive: req.isActive },
+        metadata: { action: "visibility" },
+      }, ipAddress, userAgent);
 
       return {
         success: true,
@@ -102,7 +119,7 @@ export interface ToggleFeaturedResponse {
 
 export const toggleFeatured = api<ToggleFeaturedRequest, ToggleFeaturedResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-featured", auth: true },
-  async (req: ToggleFeaturedRequest) => {
+  async (req: ToggleFeaturedRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -129,6 +146,14 @@ export const toggleFeatured = api<ToggleFeaturedRequest, ToggleFeaturedResponse>
       `;
 
       console.log(`✅ Product ${req.productId} featured status set to ${req.isFeatured}`);
+      
+      await logAuditAction({
+        actionType: "TOGGLE",
+        entityType: "PRODUCT",
+        entityId: req.productId.toString(),
+        newValues: { isFeatured: req.isFeatured },
+        metadata: { action: "featured" },
+      }, ipAddress, userAgent);
 
       return {
         success: true,
