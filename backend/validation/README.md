@@ -196,14 +196,16 @@ const GAME_TYPE_MAP: Record<string, string> = {
 
 Valorant uses Riot ID format: `username#tagline` (e.g., `yuyun#123`)
 
-**API Used:** isan.eu.org (`/valo` endpoint)
+**API Used:** isan.eu.org (ihsangan/valid) - `/valo` endpoint  
+**GitHub:** https://github.com/ihsangan/valid
 
 **How it's handled:**
 1. User enters: `yuyun#123`
 2. Frontend displays: `yuyun#123` (unchanged)
-3. Backend encodes for API: `yuyun%23123`
-4. API call: `https://api.isan.eu.org/nickname/valo?id=yuyun%23123`
-5. Validation completes successfully
+3. Backend detects Valorant by product slug OR product name
+4. Backend encodes `#` to `%23`: `yuyun%23123`
+5. API call: `https://api.isan.eu.org/nickname/valo?id=yuyun%23123`
+6. Validation completes successfully
 
 **Example API call:**
 ```bash
@@ -221,11 +223,18 @@ curl "https://api.isan.eu.org/nickname/valo?id=yuyun%23123"
 }
 ```
 
+**Detection Logic:**
+```typescript
+const isValorant = product.slug === "valorant" || 
+                   product.name.toLowerCase().includes("valorant");
+```
+
 **Frontend behavior:**
 - User inputs `#` normally in the field
+- Placeholder shows example: "Masukkan Riot ID (contoh: yuyun#123)"
 - Value stored as-is with `#` character
 - No visual encoding in the input field
-- Encoding happens only during API call in backend
+- Encoding happens automatically during API call in backend
 
 ## Troubleshooting
 

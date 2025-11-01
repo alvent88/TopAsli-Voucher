@@ -135,16 +135,19 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       let encodedUserId = req.userId;
       
-      console.log("DEBUG - product.slug:", product.slug);
-      console.log("DEBUG - product.slug === 'valorant':", product.slug === "valorant");
-      console.log("DEBUG - encodedUserId:", encodedUserId);
-      console.log("DEBUG - encodedUserId.includes('#'):", encodedUserId.includes("#"));
+      const isValorant = product.slug === "valorant" || product.name.toLowerCase().includes("valorant");
       
-      if (product.slug === "valorant" && encodedUserId.includes("#")) {
+      console.log("DEBUG - product.slug:", product.slug);
+      console.log("DEBUG - product.name:", product.name);
+      console.log("DEBUG - isValorant:", isValorant);
+      console.log("DEBUG - encodedUserId:", encodedUserId);
+      console.log("DEBUG - has #:", encodedUserId.includes("#"));
+      
+      if (isValorant && encodedUserId.includes("#")) {
         encodedUserId = encodedUserId.replace(/#/g, "%23");
         console.log("✅ Valorant ID encoded:", req.userId, "->", encodedUserId);
-      } else {
-        console.log("⚠️ Encoding skipped - slug:", product.slug, "has #:", encodedUserId.includes("#"));
+      } else if (isValorant) {
+        console.log("⚠️ Valorant detected but no # in ID:", encodedUserId);
       }
 
       let validationUrl = `${VALIDATION_API_BASE}${gameConfig.endpoint}?id=${encodedUserId}`;
