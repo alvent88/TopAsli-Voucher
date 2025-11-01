@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
-import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2 } from "lucide-react";
+import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,9 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [testingWhatsApp, setTestingWhatsApp] = useState(false);
+  const [uniplayBalance, setUniplayBalance] = useState<number | null>(null);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
   
   const [whatsappConfig, setWhatsappConfig] = useState({
     fonnteToken: "",
@@ -73,6 +76,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadStats();
     loadConfig();
+    loadUniplayBalance();
+    
+    const interval = setInterval(loadUniplayBalance, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadStats = async () => {
@@ -98,6 +105,21 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error("Failed to load config:", error);
+    }
+  };
+
+  const loadUniplayBalance = async () => {
+    try {
+      setLoadingBalance(true);
+      setBalanceError(null);
+      const response = await backend.admin.getUniplayBalance();
+      setUniplayBalance(response.balance);
+    } catch (error: any) {
+      console.error("Failed to load UniPlay balance:", error);
+      setBalanceError(error.message || "Gagal memuat saldo");
+      setUniplayBalance(null);
+    } finally {
+      setLoadingBalance(false);
     }
   };
   
@@ -684,6 +706,21 @@ export default function AdminDashboard() {
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
     },
+    {
+      title: "Saldo UniPlay",
+      value: loadingBalance 
+        ? "Loading..." 
+        : balanceError 
+          ? "Error" 
+          : uniplayBalance !== null 
+            ? formatCurrency(uniplayBalance)
+            : "N/A",
+      icon: Wallet,
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/10",
+      action: loadUniplayBalance,
+      actionLabel: "Refresh",
+    },
   ];
 
   if (loading) {
@@ -707,7 +744,7 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -721,7 +758,23 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-2xl font-bold text-white">{stat.value}</div>
+                  {stat.action && (
+                    <Button
+                      onClick={stat.action}
+                      variant="ghost"
+                      size="sm"
+                      disabled={loadingBalance}
+                      className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${loadingBalance ? 'animate-spin' : ''}`} />
+                    </Button>
+                  )}
+                </div>
+                {balanceError && stat.title === "Saldo UniPlay" && (
+                  <p className="text-xs text-red-400 mt-1">{balanceError}</p>
+                )}
               </CardContent>
             </Card>
           );
