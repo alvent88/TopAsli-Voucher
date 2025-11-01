@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useBackend } from "@/lib/useBackend";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import backend from "~backend/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,16 @@ const entityTypeColors: Record<string, string> = {
 };
 
 export default function AdminAuditLogs() {
-  const backend = useBackend();
+  const { getToken } = useAuth();
+  const authenticatedBackend = useMemo(() => {
+    return backend.with({
+      auth: async () => {
+        const token = await getToken();
+        return { authorization: `Bearer ${token}` };
+      },
+    });
+  }, [getToken]);
+
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -69,7 +79,7 @@ export default function AdminAuditLogs() {
         setLoading(true);
         setError("");
 
-        const response = await backend.audit.list({
+        const response = await authenticatedBackend.audit.list({
           limit,
           offset: page * limit,
           actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
@@ -88,7 +98,7 @@ export default function AdminAuditLogs() {
     };
 
     loadLogs();
-  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter, backend, limit]);
+  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter, authenticatedBackend, limit]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
