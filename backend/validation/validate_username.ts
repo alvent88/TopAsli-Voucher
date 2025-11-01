@@ -135,9 +135,16 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       let encodedUserId = req.userId;
       
+      console.log("DEBUG - product.slug:", product.slug);
+      console.log("DEBUG - product.slug === 'valorant':", product.slug === "valorant");
+      console.log("DEBUG - encodedUserId:", encodedUserId);
+      console.log("DEBUG - encodedUserId.includes('#'):", encodedUserId.includes("#"));
+      
       if (product.slug === "valorant" && encodedUserId.includes("#")) {
         encodedUserId = encodedUserId.replace(/#/g, "%23");
-        console.log("Valorant ID encoded:", req.userId, "->", encodedUserId);
+        console.log("✅ Valorant ID encoded:", req.userId, "->", encodedUserId);
+      } else {
+        console.log("⚠️ Encoding skipped - slug:", product.slug, "has #:", encodedUserId.includes("#"));
       }
 
       let validationUrl = `${VALIDATION_API_BASE}${gameConfig.endpoint}?id=${encodedUserId}`;
