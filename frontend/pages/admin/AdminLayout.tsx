@@ -56,7 +56,6 @@ export default function AdminLayout() {
     { path: "/admin/transactions", icon: Receipt, label: "Transaksi" },
     { path: "/admin/products", icon: ShoppingBag, label: "Produk" },
     { path: "/admin/packages", icon: Package, label: "Paket" },
-    { path: "/admin/uniplay-sync", icon: RefreshCw, label: "UniPlay Sync" },
     { path: "/admin/vouchers", icon: Gift, label: "Voucher" },
     { path: "/admin/users", icon: Users, label: "Pengguna" },
     { path: "/admin/audit-logs", icon: FileText, label: "Audit Logs" },
