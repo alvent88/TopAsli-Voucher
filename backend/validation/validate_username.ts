@@ -1,6 +1,5 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
-import { validateGenshinUsername } from "./genshin_rapidapi";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -79,31 +78,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       }
 
       console.log("Product name:", product.name);
-
-      const lowerName = product.name.toLowerCase();
-
-      if (lowerName.includes("genshin")) {
-        console.log("🎮 Using RapidAPI for Genshin Impact validation");
-        
-        const server = req.serverId || "asia";
-        const result = await validateGenshinUsername(req.userId, server);
-        
-        if (result.success && result.username) {
-          return {
-            success: true,
-            valid: true,
-            username: result.username,
-            game: product.name,
-            message: "Username found",
-          };
-        } else {
-          return {
-            success: true,
-            valid: false,
-            message: result.message || "User ID not found",
-          };
-        }
-      }
 
       const gameConfig = getGameEndpoint(product.name);
       
