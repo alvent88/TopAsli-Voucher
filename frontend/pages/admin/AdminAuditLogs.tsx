@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,11 +63,7 @@ export default function AdminAuditLogs() {
   const [adminIdFilter, setAdminIdFilter] = useState<string>("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  useEffect(() => {
-    loadLogs();
-  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -88,7 +84,11 @@ export default function AdminAuditLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [backend, limit, page, actionTypeFilter, entityTypeFilter, adminIdFilter]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
