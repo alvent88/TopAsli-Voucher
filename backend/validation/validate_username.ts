@@ -1,5 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
+import { validateUsernameWithSandrocods } from "./sandrocods_api";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -69,8 +70,8 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("User ID:", req.userId);
       console.log("Server ID:", req.serverId);
 
-      const product = await db.queryRow<{ name: string }>`
-        SELECT name FROM products WHERE id = ${req.productId}
+      const product = await db.queryRow<{ name: string; slug: string }>`
+        SELECT name, slug FROM products WHERE id = ${req.productId}
       `;
 
       if (!product) {
@@ -78,6 +79,37 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       }
 
       console.log("Product name:", product.name);
+      console.log("Product slug:", product.slug);
+
+      const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends"];
+      
+      if (!excludedGames.includes(product.slug)) {
+        console.log("🎮 Using Sandrocods API for validation");
+        
+        const result = await validateUsernameWithSandrocods(
+          product.slug,
+          req.userId,
+          req.serverId || ""
+        );
+        
+        if (result.success && result.username) {
+          return {
+            success: true,
+            valid: true,
+            username: result.username,
+            game: product.name,
+            message: "Username found",
+          };
+        } else if (result.message === "Validation not available for this game") {
+          console.log("⚠️ Game not supported by Sandrocods API, trying isan.eu.org");
+        } else {
+          return {
+            success: true,
+            valid: false,
+            message: result.message || "User ID not found",
+          };
+        }
+      }
 
       const gameConfig = getGameEndpoint(product.name);
       
