@@ -58,8 +58,8 @@ export default function AdminAuditLogs() {
 
   const [page, setPage] = useState(0);
   const [limit] = useState(50);
-  const [actionTypeFilter, setActionTypeFilter] = useState<string>("");
-  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("");
+  const [actionTypeFilter, setActionTypeFilter] = useState<string>("all");
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("all");
   const [adminIdFilter, setAdminIdFilter] = useState<string>("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
@@ -71,8 +71,8 @@ export default function AdminAuditLogs() {
       const response = await backend.audit.list({
         limit,
         offset: page * limit,
-        actionType: actionTypeFilter || undefined,
-        entityType: entityTypeFilter || undefined,
+        actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
+        entityType: entityTypeFilter === "all" ? undefined : entityTypeFilter,
         adminId: adminIdFilter || undefined,
       });
 
@@ -103,8 +103,8 @@ export default function AdminAuditLogs() {
   const totalPages = Math.ceil(total / limit);
 
   const handleResetFilters = () => {
-    setActionTypeFilter("");
-    setEntityTypeFilter("");
+    setActionTypeFilter("all");
+    setEntityTypeFilter("all");
     setAdminIdFilter("");
     setPage(0);
   };
@@ -134,7 +134,7 @@ export default function AdminAuditLogs() {
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All actions</SelectItem>
+                  <SelectItem value="all">All actions</SelectItem>
                   <SelectItem value="CREATE">Create</SelectItem>
                   <SelectItem value="UPDATE">Update</SelectItem>
                   <SelectItem value="DELETE">Delete</SelectItem>
@@ -155,7 +155,7 @@ export default function AdminAuditLogs() {
                   <SelectValue placeholder="All entities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All entities</SelectItem>
+                  <SelectItem value="all">All entities</SelectItem>
                   <SelectItem value="USER">User</SelectItem>
                   <SelectItem value="VOUCHER">Voucher</SelectItem>
                   <SelectItem value="PRODUCT">Product</SelectItem>
