@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History } from "lucide-react";
+import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -74,6 +74,9 @@ export default function AdminUsers() {
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
 
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     loadUsers();
   }, []);
@@ -92,6 +95,68 @@ export default function AdminUsers() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadUsers = async () => {
+    try {
+      const response = await backend.admin.exportUsers();
+      
+      const blob = new Blob([response.csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `users-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Berhasil",
+        description: "Data pengguna berhasil didownload",
+      });
+    } catch (error: any) {
+      console.error("Failed to download users:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mendownload data pengguna",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUploadUsers = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const text = await file.text();
+      
+      const result = await backend.admin.importUsers({ csvData: text });
+
+      toast({
+        title: "Upload Berhasil",
+        description: `${result.updated} saldo diupdate, ${result.skipped} diskip${result.errors.length > 0 ? `, ${result.errors.length} error` : ""}`,
+      });
+
+      if (result.errors.length > 0) {
+        console.error("Import errors:", result.errors);
+      }
+
+      setUploadDialogOpen(false);
+      loadUsers();
+    } catch (error: any) {
+      console.error("Failed to upload users:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengupload data pengguna",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      event.target.value = "";
     }
   };
 
@@ -354,14 +419,34 @@ export default function AdminUsers() {
             Kelola pengguna yang terdaftar di website
           </p>
         </div>
-        <Button
-          onClick={loadUsers}
-          variant="outline"
-          className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          <span className="text-white">Refresh</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleDownloadUsers}
+            variant="outline"
+            className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download CSV
+          </Button>
+          {canEdit && (
+            <Button
+              onClick={() => setUploadDialogOpen(true)}
+              variant="outline"
+              className="border-green-600 text-green-400 hover:bg-green-900/20"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Upload CSV
+            </Button>
+          )}
+          <Button
+            onClick={loadUsers}
+            variant="outline"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            <span className="text-white">Refresh</span>
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-[#1a1f3a] border-slate-700">
@@ -836,6 +921,76 @@ export default function AdminUsers() {
               ) : (
                 "Simpan"
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Upload Data Pengguna</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Upload file CSV untuk update saldo pengguna
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+                <div className="text-sm text-yellow-300">
+                  <p className="font-semibold mb-1">Penting:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>File harus dalam format CSV yang di-download dari sistem ini</li>
+                    <li>Hanya kolom <strong>Balance</strong> yang akan diupdate</li>
+                    <li>Kolom lain (Email, Phone, Name, dll) tidak akan berubah</li>
+                    <li>User yang tidak ditemukan akan diskip</li>
+                    <li>Perubahan saldo akan dicatat di audit logs</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+              <div className="text-sm text-blue-300">
+                <p className="font-semibold mb-1">Cara Penggunaan:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs">
+                  <li>Download data pengguna dengan tombol "Download CSV"</li>
+                  <li>Edit kolom "Balance" sesuai kebutuhan (gunakan Excel/Spreadsheet)</li>
+                  <li>Upload file CSV yang sudah diedit</li>
+                  <li>Sistem akan update saldo sesuai data di file</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Pilih File CSV</Label>
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={handleUploadUsers}
+                disabled={uploading}
+                className="bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0 file:mr-4 file:py-2 file:px-4"
+              />
+            </div>
+
+            {uploading && (
+              <div className="flex items-center justify-center gap-2 text-slate-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Mengupload dan memproses...</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setUploadDialogOpen(false)}
+              variant="outline"
+              disabled={uploading}
+              className="border-slate-600 text-white hover:bg-slate-800"
+            >
+              Tutup
             </Button>
           </DialogFooter>
         </DialogContent>
