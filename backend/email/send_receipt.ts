@@ -20,6 +20,15 @@ export const sendReceipt = api<SendReceiptRequest, SendReceiptResponse>(
   { expose: true, method: "POST", path: "/email/send-receipt" },
   async ({ transactionId, recipientEmail, recipientName }) => {
     try {
+      const resend = getResendClient();
+      
+      if (!resend) {
+        return { 
+          success: false, 
+          error: "Resend not configured. Please configure ResendApiKey in Settings." 
+        };
+      }
+
       const transaction = await db.queryRow<{
         product_id: number;
         package_id: number;
@@ -94,9 +103,7 @@ export const sendReceipt = api<SendReceiptRequest, SendReceiptResponse>(
         customerPhone: "",
       });
 
-      const resend = getResendClient();
-
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await resend!.emails.send({
         from: "Acme <onboarding@resend.dev>",
         to: recipientEmail,
         subject: `Transaction Receipt - ${transactionId}`,

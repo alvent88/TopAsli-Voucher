@@ -31,6 +31,14 @@ export const sendTransactionEmail = async (data: TransactionEmailData): Promise<
       return false;
     }
 
+    const resend = getResendClient();
+    
+    if (!resend) {
+      console.log("⚠️ Resend not configured - skipping email");
+      console.log("💡 To enable email receipts, configure ResendApiKey in Settings");
+      return false;
+    }
+
     const receiptData = {
       transactionId: data.transactionId,
       customerName: data.recipientName,
@@ -59,8 +67,6 @@ export const sendTransactionEmail = async (data: TransactionEmailData): Promise<
       customerEmail: data.recipientEmail,
       customerPhone: data.recipientPhone || "",
     });
-
-    const resend = getResendClient();
 
     const { data: emailData, error } = await resend.emails.send({
       from: "Acme <onboarding@resend.dev>",
