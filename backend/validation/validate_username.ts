@@ -2,6 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import db from "../db";
 import { validateUsernameWithSandrocods } from "./sandrocods_api";
 import { validateGenshinUID } from "./genshin_uid";
+import { validateWithCekUsername } from "./cek_username_api";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -86,22 +87,39 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
                         product.name.toLowerCase().includes("genshin");
       
       if (isGenshin) {
-        console.log("🎮 Using Genshin UID format validation");
+        console.log("🎮 Using cek-username API for Genshin validation");
         
-        const result = validateGenshinUID(req.userId);
+        const formatCheck = validateGenshinUID(req.userId);
         
-        if (result.valid) {
-          return {
-            success: true,
-            valid: true,
-            message: result.message || "Valid Genshin UID",
-            game: product.name,
-          };
-        } else {
+        if (!formatCheck.valid) {
           return {
             success: true,
             valid: false,
-            message: result.message || "Invalid Genshin UID",
+            message: formatCheck.message || "Invalid Genshin UID format",
+          };
+        }
+        
+        const apiResult = await validateWithCekUsername(
+          "genshin-impact",
+          req.userId,
+          req.serverId || ""
+        );
+        
+        if (apiResult.success && apiResult.username) {
+          return {
+            success: true,
+            valid: true,
+            username: apiResult.username,
+            message: apiResult.message || "Valid Genshin UID",
+            game: product.name,
+          };
+        } else {
+          console.log("⚠️ cek-username API validation failed, using format validation fallback");
+          return {
+            success: true,
+            valid: true,
+            message: formatCheck.message || "Valid UID format (username not available)",
+            game: product.name,
           };
         }
       }

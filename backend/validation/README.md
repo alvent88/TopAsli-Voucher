@@ -4,14 +4,20 @@ This service integrates multiple username validation APIs to verify game account
 
 ## Supported APIs
 
-### 1. RapidAPI Check ID Game (Primary for Genshin Impact)
-**Base URL:** `https://check-id-game.p.rapidapi.com`
+### 1. Cek-Username API (Primary for Genshin Impact)
+**Base URL:** `https://cek-username.onrender.com`
 
-Used for Genshin Impact validation to get real username verification.
+Used for real Genshin Impact UID validation with username verification.
 
-**Authentication:** Requires RapidAPI key (set in Settings → Secrets → `RapidAPIKey`)
+**Genshin Impact Endpoint:** `/game/genshinimpact?uid={UID}&zone={SERVER}`
 
-**Free Tier:** Available for testing
+**Server Mapping:**
+- America → `os_usa`
+- Europe → `os_euro`
+- Asia → `os_asia`
+- TW, HK, MO → `os_cht`
+
+**Free API:** No authentication required
 
 ### 2. Sandrocods API (Primary for Other Games)
 **Base URL:** `https://api-cek-id-game-ten.vercel.app/api/check-id-game`
@@ -25,17 +31,17 @@ Used as fallback for games not supported by Sandrocods API.
 
 ## Game Support Matrix
 
-### Games Using RapidAPI Check ID Game ✅
+### Games Using Cek-Username API ✅
 
 | Game Name | Slug | Server Required | Notes |
 |-----------|------|-----------------|-------|
-| Genshin Impact | `genshin-impact` | ✅ Yes | Format validation + username verification via RapidAPI |
+| Genshin Impact | `genshin-impact` | ✅ Yes | Real validation with username via cek-username API |
 
 **Genshin Impact Validation Flow:**
-1. Format validation (9-digit UID check)
-2. If format valid → RapidAPI call to get username
-3. If RapidAPI not configured → fallback to format validation only
-4. If RapidAPI returns error → UID not found
+1. Format validation (9-digit UID check) - instant feedback
+2. If format valid → cek-username API call to get real username
+3. If API succeeds → Show "✓ Username ditemukan: {username}"
+4. If API fails → Fallback to format validation only
 
 ### Games Using Sandrocods API ✅
 
@@ -246,21 +252,21 @@ Genshin Impact uses a 9-digit UID system with server-based prefix.
    - Contains only numbers ✅
    - Starts with 6-9 ✅
    - Server = Asia ✅
-4. System calls RapidAPI:
-   - If configured: Verify username ✅
-   - If not configured: Skip API call ⚠️
-5. Response:
-   - With RapidAPI: "✓ Username ditemukan: PlayerName"
-   - Without RapidAPI: "Valid UID for Asia server (format check only)"
+4. System calls cek-username API:
+   - URL: `https://cek-username.onrender.com/game/genshinimpact?uid=831826798&zone=os_asia`
+   - Response: `{ "message": "Success", "data": "h***n" }`
+5. Display result:
+   - "✓ Username ditemukan: h***n"
 
-**Why RapidAPI instead of other options:**
+**Why cek-username API instead of other options:**
 
-✅ **RapidAPI Check ID Game:**
+✅ **cek-username API:**
 - Real username verification
-- Returns player information
-- Free tier available
+- Returns masked username for privacy
+- Free API, no authentication
 - TypeScript compatible
-- Reliable uptime
+- Good reliability
+- Maintained by ilhamjaya08
 
 ❌ **akasha.cv:**
 - No public API available
@@ -279,7 +285,12 @@ Genshin Impact uses a 9-digit UID system with server-based prefix.
 - Does NOT validate player UIDs
 - Different use case entirely
 
-**Fallback behavior:** If RapidAPI key is not configured, the system falls back to format validation only. This ensures validation always works, even without the API key.
+❌ **RapidAPI Check ID Game:**
+- Requires API key and subscription
+- Not confirmed to support Genshin Impact
+- Potential rate limits and costs
+
+**Fallback behavior:** If cek-username API fails or times out, the system falls back to format validation only with message "Valid UID format (username not available)". This ensures validation always works.
 
 ### Valorant Riot ID
 
@@ -327,22 +338,17 @@ const isValorant = product.slug === "valorant" ||
 
 ## Setup Instructions
 
-### Configure RapidAPI Key (Optional but Recommended)
+No setup required! All validation APIs used are free and do not require authentication.
 
-1. Sign up at https://rapidapi.com
-2. Subscribe to "Check ID Game" API (free tier available)
-3. Copy your RapidAPI key
-4. In Leap/Encore app:
-   - Open **Settings** in sidebar
-   - Go to **Secrets** tab
-   - Add new secret:
-     - Name: `RapidAPIKey`
-     - Value: `your-rapidapi-key-here`
-5. Save and restart application
+### cek-username API (Genshin Impact)
+- **No API key needed**
+- **No configuration required**
+- Works out of the box
 
-**Without RapidAPI key:**
-- Genshin validation will use format check only (no username)
-- Other games continue to work normally
+### Sandrocods API & Isan.eu.org API
+- **No API key needed**
+- **No configuration required**
+- Free and open-source
 
 ## Troubleshooting
 
@@ -354,10 +360,8 @@ const isValorant = product.slug === "valorant" ||
 4. **Test API directly** using curl:
 
 ```bash
-# RapidAPI (requires key)
-curl -X GET "https://check-id-game.p.rapidapi.com/genshin?userId=831826798" \
-  -H "X-RapidAPI-Key: YOUR_KEY_HERE" \
-  -H "X-RapidAPI-Host: check-id-game.p.rapidapi.com"
+# cek-username API (Genshin Impact)
+curl "https://cek-username.onrender.com/game/genshinimpact?uid=831826798&zone=os_asia"
 
 # Sandrocods API
 curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=honkai_star_rail&userId=123456789&zoneId="
@@ -385,9 +389,9 @@ curl "https://api.isan.eu.org/nickname/ml?id=123456789&server=1234"
 - Verify tagline is correct
 - System auto-encodes `#` to `%23`
 
-**RapidAPI key not configured**
+**cek-username API timeout/error**
 - Genshin validation falls back to format check only
-- Set RapidAPIKey secret in Settings for full validation
+- Message: "Valid UID format (username not available)"
 
 **API Timeout**
 - External API may be slow
@@ -395,7 +399,7 @@ curl "https://api.isan.eu.org/nickname/ml?id=123456789&server=1234"
 
 ## API Credits
 
-- **RapidAPI Check ID Game**: https://rapidapi.com/yagamicell/api/check-id-game (Paid/Free tier)
+- **cek-username API**: https://cek-username.vercel.app (Free, maintained by ilhamjaya08)
 - **Sandrocods API**: https://github.com/sandrocods/api-cek-id-game (Free, no key)
 - **Isan.eu.org API**: https://api.isan.eu.org (Free, no key)
 
@@ -403,7 +407,7 @@ curl "https://api.isan.eu.org/nickname/ml?id=123456789&server=1234"
 
 Potential improvements:
 - Cache validation results (reduce API calls)
-- Add more games to RapidAPI integration
+- Add more games using cek-username API (supports 10+ games)
 - Support batch validation
 - Add validation history/logging
 - Admin dashboard for validation stats
