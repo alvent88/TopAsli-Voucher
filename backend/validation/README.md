@@ -4,23 +4,43 @@ This service integrates multiple username validation APIs to verify game account
 
 ## Supported APIs
 
-### 1. Sandrocods API (Primary)
+### 1. RapidAPI Check ID Game (Primary for Genshin Impact)
+**Base URL:** `https://check-id-game.p.rapidapi.com`
+
+Used for Genshin Impact validation to get real username verification.
+
+**Authentication:** Requires RapidAPI key (set in Settings → Secrets → `RapidAPIKey`)
+
+**Free Tier:** Available for testing
+
+### 2. Sandrocods API (Primary for Other Games)
 **Base URL:** `https://api-cek-id-game-ten.vercel.app/api/check-id-game`
 
 Used for most games except Arena of Valor, Free Fire, and Mobile Legends.
 
-### 2. Isan.eu.org API (Fallback)
+### 3. Isan.eu.org API (Fallback)
 **Base URL:** `https://api.isan.eu.org/nickname`
 
 Used as fallback for games not supported by Sandrocods API.
 
 ## Game Support Matrix
 
+### Games Using RapidAPI Check ID Game ✅
+
+| Game Name | Slug | Server Required | Notes |
+|-----------|------|-----------------|-------|
+| Genshin Impact | `genshin-impact` | ✅ Yes | Format validation + username verification via RapidAPI |
+
+**Genshin Impact Validation Flow:**
+1. Format validation (9-digit UID check)
+2. If format valid → RapidAPI call to get username
+3. If RapidAPI not configured → fallback to format validation only
+4. If RapidAPI returns error → UID not found
+
 ### Games Using Sandrocods API ✅
 
 | Game Name | Slug | Type Name | Zone ID Required | Notes |
 |-----------|------|-----------|------------------|-------|
-| ~~Genshin Impact~~ | `genshin-impact` | - | ❌ No | Uses UID format validation instead |
 | Honkai Star Rail | `honkai-star-rail` | `honkai_star_rail` | ❌ No | |
 | Call of Duty Mobile | `cod-mobile` | `call_of_duty` | ❌ No | |
 | Point Blank | `point-blank` | `point_blank` | ❌ No | |
@@ -59,6 +79,7 @@ Games without validation support will show: "Validation not available for this g
 
 1. **User enters User ID** (and Zone/Server ID if required)
 2. **System checks game slug**:
+   - If Genshin Impact → Format validation + RapidAPI
    - If excluded (AOV, FF, MLBB) → Use isan.eu.org
    - Otherwise → Try sandrocods API first
 3. **API call made** with User ID and Zone ID
@@ -120,9 +141,10 @@ After 800ms debounce, validation API is called.
 **Genshin Impact:**
 1. User selects "Genshin Impact"
 2. Enters User ID: `831826798`
-3. Enters Server ID: `asia`
-4. System validates and shows: "✓ Username ditemukan: PlayerName"
-5. User proceeds to purchase
+3. Server auto-detected: `Asia`
+4. System validates format and calls RapidAPI
+5. System shows: "✓ Username ditemukan: PlayerName"
+6. User proceeds to purchase
 
 **Valorant:**
 1. User selects "Valorant"
@@ -161,6 +183,7 @@ This ensures users can always complete purchases even if validation is temporari
 ### Check Logs
 
 Backend logs will show:
+- `🎮 Using RapidAPI for Genshin validation`
 - `🎮 Using Sandrocods API for validation`
 - `✅ Username found: [name]`
 - `❌ Username not found: [error]`
@@ -196,7 +219,7 @@ const GAME_TYPE_MAP: Record<string, string> = {
 
 Genshin Impact uses a 9-digit UID system with server-based prefix.
 
-**Validation Method:** UID Format Validation (No external API)
+**Validation Method:** Format Validation + RapidAPI Username Verification
 
 **UID Format Rules:**
 - Must be exactly **9 digits**
@@ -217,21 +240,46 @@ Genshin Impact uses a 9-digit UID system with server-based prefix.
 
 **How it works:**
 1. User enters UID: `831826798`
-2. System validates:
+2. User selects server: `Asia` (auto-detected from UID)
+3. System validates format:
    - Length = 9 digits ✅
    - Contains only numbers ✅
    - Starts with 6-9 ✅
    - Server = Asia ✅
-3. Response: "Valid UID for Asia server"
+4. System calls RapidAPI:
+   - If configured: Verify username ✅
+   - If not configured: Skip API call ⚠️
+5. Response:
+   - With RapidAPI: "✓ Username ditemukan: PlayerName"
+   - Without RapidAPI: "Valid UID for Asia server (format check only)"
 
-**Why not use akasha.cv:**
+**Why RapidAPI instead of other options:**
+
+✅ **RapidAPI Check ID Game:**
+- Real username verification
+- Returns player information
+- Free tier available
+- TypeScript compatible
+- Reliable uptime
+
+❌ **akasha.cv:**
 - No public API available
 - Website is SPA (difficult to scrape)
 - Would violate their terms of service
-- Would put unnecessary load on their servers
-- Format validation is sufficient and instant
 
-**Note:** This validation only checks UID **format**, not if the account actually exists. However, this is sufficient for preventing obvious typos and invalid UIDs before purchase.
+❌ **genshinstats (Python library):**
+- Python-only (not TypeScript)
+- Requires HoyoLab authentication cookies
+- Rate limits (1 req/sec max)
+- Privacy settings dependent
+- Library deprecated/yanked
+
+❌ **HL Gaming Official API:**
+- Only provides game data (characters, weapons, artifacts)
+- Does NOT validate player UIDs
+- Different use case entirely
+
+**Fallback behavior:** If RapidAPI key is not configured, the system falls back to format validation only. This ensures validation always works, even without the API key.
 
 ### Valorant Riot ID
 
@@ -277,6 +325,25 @@ const isValorant = product.slug === "valorant" ||
 - No visual encoding in the input field
 - Encoding happens automatically during API call in backend
 
+## Setup Instructions
+
+### Configure RapidAPI Key (Optional but Recommended)
+
+1. Sign up at https://rapidapi.com
+2. Subscribe to "Check ID Game" API (free tier available)
+3. Copy your RapidAPI key
+4. In Leap/Encore app:
+   - Open **Settings** in sidebar
+   - Go to **Secrets** tab
+   - Add new secret:
+     - Name: `RapidAPIKey`
+     - Value: `your-rapidapi-key-here`
+5. Save and restart application
+
+**Without RapidAPI key:**
+- Genshin validation will use format check only (no username)
+- Other games continue to work normally
+
 ## Troubleshooting
 
 ### Validation Not Working
@@ -287,8 +354,13 @@ const isValorant = product.slug === "valorant" ||
 4. **Test API directly** using curl:
 
 ```bash
-# Genshin Impact (Sandrocods API)
-curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=genshin_impact&userId=831826798&zoneId=asia"
+# RapidAPI (requires key)
+curl -X GET "https://check-id-game.p.rapidapi.com/genshin?userId=831826798" \
+  -H "X-RapidAPI-Key: YOUR_KEY_HERE" \
+  -H "X-RapidAPI-Host: check-id-game.p.rapidapi.com"
+
+# Sandrocods API
+curl "https://api-cek-id-game-ten.vercel.app/api/check-id-game?type_name=honkai_star_rail&userId=123456789&zoneId="
 
 # Valorant (isan.eu.org API - note the %23 encoding)
 curl "https://api.isan.eu.org/nickname/valo?id=yuyun%23123"
@@ -313,22 +385,25 @@ curl "https://api.isan.eu.org/nickname/ml?id=123456789&server=1234"
 - Verify tagline is correct
 - System auto-encodes `#` to `%23`
 
+**RapidAPI key not configured**
+- Genshin validation falls back to format check only
+- Set RapidAPIKey secret in Settings for full validation
+
 **API Timeout**
 - External API may be slow
 - System will allow purchase anyway (fail-safe)
 
 ## API Credits
 
-- **Sandrocods API**: https://github.com/sandrocods/api-cek-id-game
-- **Isan.eu.org API**: https://api.isan.eu.org
-
-Both APIs are free and open-source. No API key required.
+- **RapidAPI Check ID Game**: https://rapidapi.com/yagamicell/api/check-id-game (Paid/Free tier)
+- **Sandrocods API**: https://github.com/sandrocods/api-cek-id-game (Free, no key)
+- **Isan.eu.org API**: https://api.isan.eu.org (Free, no key)
 
 ## Future Enhancements
 
 Potential improvements:
 - Cache validation results (reduce API calls)
-- Add more games to mapping
+- Add more games to RapidAPI integration
 - Support batch validation
 - Add validation history/logging
 - Admin dashboard for validation stats
