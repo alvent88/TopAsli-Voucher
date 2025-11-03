@@ -13,12 +13,18 @@ export interface RapidAPIValidationResult {
 }
 
 const GAME_ENDPOINT_MAP: Record<string, string> = {
-  "genshin-impact": "/genshin",
-  "mobile-legends": "/mobile-legends",
-  "free-fire": "/free-fire",
-  "pubg-mobile": "/pubg",
-  "cod-mobile": "/cod",
-  "arena-of-valor": "/aov",
+  "genshin-impact": "/check/genshin",
+  "mobile-legends": "/check/mlbb",
+  "free-fire": "/check/freefire",
+  "pubg-mobile": "/check/pubgm",
+  "arena-of-valor": "/check/aov",
+};
+
+const SERVER_MAPPING: Record<string, string> = {
+  "America": "os_usa",
+  "Europe": "os_euro",
+  "Asia": "os_asia",
+  "TW, HK, MO": "os_cht",
 };
 
 export const validateWithRapidAPI = async (
@@ -46,20 +52,25 @@ export const validateWithRapidAPI = async (
       };
     }
 
-    let url = `${RAPIDAPI_BASE_URL}${endpoint}?userId=${encodeURIComponent(userId)}`;
+    const mappedZoneId = SERVER_MAPPING[zoneId] || zoneId;
     
-    if (zoneId) {
-      url += `&zoneId=${encodeURIComponent(zoneId)}`;
-    }
+    const url = `${RAPIDAPI_BASE_URL}${endpoint}`;
+    const body = {
+      userId: userId,
+      zoneId: mappedZoneId,
+    };
 
     console.log("🔍 RapidAPI request URL:", url);
+    console.log("🔍 RapidAPI request body:", body);
 
     const response = await fetch(url, {
-      method: "GET",
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-RapidAPI-Key": apiKey,
         "X-RapidAPI-Host": "check-id-game.p.rapidapi.com",
       },
+      body: JSON.stringify(body),
     });
 
     console.log("RapidAPI response status:", response.status);
