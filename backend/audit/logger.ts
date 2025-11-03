@@ -76,6 +76,9 @@ export async function logAuditAction(
       console.error("Failed to fetch user email from Clerk:", error);
     }
 
+    const finalIpAddress = ipAddress || "unknown";
+    const finalUserAgent = userAgent || "unknown";
+
     await db.exec`
       INSERT INTO audit_logs (
         admin_id,
@@ -97,8 +100,8 @@ export async function logAuditAction(
         ${entry.oldValues ? JSON.stringify(entry.oldValues) : null},
         ${entry.newValues ? JSON.stringify(entry.newValues) : null},
         ${entry.metadata ? JSON.stringify(entry.metadata) : null},
-        ${ipAddress || null},
-        ${userAgent || null}
+        ${finalIpAddress},
+        ${finalUserAgent}
       )
     `;
   } catch (error) {
