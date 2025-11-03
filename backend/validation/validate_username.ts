@@ -134,14 +134,11 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       const isAOV = product.name.toLowerCase().includes("arena of valor") || 
                     product.name.toLowerCase().includes("aov");
-      const isCODM = product.name.toLowerCase().includes("call of duty") || 
-                     product.name.toLowerCase().includes("cod mobile");
       
-      if (isAOV || isCODM) {
-        console.log(`🎮 Using Velixs API for ${isAOV ? 'AOV' : 'COD Mobile'} validation`);
+      if (isAOV) {
+        console.log("🎮 Using Velixs API for AOV validation");
         
-        const gameSlug = isAOV ? "arena-of-valor" : "call-of-duty-mobile";
-        const apiResult = await validateWithVelixs(gameSlug, req.userId);
+        const apiResult = await validateWithVelixs("arena-of-valor", req.userId);
         
         if (apiResult.success && apiResult.username) {
           return {
