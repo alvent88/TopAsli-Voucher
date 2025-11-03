@@ -1,5 +1,6 @@
 import { api } from "encore.dev/api";
 import { getAuditLogs } from "./logger";
+import * as XLSX from "xlsx";
 
 export interface ExportAuditLogsRequest {
   adminId?: string;
@@ -10,7 +11,7 @@ export interface ExportAuditLogsRequest {
 }
 
 export interface ExportAuditLogsResponse {
-  csv: string;
+  xlsx: string;
 }
 
 export const exportLogs = api(
@@ -59,13 +60,35 @@ export const exportLogs = api(
       log.userAgent || "-",
     ]);
 
-    const csvContent = [
-      headers.map((h) => `"${h}"`).join(","),
-      ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      ),
-    ].join("\n");
+    const workbook = XLSX.utils.book_new();
+    
+    const worksheetData = [
+      headers,
+      ...rows
+    ];
+    
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    
+    const colWidths = [
+      { wch: 10 },
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 50 },
+    ];
+    worksheet['!cols'] = colWidths;
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Logs");
+    
+    const xlsxBuffer = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
 
-    return { csv: csvContent };
+    return { xlsx: xlsxBuffer };
   }
 );

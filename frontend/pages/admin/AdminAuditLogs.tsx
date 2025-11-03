@@ -127,11 +127,19 @@ export default function AdminAuditLogs() {
         adminId: adminIdFilter || undefined,
       });
 
-      const blob = new Blob([response.csv], { type: "text/csv" });
+      const binaryString = atob(response.xlsx);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { 
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      });
+      
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.csv`;
+      link.download = `audit-logs-${new Date().toISOString().split("T")[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -153,7 +161,7 @@ export default function AdminAuditLogs() {
         </div>
         <Button onClick={handleDownloadLogs} className="gap-2">
           <Download className="w-4 h-4" />
-          Download CSV
+          Download XLSX
         </Button>
       </div>
 
