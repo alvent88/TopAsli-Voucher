@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 
@@ -26,10 +27,26 @@ export default function ProductPage() {
   const [gameId, setGameId] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   
-  // Username validation state
   const [validationStatus, setValidationStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [validatedUsername, setValidatedUsername] = useState<string>("");
   const [validationMessage, setValidationMessage] = useState<string>("");
+
+  useEffect(() => {
+    if (product?.slug === "genshin-impact" && userId.length === 9 && /^\d+$/.test(userId)) {
+      const firstDigit = userId[0];
+      const serverMap: Record<string, string> = {
+        "6": "America",
+        "7": "Europe",
+        "8": "Asia",
+        "9": "TW, HK, MO",
+      };
+      
+      if (serverMap[firstDigit]) {
+        setGameId(serverMap[firstDigit]);
+        console.log("Auto-detected server:", serverMap[firstDigit]);
+      }
+    }
+  }, [userId, product]);
 
   useEffect(() => {
     if (slug) {
@@ -313,15 +330,29 @@ export default function ProductPage() {
                     {product?.requiresServerId !== false && (
                       <div>
                         <Label htmlFor="gameId" className="text-white">
-                          Server ID
+                          {product?.slug === "genshin-impact" ? "Server" : "Server ID"}
                         </Label>
-                        <Input
-                          id="gameId"
-                          value={gameId}
-                          onChange={(e) => setGameId(e.target.value)}
-                          placeholder="Masukkan Server ID"
-                          className="bg-white/10 border-white/20 text-white"
-                        />
+                        {product?.slug === "genshin-impact" ? (
+                          <Select value={gameId} onValueChange={setGameId}>
+                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                              <SelectValue placeholder="Pilih Server" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="America">America</SelectItem>
+                              <SelectItem value="Europe">Europe</SelectItem>
+                              <SelectItem value="Asia">Asia</SelectItem>
+                              <SelectItem value="TW, HK, MO">TW, HK, MO</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            id="gameId"
+                            value={gameId}
+                            onChange={(e) => setGameId(e.target.value)}
+                            placeholder="Masukkan Server ID"
+                            className="bg-white/10 border-white/20 text-white"
+                          />
+                        )}
                       </div>
                     )}
                   </>
