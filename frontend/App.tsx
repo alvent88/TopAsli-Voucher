@@ -30,6 +30,7 @@ import AdminMessages from "./pages/admin/AdminMessages";
 import AdminWhatsAppCS from "./pages/admin/AdminWhatsAppCS";
 import AdminUniPlaySync from "./pages/admin/AdminUniPlaySync";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 
 const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
 
@@ -107,6 +108,7 @@ function AppInner() {
             <Route path="messages" element={<AdminMessages />} />
             <Route path="whatsapp-cs" element={<AdminWhatsAppCS />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
+            <Route path="login-history" element={<AdminLoginHistory />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

@@ -1,4 +1,4 @@
-import { api } from "encore.dev/api";
+import { api, Header } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
@@ -19,7 +19,7 @@ export interface LoginPhoneResponse {
 
 export const loginPhone = api<LoginPhoneRequest, LoginPhoneResponse>(
   { expose: true, method: "POST", path: "/auth/login-phone" },
-  async ({ phoneNumber }) => {
+  async ({ phoneNumber }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     try {
       console.log("=== LOGIN PHONE START ===");
       console.log("Phone number:", phoneNumber);
@@ -109,6 +109,14 @@ export const loginPhone = api<LoginPhoneRequest, LoginPhoneResponse>(
 
       console.log("=== LOGIN PHONE SUCCESS ===");
 
+      await db.exec`
+        INSERT INTO login_history (
+          user_id, phone_number, login_type, ip_address, user_agent, login_status
+        ) VALUES (
+          ${userId}, ${formattedPhone}, 'phone', ${ipAddress || 'unknown'}, ${userAgent || 'unknown'}, 'success'
+        )
+      `;
+
       return {
         userId,
         success: true,
@@ -117,6 +125,21 @@ export const loginPhone = api<LoginPhoneRequest, LoginPhoneResponse>(
     } catch (err: any) {
       console.error("=== LOGIN PHONE ERROR ===");
       console.error("Error:", err);
+      
+      let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
+      if (formattedPhone.startsWith("0")) {
+        formattedPhone = "62" + formattedPhone.substring(1);
+      } else if (!formattedPhone.startsWith("62")) {
+        formattedPhone = "62" + formattedPhone;
+      }
+
+      await db.exec`
+        INSERT INTO login_history (
+          user_id, phone_number, login_type, ip_address, user_agent, login_status, failure_reason
+        ) VALUES (
+          'unknown', ${formattedPhone}, 'phone', ${ipAddress || 'unknown'}, ${userAgent || 'unknown'}, 'failed', ${err.message || 'Unknown error'}
+        )
+      `;
       
       if (err instanceof APIError) {
         throw err;
