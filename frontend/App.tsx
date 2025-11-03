@@ -71,12 +71,50 @@ function BanChecker() {
   return null;
 }
 
+function LoginTracker() {
+  const { user, isLoaded } = useUser();
+  const backend = useBackend();
+
+  useEffect(() => {
+    const trackLogin = async () => {
+      if (!isLoaded || !user) return;
+
+      const loginTrackedKey = `login_tracked_${user.id}`;
+      if (sessionStorage.getItem(loginTrackedKey)) {
+        return;
+      }
+
+      try {
+        const email = user.primaryEmailAddress?.emailAddress;
+        const phoneNumber = user.primaryPhoneNumber?.phoneNumber;
+        
+        await backend.auth.trackLogin({
+          userId: user.id,
+          email: email || undefined,
+          phoneNumber: phoneNumber || undefined,
+          loginType: email ? 'email' : 'phone',
+        });
+
+        sessionStorage.setItem(loginTrackedKey, "true");
+        console.log("Login tracked successfully");
+      } catch (error) {
+        console.error("Failed to track login:", error);
+      }
+    };
+
+    trackLogin();
+  }, [isLoaded, user, backend]);
+
+  return null;
+}
+
 function AppInner() {
   useIdleLogout();
   
   return (
     <>
       <BanChecker />
+      <LoginTracker />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />

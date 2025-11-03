@@ -101,6 +101,7 @@ export default function LoginPage() {
 
       if (result?.status === "complete") {
         await setActive?.({ session: result.createdSessionId });
+        
         toast({
           title: "Login Berhasil",
           description: "Selamat datang kembali!",
