@@ -228,30 +228,27 @@ Genshin Impact uses a 9-digit UID system with server-based prefix.
 **Validation Method:** Format Validation + RapidAPI Username Verification
 
 **UID Format Rules:**
-- Must be exactly **9 digits**
 - Must contain only numbers
-- First digit indicates server region:
+- Can be any length (not restricted to 9 digits)
+- First digit indicates server region (if starts with 6-9):
   - `6` = America Server
   - `7` = Europe Server
   - `8` = Asia Server
   - `9` = TW/HK/MO Server
 
 **Examples:**
-- `831826798` - Asia Server ✅
-- `600123456` - America Server ✅
-- `700123456` - Europe Server ✅
-- `900123456` - TW/HK/MO Server ✅
-- `123456789` - Invalid (starts with 1) ❌
-- `83182679` - Invalid (only 8 digits) ❌
+- `831826798` - Asia Server ✅ (9 digits)
+- `6123456` - America Server ✅ (7 digits)
+- `700123456` - Europe Server ✅ (9 digits)
+- `12345` - Valid UID ✅ (5 digits, server not auto-detected)
+- `abc123` - Invalid ❌ (contains letters)
 
 **How it works:**
-1. User enters UID: `831826798`
-2. User selects server: `Asia` (auto-detected from UID)
+1. User enters UID: `831826798` (or any length)
+2. User selects server: `Asia` (auto-detected if UID starts with 6-9)
 3. System validates format:
-   - Length = 9 digits ✅
    - Contains only numbers ✅
-   - Starts with 6-9 ✅
-   - Server = Asia ✅
+   - If starts with 6-9 → Auto-detect server ✅
 4. System calls cek-username API:
    - URL: `https://cek-username.onrender.com/game/genshinimpact?uid=831826798&zone=os_asia`
    - Response: `{ "message": "Success", "data": "h***n" }`

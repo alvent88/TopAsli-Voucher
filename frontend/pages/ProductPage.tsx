@@ -32,7 +32,7 @@ export default function ProductPage() {
   const [validationMessage, setValidationMessage] = useState<string>("");
 
   useEffect(() => {
-    if (product?.name?.toLowerCase().includes("genshin") && userId.length === 9 && /^\d+$/.test(userId)) {
+    if (product?.name?.toLowerCase().includes("genshin") && userId.length > 0 && /^\d+$/.test(userId)) {
       const firstDigit = userId[0];
       const serverMap: Record<string, string> = {
         "6": "America",

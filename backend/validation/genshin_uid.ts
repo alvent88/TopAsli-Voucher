@@ -21,13 +21,6 @@ export const validateGenshinUID = (uid: string): GenshinUIDValidationResult => {
     };
   }
 
-  if (cleanUID.length !== 9) {
-    return {
-      valid: false,
-      message: "UID must be exactly 9 digits",
-    };
-  }
-
   const firstDigit = parseInt(cleanUID[0]);
   
   const serverMap: Record<number, string> = {
@@ -37,16 +30,16 @@ export const validateGenshinUID = (uid: string): GenshinUIDValidationResult => {
     9: "TW/HK/MO",
   };
 
-  if (firstDigit < 6 || firstDigit > 9) {
+  if (firstDigit >= 6 && firstDigit <= 9) {
     return {
-      valid: false,
-      message: "Invalid UID - must start with 6, 7, 8, or 9",
+      valid: true,
+      server: serverMap[firstDigit],
+      message: `Valid UID for ${serverMap[firstDigit]} server`,
     };
   }
 
   return {
     valid: true,
-    server: serverMap[firstDigit],
-    message: `Valid UID for ${serverMap[firstDigit]} server`,
+    message: "Valid UID",
   };
 };
