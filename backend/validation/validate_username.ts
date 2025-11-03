@@ -132,14 +132,14 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         }
       }
 
-      const isPubgMobile = product.name.toLowerCase().includes("pubg mobile") && 
-                           !product.name.toLowerCase().includes("lite");
+      const isCodMobile = product.name.toLowerCase().includes("call of duty") || 
+                          product.name.toLowerCase().includes("cod mobile");
       
-      if (isPubgMobile) {
-        console.log("🎮 Using RapidAPI ID Game Checker for PUBG Mobile validation");
+      if (isCodMobile) {
+        console.log("🎮 Using RapidAPI ID Game Checker for COD Mobile validation");
         
         const apiResult = await validateWithRapidAPIIDGameChecker(
-          "pubg-mobile",
+          "cod-mobile",
           req.userId
         );
         
@@ -148,7 +148,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
             success: true,
             valid: true,
             username: apiResult.username,
-            message: apiResult.message || "Valid PUBG Mobile ID",
+            message: apiResult.message || "Valid COD Mobile ID",
             game: product.name,
           };
         } else if (!apiResult.success && apiResult.message && 
@@ -165,7 +165,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
           return {
             success: true,
             valid: false,
-            message: "PUBG Mobile validation requires RapidAPI configuration",
+            message: "COD Mobile validation requires RapidAPI configuration",
           };
         }
       }

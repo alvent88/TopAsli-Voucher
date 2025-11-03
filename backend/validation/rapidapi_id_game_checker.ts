@@ -11,7 +11,7 @@ export interface RapidAPIIDGameCheckerResult {
 }
 
 const GAME_ENDPOINT_MAP: Record<string, string> = {
-  "pubg-mobile": "pubgm-global",
+  "cod-mobile": "cod-mobile",
 };
 
 export const validateWithRapidAPIIDGameChecker = async (
