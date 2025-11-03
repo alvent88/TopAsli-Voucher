@@ -113,8 +113,15 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
             message: apiResult.message || "Valid Genshin UID",
             game: product.name,
           };
+        } else if (!apiResult.success && apiResult.message) {
+          console.log("❌ cek-username API validation failed - UID not found");
+          return {
+            success: true,
+            valid: false,
+            message: "UID tidak ditemukan atau tidak valid",
+          };
         } else {
-          console.log("⚠️ cek-username API validation failed, using format validation fallback");
+          console.log("⚠️ cek-username API error, using format validation fallback");
           return {
             success: true,
             valid: true,
