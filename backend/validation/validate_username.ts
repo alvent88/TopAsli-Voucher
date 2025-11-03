@@ -2,7 +2,6 @@ import { api, APIError } from "encore.dev/api";
 import db from "../db";
 import { validateUsernameWithSandrocods } from "./sandrocods_api";
 import { validateGenshinUID } from "./genshin_uid";
-import { validateWithRapidAPI } from "./rapidapi_client";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -87,45 +86,22 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
                         product.name.toLowerCase().includes("genshin");
       
       if (isGenshin) {
-        console.log("🎮 Using RapidAPI for Genshin validation");
+        console.log("🎮 Using Genshin UID format validation");
         
-        const formatCheck = validateGenshinUID(req.userId);
+        const result = validateGenshinUID(req.userId);
         
-        if (!formatCheck.valid) {
-          return {
-            success: true,
-            valid: false,
-            message: formatCheck.message || "Invalid Genshin UID format",
-          };
-        }
-        
-        const rapidResult = await validateWithRapidAPI(
-          product.slug,
-          req.userId,
-          req.serverId || ""
-        );
-        
-        if (rapidResult.success && rapidResult.username) {
+        if (result.valid) {
           return {
             success: true,
             valid: true,
-            username: rapidResult.username,
-            message: rapidResult.message || "Valid Genshin UID",
-            game: product.name,
-          };
-        } else if (rapidResult.message?.includes("not configured")) {
-          console.log("⚠️ RapidAPI not configured, using format validation only");
-          return {
-            success: true,
-            valid: true,
-            message: formatCheck.message || "Valid Genshin UID (format check only)",
+            message: result.message || "Valid Genshin UID",
             game: product.name,
           };
         } else {
           return {
             success: true,
             valid: false,
-            message: rapidResult.message || "User ID not found",
+            message: result.message || "Invalid Genshin UID",
           };
         }
       }
