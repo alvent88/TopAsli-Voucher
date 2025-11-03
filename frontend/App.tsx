@@ -88,15 +88,32 @@ function LoginTracker() {
         const email = user.primaryEmailAddress?.emailAddress;
         const phoneNumber = user.primaryPhoneNumber?.phoneNumber;
         
+        let ipAddress = 'unknown';
+        try {
+          const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+            method: 'GET',
+            signal: AbortSignal.timeout(3000)
+          });
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip || 'unknown';
+          console.log("Detected IP address:", ipAddress);
+        } catch (ipError) {
+          console.error("Failed to get IP address:", ipError);
+        }
+        
+        const userAgent = navigator.userAgent;
+        
         await backend.auth.trackLogin({
           userId: user.id,
           email: email || undefined,
           phoneNumber: phoneNumber || undefined,
           loginType: email ? 'email' : 'phone',
+          ipAddress: ipAddress,
+          userAgent: userAgent,
         });
 
         sessionStorage.setItem(loginTrackedKey, "true");
-        console.log("Login tracked successfully");
+        console.log("Login tracked successfully with IP:", ipAddress);
       } catch (error) {
         console.error("Failed to track login:", error);
       }

@@ -7,6 +7,8 @@ export interface TrackLoginRequest {
   email?: string;
   phoneNumber?: string;
   loginType: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface TrackLoginResponse {
@@ -15,15 +17,20 @@ export interface TrackLoginResponse {
 
 export const trackLogin = api<TrackLoginRequest, TrackLoginResponse>(
   { expose: true, method: "POST", path: "/auth/track-login" },
-  async ({ userId, email, phoneNumber, loginType }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async ({ userId, email, phoneNumber, loginType, ipAddress: clientIpAddress, userAgent: clientUserAgent }, serverIpAddress?: Header<"x-forwarded-for">, serverUserAgent?: Header<"user-agent">) => {
     try {
       console.log("=== TRACK LOGIN START ===");
       console.log("User ID:", userId);
       console.log("Email:", email);
       console.log("Phone:", phoneNumber);
       console.log("Login Type:", loginType);
-      console.log("IP Address:", ipAddress);
-      console.log("User Agent:", userAgent);
+      console.log("Client IP Address:", clientIpAddress);
+      console.log("Server IP Address:", serverIpAddress);
+      console.log("Client User Agent:", clientUserAgent);
+      console.log("Server User Agent:", serverUserAgent);
+
+      const finalIpAddress = clientIpAddress || serverIpAddress || 'unknown';
+      const finalUserAgent = clientUserAgent || serverUserAgent || 'unknown';
 
       await db.exec`
         INSERT INTO login_history (
@@ -33,13 +40,14 @@ export const trackLogin = api<TrackLoginRequest, TrackLoginResponse>(
           ${email || null}, 
           ${phoneNumber || null}, 
           ${loginType}, 
-          ${ipAddress || 'unknown'}, 
-          ${userAgent || 'unknown'}, 
+          ${finalIpAddress}, 
+          ${finalUserAgent}, 
           'success'
         )
       `;
 
       console.log("=== TRACK LOGIN SUCCESS ===");
+      console.log("Final IP Address saved:", finalIpAddress);
 
       return {
         success: true,
