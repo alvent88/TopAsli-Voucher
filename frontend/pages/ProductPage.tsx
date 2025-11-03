@@ -32,7 +32,7 @@ export default function ProductPage() {
   const [validationMessage, setValidationMessage] = useState<string>("");
 
   useEffect(() => {
-    if (product?.slug === "genshin-impact" && userId.length === 9 && /^\d+$/.test(userId)) {
+    if (product?.name?.toLowerCase().includes("genshin") && userId.length === 9 && /^\d+$/.test(userId)) {
       const firstDigit = userId[0];
       const serverMap: Record<string, string> = {
         "6": "America",
@@ -112,14 +112,14 @@ export default function ProductPage() {
       console.log("username:", response.username);
       console.log("message:", response.message);
 
-      if (response.success && response.valid === true && response.username) {
-        // Username found and valid
+      if (response.success && response.valid === true) {
+        // Valid - either with username or format validation only
         setValidationStatus("valid");
-        setValidatedUsername(response.username);
-        setValidationMessage("");
-        console.log("✅ Validation successful - Username:", response.username);
+        setValidatedUsername(response.username || "");
+        setValidationMessage(response.message || "Valid");
+        console.log("✅ Validation successful - Username:", response.username || "(format validation only)");
       } else {
-        // Any other case - treat as invalid with consistent message
+        // Invalid
         setValidationStatus("invalid");
         setValidatedUsername("");
         setValidationMessage(response.message || "Username not found");
@@ -293,10 +293,10 @@ export default function ProductPage() {
                           id="userId"
                           value={userId}
                           onChange={(e) => setUserId(e.target.value)}
-                          placeholder={product?.slug === "valorant" ? "Masukkan Riot ID (contoh: yuyun#123)" : "Masukkan User ID"}
-                          className={`bg-white/10 border-white/20 text-white pr-10 ${
-                            validationStatus === "invalid" ? "border-red-500" : ""
-                          } ${validationStatus === "valid" ? "border-green-500" : ""}`}
+                          placeholder={product?.name?.toLowerCase().includes("valorant") ? "Masukkan Riot ID (contoh: yuyun#123)" : "Masukkan User ID"}
+                          className={`bg-white/10 text-white pr-10 ${
+                            validationStatus === "invalid" ? "border-red-500" : validationStatus === "valid" ? "border-green-500" : "border-white/20"
+                          }`}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                           {validationStatus === "validating" && (
@@ -310,11 +310,15 @@ export default function ProductPage() {
                           )}
                         </div>
                       </div>
-                      {validationStatus === "valid" && validatedUsername && (
+                      {validationStatus === "valid" && (validatedUsername || validationMessage) && (
                         <div className="mt-2 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
                           <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
                             <CheckCircle className="h-4 w-4" />
-                            <span>✓ Username ditemukan: {validatedUsername}</span>
+                            <span>
+                              {validatedUsername 
+                                ? `✓ Username ditemukan: ${validatedUsername}` 
+                                : `✓ ${validationMessage}`}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -330,9 +334,9 @@ export default function ProductPage() {
                     {product?.requiresServerId !== false && (
                       <div>
                         <Label htmlFor="gameId" className="text-white">
-                          {product?.slug === "genshin-impact" ? "Server" : "Server ID"}
+                          {product?.name?.toLowerCase().includes("genshin") ? "Server" : "Server ID"}
                         </Label>
-                        {product?.slug === "genshin-impact" ? (
+                        {product?.name?.toLowerCase().includes("genshin") ? (
                           <Select value={gameId} onValueChange={setGameId}>
                             <SelectTrigger className="bg-white/10 border-white/20 text-white">
                               <SelectValue placeholder="Pilih Server" />
