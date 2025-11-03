@@ -3,6 +3,7 @@ import db from "../db";
 import { validateUsernameWithSandrocods } from "./sandrocods_api";
 import { validateGenshinUID } from "./genshin_uid";
 import { validateWithCekUsername } from "./cek_username_api";
+import { validateWithVelixs } from "./velixs_api";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -127,6 +128,35 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
             valid: true,
             message: formatCheck.message || "Valid UID format (username not available)",
             game: product.name,
+          };
+        }
+      }
+
+      const isAOV = product.name.toLowerCase().includes("arena of valor") || 
+                    product.name.toLowerCase().includes("aov");
+      const isCODM = product.name.toLowerCase().includes("call of duty") || 
+                     product.name.toLowerCase().includes("cod mobile");
+      
+      if (isAOV || isCODM) {
+        console.log(`🎮 Using Velixs API for ${isAOV ? 'AOV' : 'COD Mobile'} validation`);
+        
+        const gameSlug = isAOV ? "arena-of-valor" : "call-of-duty-mobile";
+        const apiResult = await validateWithVelixs(gameSlug, req.userId);
+        
+        if (apiResult.success && apiResult.username) {
+          return {
+            success: true,
+            valid: true,
+            username: apiResult.username,
+            message: apiResult.message || "Valid User ID",
+            game: product.name,
+          };
+        } else if (!apiResult.success && apiResult.message) {
+          console.log("❌ Velixs API validation failed - ID not found");
+          return {
+            success: true,
+            valid: false,
+            message: "User ID tidak ditemukan atau tidak valid",
           };
         }
       }
