@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import backend from "~backend/client";
 import type { Product } from "~backend/product/list";
-import { Gamepad2, Search, Shield, Zap, Mail, MessageCircle } from "lucide-react";
+import { Gamepad2, Search, Shield, Zap, Mail, MessageCircle, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showAllGames, setShowAllGames] = useState(false);
+  const [showAllVouchers, setShowAllVouchers] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -46,9 +48,16 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Separate products by category
   const gameProducts = filteredProducts.filter(p => p.category?.toLowerCase() !== 'voucher');
   const voucherProducts = filteredProducts.filter(p => p.category?.toLowerCase() === 'voucher');
+
+  const ITEMS_PER_ROW = 6;
+  const INITIAL_ROWS = 3;
+  const initialGameCount = ITEMS_PER_ROW * INITIAL_ROWS;
+  const initialVoucherCount = ITEMS_PER_ROW * INITIAL_ROWS;
+
+  const displayedGameProducts = showAllGames ? gameProducts : gameProducts.slice(0, initialGameCount);
+  const displayedVoucherProducts = showAllVouchers ? voucherProducts : voucherProducts.slice(0, initialVoucherCount);
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
@@ -159,7 +168,6 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            {/* Game Products Section */}
             {gameProducts.length > 0 && (
               <div className="mb-16">
                 <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
@@ -169,7 +177,7 @@ export default function HomePage() {
                   </span>
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                  {gameProducts.map((product) => (
+                  {displayedGameProducts.map((product) => (
                     <Link key={product.id} to={`/product/${product.slug}`}>
                       <Card className="group relative bg-[#1a1f3a] border-slate-700 hover:border-yellow-500/50 transition-all duration-300 cursor-pointer h-full overflow-hidden before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-br before:from-yellow-400/0 before:via-yellow-500/0 before:to-yellow-400/0 hover:before:from-yellow-400/60 hover:before:via-yellow-500/60 hover:before:to-yellow-400/60 before:transition-all before:duration-300 before:-z-10 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]">
                         <CardContent className="p-0 relative z-10">
@@ -199,10 +207,20 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </div>
+                {gameProducts.length > initialGameCount && (
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      onClick={() => setShowAllGames(!showAllGames)}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                    >
+                      {showAllGames ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lainnya'}
+                      <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${showAllGames ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Voucher Products Section */}
             {voucherProducts.length > 0 && (
               <div className="mb-16">
                 <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
@@ -214,7 +232,7 @@ export default function HomePage() {
                   </span>
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                  {voucherProducts.map((product) => (
+                  {displayedVoucherProducts.map((product) => (
                     <Link key={product.id} to={`/product/${product.slug}`}>
                       <Card className="group relative bg-[#1a1f3a] border-slate-700 hover:border-purple-500/50 transition-all duration-300 cursor-pointer h-full overflow-hidden before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-br before:from-purple-400/0 before:via-pink-500/0 before:to-purple-400/0 hover:before:from-purple-400/60 hover:before:via-pink-500/60 hover:before:to-purple-400/60 before:transition-all before:duration-300 before:-z-10 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]">
                         <CardContent className="p-0 relative z-10">
@@ -246,6 +264,17 @@ export default function HomePage() {
                     </Link>
                   ))}
                 </div>
+                {voucherProducts.length > initialVoucherCount && (
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      onClick={() => setShowAllVouchers(!showAllVouchers)}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                    >
+                      {showAllVouchers ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lainnya'}
+                      <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${showAllVouchers ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </>
