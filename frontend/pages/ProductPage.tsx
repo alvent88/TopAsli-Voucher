@@ -64,6 +64,16 @@ export default function ProductPage() {
       return;
     }
 
+    // Skip validation for COD Mobile
+    const isCODM = product?.name?.toLowerCase().includes("call of duty") || 
+                   product?.name?.toLowerCase().includes("cod mobile");
+    if (isCODM) {
+      setValidationStatus("idle");
+      setValidatedUsername("");
+      setValidationMessage("");
+      return;
+    }
+
     if (!userId || !product) {
       setValidationStatus("idle");
       setValidatedUsername("");
