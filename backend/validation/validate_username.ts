@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
 import { validateUsernameWithSandrocods } from "./sandrocods_api";
+import { validateGenshinUID } from "./genshin_uid";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -80,6 +81,30 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
 
       console.log("Product name:", product.name);
       console.log("Product slug:", product.slug);
+
+      const isGenshin = product.slug === "genshin-impact" || 
+                        product.name.toLowerCase().includes("genshin");
+      
+      if (isGenshin) {
+        console.log("🎮 Using Genshin UID format validation");
+        
+        const result = validateGenshinUID(req.userId);
+        
+        if (result.valid) {
+          return {
+            success: true,
+            valid: true,
+            message: result.message || "Valid Genshin UID",
+            game: product.name,
+          };
+        } else {
+          return {
+            success: true,
+            valid: false,
+            message: result.message || "Invalid Genshin UID",
+          };
+        }
+      }
 
       const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends", "valorant"];
       

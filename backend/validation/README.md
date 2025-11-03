@@ -20,7 +20,7 @@ Used as fallback for games not supported by Sandrocods API.
 
 | Game Name | Slug | Type Name | Zone ID Required | Notes |
 |-----------|------|-----------|------------------|-------|
-| Genshin Impact | `genshin-impact` | `genshin_impact` | ✅ Yes | Server: asia/america/europe/cht |
+| ~~Genshin Impact~~ | `genshin-impact` | - | ❌ No | Uses UID format validation instead |
 | Honkai Star Rail | `honkai-star-rail` | `honkai_star_rail` | ❌ No | |
 | Call of Duty Mobile | `cod-mobile` | `call_of_duty` | ❌ No | |
 | Point Blank | `point-blank` | `point_blank` | ❌ No | |
@@ -191,6 +191,47 @@ const GAME_TYPE_MAP: Record<string, string> = {
 3. Verify username is returned correctly
 
 ## Special User ID Formats
+
+### Genshin Impact UID
+
+Genshin Impact uses a 9-digit UID system with server-based prefix.
+
+**Validation Method:** UID Format Validation (No external API)
+
+**UID Format Rules:**
+- Must be exactly **9 digits**
+- Must contain only numbers
+- First digit indicates server region:
+  - `6` = America Server
+  - `7` = Europe Server
+  - `8` = Asia Server
+  - `9` = TW/HK/MO Server
+
+**Examples:**
+- `831826798` - Asia Server ✅
+- `600123456` - America Server ✅
+- `700123456` - Europe Server ✅
+- `900123456` - TW/HK/MO Server ✅
+- `123456789` - Invalid (starts with 1) ❌
+- `83182679` - Invalid (only 8 digits) ❌
+
+**How it works:**
+1. User enters UID: `831826798`
+2. System validates:
+   - Length = 9 digits ✅
+   - Contains only numbers ✅
+   - Starts with 6-9 ✅
+   - Server = Asia ✅
+3. Response: "Valid UID for Asia server"
+
+**Why not use akasha.cv:**
+- No public API available
+- Website is SPA (difficult to scrape)
+- Would violate their terms of service
+- Would put unnecessary load on their servers
+- Format validation is sufficient and instant
+
+**Note:** This validation only checks UID **format**, not if the account actually exists. However, this is sufficient for preventing obvious typos and invalid UIDs before purchase.
 
 ### Valorant Riot ID
 
