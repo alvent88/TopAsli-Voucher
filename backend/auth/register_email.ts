@@ -24,23 +24,51 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
       
       const timestamp = Math.floor(Date.now() / 1000);
       
-      // Check if email already registered
-      const existing = await db.queryRow<{ email: string }>`
-        SELECT email FROM email_registrations WHERE email = ${email}
+      const existing = await db.queryRow<{ 
+        email: string; 
+        last_otp_request_at: number | null;
+        otp_request_count: number;
+      }>`
+        SELECT email, last_otp_request_at, otp_request_count 
+        FROM email_registrations 
+        WHERE email = ${email}
       `;
+      
+      if (existing?.last_otp_request_at) {
+        const timeSinceLastRequest = timestamp - existing.last_otp_request_at;
+        const MIN_REQUEST_INTERVAL = 60;
+        
+        if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+          const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+          throw APIError.resourceExhausted(
+            `Mohon tunggu ${waitTime} detik sebelum meminta OTP lagi.`
+          );
+        }
+      }
       
       if (existing) {
         console.log("Email already registered, updating...");
+        const newRequestCount = existing.otp_request_count + 1;
         await db.exec`
           UPDATE email_registrations
-          SET full_name = ${fullName}, clerk_user_id = ${clerkUserId}, updated_at = ${timestamp}
+          SET full_name = ${fullName}, 
+              clerk_user_id = ${clerkUserId}, 
+              updated_at = ${timestamp},
+              last_otp_request_at = ${timestamp},
+              otp_request_count = ${newRequestCount}
           WHERE email = ${email}
         `;
       } else {
         console.log("New email registration, inserting...");
         await db.exec`
-          INSERT INTO email_registrations (email, full_name, clerk_user_id, created_at, updated_at)
-          VALUES (${email}, ${fullName}, ${clerkUserId}, ${timestamp}, ${timestamp})
+          INSERT INTO email_registrations (
+            email, full_name, clerk_user_id, created_at, updated_at, 
+            last_otp_request_at, otp_request_count
+          )
+          VALUES (
+            ${email}, ${fullName}, ${clerkUserId}, ${timestamp}, ${timestamp},
+            ${timestamp}, 1
+          )
         `;
       }
       

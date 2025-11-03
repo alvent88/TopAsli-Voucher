@@ -136,6 +136,11 @@ import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone }
 import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
 import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
 import {
+    exportLoginHistory as api_admin_login_history_exportLoginHistory,
+    getUsersByIP as api_admin_login_history_getUsersByIP,
+    listLoginHistory as api_admin_login_history_listLoginHistory
+} from "~backend/admin/login_history";
+import {
     setAdmin as api_admin_manage_user_setAdmin,
     updateUserPhone as api_admin_manage_user_updateUserPhone
 } from "~backend/admin/manage_user";
@@ -219,6 +224,7 @@ export namespace admin {
             this.deleteWhatsAppCS = this.deleteWhatsAppCS.bind(this)
             this.demoteFromAdmin = this.demoteFromAdmin.bind(this)
             this.editUser = this.editUser.bind(this)
+            this.exportLoginHistory = this.exportLoginHistory.bind(this)
             this.exportTransactions = this.exportTransactions.bind(this)
             this.exportUsers = this.exportUsers.bind(this)
             this.exportVouchers = this.exportVouchers.bind(this)
@@ -228,10 +234,12 @@ export namespace admin {
             this.getUniplayBalance = this.getUniplayBalance.bind(this)
             this.getUploadUrl = this.getUploadUrl.bind(this)
             this.getUserTransactions = this.getUserTransactions.bind(this)
+            this.getUsersByIP = this.getUsersByIP.bind(this)
             this.importUsers = this.importUsers.bind(this)
             this.importVouchers = this.importVouchers.bind(this)
             this.listAllPackages = this.listAllPackages.bind(this)
             this.listAllProducts = this.listAllProducts.bind(this)
+            this.listLoginHistory = this.listLoginHistory.bind(this)
             this.listTransactions = this.listTransactions.bind(this)
             this.listUsers = this.listUsers.bind(this)
             this.listVouchers = this.listVouchers.bind(this)
@@ -364,6 +372,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_edit_user_editUser>
         }
 
+        public async exportLoginHistory(params: RequestType<typeof api_admin_login_history_exportLoginHistory>): Promise<ResponseType<typeof api_admin_login_history_exportLoginHistory>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/login-history/export`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_login_history_exportLoginHistory>
+        }
+
         public async exportTransactions(): Promise<ResponseType<typeof api_admin_export_transactions_exportTransactions>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/transactions/export`, {method: "GET", body: undefined})
@@ -418,6 +432,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_user_transactions_getUserTransactions>
         }
 
+        public async getUsersByIP(params: { ipAddress: string }): Promise<ResponseType<typeof api_admin_login_history_getUsersByIP>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/login-history/ip/${encodeURIComponent(params.ipAddress)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_login_history_getUsersByIP>
+        }
+
         public async importUsers(params: RequestType<typeof api_admin_users_export_importUsers>): Promise<ResponseType<typeof api_admin_users_export_importUsers>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/import`, {method: "POST", body: JSON.stringify(params)})
@@ -440,6 +460,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/products`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_products_listAllProducts>
+        }
+
+        public async listLoginHistory(params: RequestType<typeof api_admin_login_history_listLoginHistory>): Promise<ResponseType<typeof api_admin_login_history_listLoginHistory>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/login-history/list`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_login_history_listLoginHistory>
         }
 
         public async listTransactions(params: RequestType<typeof api_admin_transactions_listTransactions>): Promise<ResponseType<typeof api_admin_transactions_listTransactions>> {
@@ -659,6 +685,7 @@ import { loginPhone as api_auth_login_phone_loginPhone } from "~backend/auth/log
 import { registerEmail as api_auth_register_email_registerEmail } from "~backend/auth/register_email";
 import { registerPhone as api_auth_register_phone_registerPhone } from "~backend/auth/register_phone";
 import { saveUserProfile as api_auth_save_user_profile_saveUserProfile } from "~backend/auth/save_user_profile";
+import { trackLogin as api_auth_track_login_trackLogin } from "~backend/auth/track_login";
 import { updateProfile as api_auth_update_profile_updateProfile } from "~backend/auth/update_profile";
 
 export namespace auth {
@@ -676,6 +703,7 @@ export namespace auth {
             this.registerEmail = this.registerEmail.bind(this)
             this.registerPhone = this.registerPhone.bind(this)
             this.saveUserProfile = this.saveUserProfile.bind(this)
+            this.trackLogin = this.trackLogin.bind(this)
             this.updateProfile = this.updateProfile.bind(this)
         }
 
@@ -725,6 +753,12 @@ export namespace auth {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/auth/save-user-profile`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_save_user_profile_saveUserProfile>
+        }
+
+        public async trackLogin(params: RequestType<typeof api_auth_track_login_trackLogin>): Promise<ResponseType<typeof api_auth_track_login_trackLogin>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/track-login`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_track_login_trackLogin>
         }
 
         public async updateProfile(params: RequestType<typeof api_auth_update_profile_updateProfile>): Promise<ResponseType<typeof api_auth_update_profile_updateProfile>> {
