@@ -3,7 +3,6 @@ import db from "../db";
 import { validateUsernameWithSandrocods } from "./sandrocods_api";
 import { validateGenshinUID } from "./genshin_uid";
 import { validateWithCekUsername } from "./cek_username_api";
-import { validateWithRapidAPIIDGameChecker } from "./rapidapi_id_game_checker";
 
 export interface ValidateUsernameRequest {
   productId: number;
@@ -128,44 +127,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
             valid: true,
             message: formatCheck.message || "Valid UID format (username not available)",
             game: product.name,
-          };
-        }
-      }
-
-      const isCodMobile = product.name.toLowerCase().includes("call of duty") || 
-                          product.name.toLowerCase().includes("cod mobile");
-      
-      if (isCodMobile) {
-        console.log("🎮 Using RapidAPI ID Game Checker for COD Mobile validation");
-        
-        const apiResult = await validateWithRapidAPIIDGameChecker(
-          "cod-mobile",
-          req.userId
-        );
-        
-        if (apiResult.success && apiResult.username) {
-          return {
-            success: true,
-            valid: true,
-            username: apiResult.username,
-            message: apiResult.message || "Valid COD Mobile ID",
-            game: product.name,
-          };
-        } else if (!apiResult.success && apiResult.message && 
-                   !apiResult.message.includes("not configured") && 
-                   !apiResult.message.includes("unavailable")) {
-          console.log("❌ RapidAPI ID Game Checker validation failed - ID not found");
-          return {
-            success: true,
-            valid: false,
-            message: "User ID tidak ditemukan atau tidak valid",
-          };
-        } else {
-          console.log("⚠️ RapidAPI ID Game Checker not configured or error");
-          return {
-            success: true,
-            valid: false,
-            message: "COD Mobile validation requires RapidAPI configuration",
           };
         }
       }
