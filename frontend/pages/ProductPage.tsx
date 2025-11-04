@@ -70,7 +70,9 @@ export default function ProductPage() {
       "magic chess",
       "free fire",
       "genshin impact",
-      "valorant"
+      "valorant",
+      "arena of valor",
+      "honkai impact"
     ];
     
     const shouldValidate = allowedValidationGames.some(game => 

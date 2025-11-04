@@ -87,7 +87,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("Product slug:", product.slug);
 
       // Only allow validation for specific games
-      const allowedGames = ["mobile legends", "magic chess", "free fire", "genshin impact", "valorant"];
+      const allowedGames = ["mobile legends", "magic chess", "free fire", "genshin impact", "valorant", "arena of valor", "honkai impact"];
       const isAllowed = allowedGames.some(game => product.name.toLowerCase().includes(game));
       
       if (!isAllowed) {
@@ -147,28 +147,105 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
         }
       }
 
+      // Arena of Valor - use isan.eu.org instead of Velixs
       const isAOV = product.name.toLowerCase().includes("arena of valor") || 
                     product.name.toLowerCase().includes("aov");
       
       if (isAOV) {
-        console.log("🎮 Using Velixs API for AOV validation");
+        console.log("🎮 Using Isan.eu.org API for AOV validation");
         
-        const apiResult = await validateWithVelixs("arena-of-valor", req.userId);
-        
-        if (apiResult.success && apiResult.username) {
+        const validationUrl = `${VALIDATION_API_BASE}/aov?id=${req.userId}`;
+        console.log("Validation URL:", validationUrl);
+
+        try {
+          const response = await fetch(validationUrl);
+          const responseText = await response.text();
+          
+          console.log("AOV Validation API response status:", response.status);
+          console.log("AOV Validation API response:", responseText);
+
+          if (!response.ok) {
+            return {
+              success: true,
+              valid: false,
+              message: "User ID tidak ditemukan",
+            };
+          }
+
+          const data = JSON.parse(responseText);
+
+          if (data.success === true && data.name) {
+            return {
+              success: true,
+              valid: true,
+              username: data.name,
+              message: "Valid User ID",
+              game: product.name,
+            };
+          } else {
+            return {
+              success: true,
+              valid: false,
+              message: "User ID tidak ditemukan",
+            };
+          }
+        } catch (err) {
+          console.error("AOV validation error:", err);
           return {
-            success: true,
+            success: false,
             valid: true,
-            username: apiResult.username,
-            message: apiResult.message || "Valid User ID",
-            game: product.name,
+            message: "Validation service error - proceeding without validation",
           };
-        } else if (!apiResult.success && apiResult.message) {
-          console.log("❌ Velixs API validation failed - ID not found");
+        }
+      }
+
+      // Honkai Impact 3rd - use isan.eu.org
+      const isHonkaiImpact = product.name.toLowerCase().includes("honkai impact");
+      
+      if (isHonkaiImpact) {
+        console.log("🎮 Using Isan.eu.org API for Honkai Impact 3rd validation");
+        
+        const validationUrl = `${VALIDATION_API_BASE}/hi?id=${req.userId}`;
+        console.log("Validation URL:", validationUrl);
+
+        try {
+          const response = await fetch(validationUrl);
+          const responseText = await response.text();
+          
+          console.log("Honkai Impact Validation API response status:", response.status);
+          console.log("Honkai Impact Validation API response:", responseText);
+
+          if (!response.ok) {
+            return {
+              success: true,
+              valid: false,
+              message: "UID tidak ditemukan",
+            };
+          }
+
+          const data = JSON.parse(responseText);
+
+          if (data.success === true && data.name) {
+            return {
+              success: true,
+              valid: true,
+              username: data.name,
+              message: "Valid UID",
+              game: product.name,
+            };
+          } else {
+            return {
+              success: true,
+              valid: false,
+              message: "UID tidak ditemukan",
+            };
+          }
+        } catch (err) {
+          console.error("Honkai Impact validation error:", err);
           return {
-            success: true,
-            valid: false,
-            message: "User ID tidak ditemukan atau tidak valid",
+            success: false,
+            valid: true,
+            message: "Validation service error - proceeding without validation",
           };
         }
       }
