@@ -29,7 +29,7 @@ export default function TransactionSuccessPage() {
             transactionId: transaction.id,
             productName: transaction.productName,
             packageName: transaction.packageName,
-            price: transaction.total,
+            price: transaction.price,
             userId: transaction.userId,
             gameId: transaction.gameId,
             username: transaction.username,
