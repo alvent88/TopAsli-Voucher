@@ -1,6 +1,5 @@
 import { api, APIError } from "encore.dev/api";
 import db from "../db";
-import { validateUsernameWithSandrocods } from "./sandrocods_api";
 import { validateGenshinUID } from "./genshin_uid";
 import { validateWithCekUsername } from "./cek_username_api";
 import { validateWithVelixs } from "./velixs_api";
@@ -157,39 +156,6 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
             success: true,
             valid: false,
             message: "User ID tidak ditemukan atau tidak valid",
-          };
-        }
-      }
-
-      const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends", "valorant", "honor-of-kings"];
-      const excludedByName = ["honor of kings", "afk journey"];
-      
-      const isExcludedByName = excludedByName.some(name => product.name.toLowerCase().includes(name));
-      
-      if (!excludedGames.includes(product.slug) && !isExcludedByName) {
-        console.log("🎮 Using Sandrocods API for validation");
-        
-        const result = await validateUsernameWithSandrocods(
-          product.slug,
-          req.userId,
-          req.serverId || ""
-        );
-        
-        if (result.success && result.username) {
-          return {
-            success: true,
-            valid: true,
-            username: result.username,
-            game: product.name,
-            message: "Username found",
-          };
-        } else if (result.message === "Validation not available for this game") {
-          console.log("⚠️ Game not supported by Sandrocods API, trying isan.eu.org");
-        } else {
-          return {
-            success: true,
-            valid: false,
-            message: result.message || "User ID not found",
           };
         }
       }
