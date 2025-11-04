@@ -172,11 +172,7 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         console.log("User data - Phone:", phoneNumber, "Name:", fullName, "Email:", email);
 
         // Send WhatsApp if phone number is available
-        if (!phoneNumber) {
-          console.log("⚠️ No phone number found, skipping WhatsApp");
-        } else if (!transactionData) {
-          console.log("⚠️ No transaction data found, skipping WhatsApp");
-        } else if (phoneNumber && transactionData) {
+        if (phoneNumber && transactionData) {
           const configRow = await db.queryRow<{ value: string }>`
             SELECT value FROM admin_config WHERE key = 'dashboard_config'
           `;
@@ -237,6 +233,15 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
                 console.error("❌ WhatsApp failed:", waData.reason || waData.message || "Unknown error");
               }
             }
+          } else {
+            console.log("⚠️ Fonnte token not configured, skipping WhatsApp");
+          }
+        } else {
+          if (!phoneNumber) {
+            console.log("⚠️ No phone number found, skipping WhatsApp");
+          }
+          if (!transactionData) {
+            console.log("⚠️ No transaction data found, skipping WhatsApp");
           }
         }
       } catch (notificationErr) {
