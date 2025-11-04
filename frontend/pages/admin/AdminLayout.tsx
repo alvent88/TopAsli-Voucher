@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBackend } from "@/lib/useBackend";
 import { useUser } from "@clerk/clerk-react";
@@ -58,6 +58,7 @@ export default function AdminLayout() {
     { path: "/admin/packages", icon: Package, label: "Paket" },
     { path: "/admin/vouchers", icon: Gift, label: "Voucher" },
     { path: "/admin/users", icon: Users, label: "Pengguna" },
+    { path: "/admin/validation-games", icon: CheckCircle, label: "Validasi User ID" },
     { path: "/admin/login-history", icon: Shield, label: "Login History" },
     { path: "/admin/audit-logs", icon: FileText, label: "Audit Logs" },
   ];
