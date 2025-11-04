@@ -86,6 +86,19 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("Product name:", product.name);
       console.log("Product slug:", product.slug);
 
+      // Only allow validation for specific games
+      const allowedGames = ["mobile legends", "magic chess", "free fire"];
+      const isAllowed = allowedGames.some(game => product.name.toLowerCase().includes(game));
+      
+      if (!isAllowed) {
+        console.log("⚠️ Product not in allowed validation list");
+        return {
+          success: true,
+          valid: false,
+          message: "Validation not available for this game",
+        };
+      }
+
       const isGenshin = product.slug === "genshin-impact" || 
                         product.name.toLowerCase().includes("genshin");
       

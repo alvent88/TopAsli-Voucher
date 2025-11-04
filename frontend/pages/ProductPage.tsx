@@ -64,19 +64,18 @@ export default function ProductPage() {
       return;
     }
 
-    // Skip validation for specific games that don't have validation API
-    const skipValidationGames = [
-      "call of duty",
-      "cod mobile",
-      "honor of kings",
-      "afk journey"
+    // Only validate these specific games
+    const allowedValidationGames = [
+      "mobile legends",
+      "magic chess",
+      "free fire"
     ];
     
-    const shouldSkipValidation = skipValidationGames.some(game => 
+    const shouldValidate = allowedValidationGames.some(game => 
       product?.name?.toLowerCase().includes(game)
     );
     
-    if (shouldSkipValidation) {
+    if (!shouldValidate) {
       setValidationStatus("idle");
       setValidatedUsername("");
       setValidationMessage("");
