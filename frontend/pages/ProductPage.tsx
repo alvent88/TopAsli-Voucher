@@ -68,7 +68,8 @@ export default function ProductPage() {
     const allowedValidationGames = [
       "mobile legends",
       "magic chess",
-      "free fire"
+      "free fire",
+      "genshin impact"
     ];
     
     const shouldValidate = allowedValidationGames.some(game => 
