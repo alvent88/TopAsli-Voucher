@@ -60,7 +60,7 @@ function getGameEndpoint(productName: string): { endpoint: string; needsServer: 
   if (lowerName.includes("magic chess")) {
     return { endpoint: "/mcgg", needsServer: true };
   }
-  if (lowerName.includes("honor of kings")) {
+  if (lowerName.includes("honor of kings") || lowerName.includes("afk journey")) {
     return null;
   }
   
@@ -162,8 +162,11 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       }
 
       const excludedGames = ["arena-of-valor", "free-fire", "mobile-legends", "valorant", "honor-of-kings"];
+      const excludedByName = ["honor of kings", "afk journey"];
       
-      if (!excludedGames.includes(product.slug) && !product.name.toLowerCase().includes("honor of kings")) {
+      const isExcludedByName = excludedByName.some(name => product.name.toLowerCase().includes(name));
+      
+      if (!excludedGames.includes(product.slug) && !isExcludedByName) {
         console.log("🎮 Using Sandrocods API for validation");
         
         const result = await validateUsernameWithSandrocods(
