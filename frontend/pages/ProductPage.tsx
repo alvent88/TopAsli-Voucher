@@ -69,7 +69,8 @@ export default function ProductPage() {
       "mobile legends",
       "magic chess",
       "free fire",
-      "genshin impact"
+      "genshin impact",
+      "valorant"
     ];
     
     const shouldValidate = allowedValidationGames.some(game => 

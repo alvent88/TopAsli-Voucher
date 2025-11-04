@@ -87,7 +87,7 @@ export const validateUsername = api<ValidateUsernameRequest, ValidateUsernameRes
       console.log("Product slug:", product.slug);
 
       // Only allow validation for specific games
-      const allowedGames = ["mobile legends", "magic chess", "free fire", "genshin impact"];
+      const allowedGames = ["mobile legends", "magic chess", "free fire", "genshin impact", "valorant"];
       const isAllowed = allowedGames.some(game => product.name.toLowerCase().includes(game));
       
       if (!isAllowed) {
