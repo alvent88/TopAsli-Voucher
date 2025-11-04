@@ -64,10 +64,11 @@ export default function ProductPage() {
       return;
     }
 
-    // Skip validation for COD Mobile
+    // Skip validation for COD Mobile and Honor of Kings
     const isCODM = product?.name?.toLowerCase().includes("call of duty") || 
                    product?.name?.toLowerCase().includes("cod mobile");
-    if (isCODM) {
+    const isHonorOfKings = product?.name?.toLowerCase().includes("honor of kings");
+    if (isCODM || isHonorOfKings) {
       setValidationStatus("idle");
       setValidatedUsername("");
       setValidationMessage("");
