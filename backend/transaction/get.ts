@@ -18,6 +18,7 @@ export interface Transaction {
   status: string;
   createdAt: Date;
   userEmail?: string | null;
+  username?: string | null;
 }
 
 interface GetTransactionParams {
@@ -31,7 +32,7 @@ export const get = api<GetTransactionParams, Transaction>(
     const row = await db.queryRow<any>`
       SELECT 
         t.id, t.product_id, t.package_id, t.payment_method_id, t.user_id, t.game_id,
-        t.amount, t.price, t.fee, t.total, t.status, t.created_at,
+        t.amount, t.price, t.fee, t.total, t.status, t.created_at, t.username,
         p.name as product_name,
         pkg.name as package_name,
         pm.name as payment_method_name
@@ -62,6 +63,7 @@ export const get = api<GetTransactionParams, Transaction>(
       total: row.total,
       status: row.status,
       createdAt: row.created_at,
+      username: row.username,
     };
   }
 );

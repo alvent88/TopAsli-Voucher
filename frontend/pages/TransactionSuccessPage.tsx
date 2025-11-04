@@ -1,27 +1,62 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle, Home, Receipt } from "lucide-react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { CheckCircle, Home, Receipt, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBackend } from "@/lib/useBackend";
 
 export default function TransactionSuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { transactionId, productName, packageName, price, userId, gameId } = location.state || {};
+  const [searchParams] = useSearchParams();
+  const backend = useBackend();
+  
+  const stateData = location.state || {};
+  const queryTransactionId = searchParams.get("id");
+  
   const [showConfetti, setShowConfetti] = useState(true);
+  const [loading, setLoading] = useState(!!queryTransactionId);
+  const [transactionData, setTransactionData] = useState<any>(stateData);
 
   useEffect(() => {
-    if (!transactionId) {
-      navigate("/");
-      return;
-    }
+    const fetchTransaction = async () => {
+      if (queryTransactionId && !stateData.transactionId) {
+        try {
+          setLoading(true);
+          const transaction = await backend.transaction.get({ id: queryTransactionId });
+          
+          setTransactionData({
+            transactionId: transaction.id,
+            productName: transaction.productName,
+            packageName: transaction.packageName,
+            price: transaction.total,
+            userId: transaction.userId,
+            gameId: transaction.gameId,
+            username: transaction.username,
+          });
+        } catch (error) {
+          console.error("Failed to fetch transaction:", error);
+          navigate("/");
+          return;
+        } finally {
+          setLoading(false);
+        }
+      } else if (!stateData.transactionId && !queryTransactionId) {
+        navigate("/");
+        return;
+      }
+    };
 
+    fetchTransaction();
+  }, [queryTransactionId]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       setShowConfetti(false);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [transactionId, navigate]);
+  }, []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -30,6 +65,19 @@ export default function TransactionSuccessPage() {
       minimumFractionDigits: 0,
     }).format(amount);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-purple-400 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Memuat data transaksi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { transactionId, productName, packageName, price, userId, gameId, username } = transactionData;
 
   return (
     <div className="min-h-screen bg-[#0a0e27] relative overflow-hidden">
@@ -128,14 +176,24 @@ export default function TransactionSuccessPage() {
                   <span className="text-slate-400">Paket</span>
                   <span className="text-white">{packageName}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">User ID</span>
-                  <span className="text-white font-mono text-xs">{userId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Game ID</span>
-                  <span className="text-white font-mono text-xs">{gameId}</span>
-                </div>
+                {username && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Username</span>
+                    <span className="text-green-400 font-semibold text-sm">{username}</span>
+                  </div>
+                )}
+                {userId && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">User ID</span>
+                    <span className="text-white font-mono text-xs">{userId}</span>
+                  </div>
+                )}
+                {gameId && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Server ID</span>
+                    <span className="text-white font-mono text-xs">{gameId}</span>
+                  </div>
+                )}
                 <div className="border-t border-slate-700 pt-2 mt-2 flex justify-between">
                   <span className="text-white font-semibold">Total Dibayar</span>
                   <span className="text-green-400 font-bold">{formatCurrency(price)}</span>
