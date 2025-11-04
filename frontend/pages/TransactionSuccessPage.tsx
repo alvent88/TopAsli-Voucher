@@ -35,43 +35,63 @@ export default function TransactionSuccessPage() {
     <div className="min-h-screen bg-[#0a0e27] relative overflow-hidden">
       {showConfetti && (
         <>
-          <div className="confetti-container left">
-            {[...Array(100)].map((_, i) => {
-              const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
-              const shapes = ["square", "circle", "rectangle"];
-              const shape = shapes[Math.floor(Math.random() * shapes.length)];
-              return (
-                <div
-                  key={`left-${i}`}
-                  className={`confetti confetti-${shape}`}
-                  style={{
-                    left: `${Math.random() * 30}%`,
-                    animationDelay: `${Math.random() * 0.5}s`,
-                    animationDuration: `${2.5 + Math.random() * 1.5}s`,
-                    backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                  }}
-                />
-              );
-            })}
+          <div className="fireworks-container left">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={`firework-left-${i}`}
+                className="firework"
+                style={{
+                  left: `${10 + Math.random() * 10}%`,
+                  top: `${10 + i * 8}%`,
+                  animationDelay: `${i * 0.3}s`,
+                }}
+              >
+                {[...Array(30)].map((_, j) => {
+                  const angle = (j / 30) * 360;
+                  const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
+                  return (
+                    <div
+                      key={`particle-${j}`}
+                      className="particle"
+                      style={{
+                        '--angle': `${angle}deg`,
+                        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                        animationDelay: `${i * 0.3}s`,
+                      } as any}
+                    />
+                  );
+                })}
+              </div>
+            ))}
           </div>
-          <div className="confetti-container right">
-            {[...Array(100)].map((_, i) => {
-              const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
-              const shapes = ["square", "circle", "rectangle"];
-              const shape = shapes[Math.floor(Math.random() * shapes.length)];
-              return (
-                <div
-                  key={`right-${i}`}
-                  className={`confetti confetti-${shape}`}
-                  style={{
-                    right: `${Math.random() * 30}%`,
-                    animationDelay: `${Math.random() * 0.5}s`,
-                    animationDuration: `${2.5 + Math.random() * 1.5}s`,
-                    backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                  }}
-                />
-              );
-            })}
+          <div className="fireworks-container right">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={`firework-right-${i}`}
+                className="firework"
+                style={{
+                  right: `${10 + Math.random() * 10}%`,
+                  top: `${10 + i * 8}%`,
+                  animationDelay: `${i * 0.3}s`,
+                }}
+              >
+                {[...Array(30)].map((_, j) => {
+                  const angle = (j / 30) * 360;
+                  const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
+                  return (
+                    <div
+                      key={`particle-${j}`}
+                      className="particle"
+                      style={{
+                        '--angle': `${angle}deg`,
+                        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                        animationDelay: `${i * 0.3}s`,
+                      } as any}
+                    />
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -151,72 +171,51 @@ export default function TransactionSuccessPage() {
       </div>
 
       <style>{`
-        .confetti-container {
+        .fireworks-container {
           position: fixed;
           top: 0;
-          width: 40%;
+          width: 30%;
           height: 100%;
           pointer-events: none;
           z-index: 5;
           overflow: hidden;
         }
 
-        .confetti-container.left {
+        .fireworks-container.left {
           left: 0;
         }
 
-        .confetti-container.right {
+        .fireworks-container.right {
           right: 0;
         }
 
-        .confetti {
+        .firework {
           position: absolute;
-          top: -20px;
+          width: 10px;
+          height: 10px;
         }
 
-        .confetti-square {
+        .particle {
+          position: absolute;
           width: 8px;
           height: 8px;
-        }
-
-        .confetti-circle {
-          width: 6px;
-          height: 6px;
           border-radius: 50%;
+          left: 50%;
+          top: 50%;
+          transform-origin: center;
+          opacity: 0;
+          animation: explode 1.5s ease-out forwards;
         }
 
-        .confetti-rectangle {
-          width: 10px;
-          height: 6px;
-          border-radius: 2px;
-        }
-
-        @keyframes confetti-fall {
+        @keyframes explode {
           0% {
-            transform: translateY(0) translateX(0) rotateZ(0deg) rotateY(0deg);
-            opacity: 1;
-          }
-          10% {
+            transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
             opacity: 1;
           }
           100% {
-            transform: translateY(110vh) translateX(calc(-50px + 100px * var(--random-x, 0.5))) rotateZ(calc(360deg * var(--random-rotate, 3))) rotateY(calc(180deg * var(--random-y, 2)));
-            opacity: 0.8;
+            transform: translate(-50%, -50%) rotate(var(--angle)) translateX(150px);
+            opacity: 0;
           }
-        }
-
-        .confetti-container.left .confetti {
-          animation: confetti-fall var(--duration, 3s) cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay, 0s) forwards;
-          --random-x: ${Math.random()};
-          --random-rotate: ${2 + Math.random() * 4};
-          --random-y: ${1 + Math.random() * 2};
-        }
-
-        .confetti-container.right .confetti {
-          animation: confetti-fall var(--duration, 3s) cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay, 0s) forwards;
-          --random-x: ${Math.random()};
-          --random-rotate: ${2 + Math.random() * 4};
-          --random-y: ${1 + Math.random() * 2};
         }
 
         @keyframes bounce-slow {
