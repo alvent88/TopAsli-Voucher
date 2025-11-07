@@ -1,4 +1,5 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { messageTopic } from "../notification/events";
 
@@ -15,8 +16,28 @@ export interface CreateMessageResponse {
 }
 
 export const create = api<CreateMessageRequest, CreateMessageResponse>(
-  { expose: true, method: "POST", path: "/messages" },
+  { expose: true, method: "POST", path: "/messages", auth: true },
   async ({ name, email, subject, message }) => {
+    const auth = getAuthData()!;
+    const userId = auth.userID;
+
+    const rateLimitCheck = await db.queryRow<{ count: number, last_sent: Date | null }>`
+      SELECT COUNT(*) as count, MAX(created_at) as last_sent
+      FROM messages
+      WHERE created_at > NOW() - INTERVAL '1 hour'
+        AND (email = ${email} OR name = ${name})
+    `;
+
+    if (rateLimitCheck && rateLimitCheck.count >= 3) {
+      const lastSent = rateLimitCheck.last_sent;
+      if (lastSent) {
+        const timeSinceLastMessage = Date.now() - new Date(lastSent).getTime();
+        const minutesRemaining = Math.ceil((3600000 - timeSinceLastMessage) / 60000);
+        throw APIError.resourceExhausted(
+          `Anda telah mencapai batas pengiriman pesan (3 pesan per jam). Silakan coba lagi dalam ${minutesRemaining} menit.`
+        );
+      }
+    }
     const row = await db.queryRow<{ id: number }>`
       INSERT INTO messages (name, email, subject, message)
       VALUES (${name}, ${email}, ${subject}, ${message})

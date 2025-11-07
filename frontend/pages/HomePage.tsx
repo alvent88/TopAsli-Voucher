@@ -197,10 +197,9 @@ export default function HomePage() {
                             <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 group-hover:from-yellow-400/20 group-hover:to-yellow-400/10 transition-all duration-300" />
                           </div>
                           <div className="p-3 bg-[#1a1f3a]">
-                            <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-yellow-400 transition-colors line-clamp-1">
+                            <h3 className="font-semibold text-white text-sm group-hover:text-yellow-400 transition-colors line-clamp-2">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{product.category}</p>
                           </div>
                         </CardContent>
                       </Card>
@@ -254,10 +253,9 @@ export default function HomePage() {
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-400/0 via-transparent to-pink-400/0 group-hover:from-purple-400/20 group-hover:to-pink-400/10 transition-all duration-300" />
                           </div>
                           <div className="p-3 bg-[#1a1f3a]">
-                            <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-purple-400 transition-colors line-clamp-1">
+                            <h3 className="font-semibold text-white text-sm group-hover:text-purple-400 transition-colors line-clamp-2">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{product.category}</p>
                           </div>
                         </CardContent>
                       </Card>

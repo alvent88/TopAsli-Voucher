@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Gamepad2, Send, Mail, MessageCircle, Clock, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +12,8 @@ import backend from "~backend/client";
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const { isSignedIn, isLoaded } = useUser();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,6 +21,17 @@ export default function ContactPage() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      toast({
+        title: "Akses Ditolak",
+        description: "Anda harus login terlebih dahulu untuk mengakses halaman kontak.",
+        variant: "destructive",
+      });
+      navigate("/login");
+    }
+  }, [isLoaded, isSignedIn, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +61,10 @@ export default function ContactPage() {
       setLoading(false);
     }
   };
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
