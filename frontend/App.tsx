@@ -35,6 +35,10 @@ import AdminValidationGames from "./pages/admin/AdminValidationGames";
 
 const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
 
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
+
 function BanChecker() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
@@ -101,6 +105,8 @@ function LoginTracker() {
       if (!isLoaded || !user) return;
 
       const loginTrackedKey = `login_tracked_${user.id}`;
+      const autoRegKey = `auto_reg_${user.id}`;
+      
       if (sessionStorage.getItem(loginTrackedKey)) {
         return;
       }
@@ -108,6 +114,32 @@ function LoginTracker() {
       try {
         const email = user.primaryEmailAddress?.emailAddress;
         const phoneNumber = user.primaryPhoneNumber?.phoneNumber;
+        
+        if (!sessionStorage.getItem(autoRegKey) && email) {
+          console.log("=== AUTO-REGISTRATION ATTEMPT ===");
+          console.log("User ID:", user.id);
+          console.log("Email:", email);
+          
+          try {
+            const regResult = await backend.auth.autoRegister();
+            console.log("Auto-registration result:", regResult);
+            
+            if (regResult.isNewUser) {
+              console.log("✅ New user registered successfully!");
+            } else {
+              console.log("ℹ️ User already exists in database");
+            }
+            
+            sessionStorage.setItem(autoRegKey, "true");
+          } catch (regError: any) {
+            console.error("❌ Auto-registration failed:", regError);
+            console.error("Error details:", {
+              message: regError.message,
+              code: regError.code,
+              status: regError.status,
+            });
+          }
+        }
         
         let ipAddress = 'unknown';
         try {
@@ -198,7 +230,11 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <AppInner />
     </ClerkProvider>
   );
