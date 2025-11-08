@@ -48,30 +48,31 @@ function BanChecker() {
       if (!email) return;
 
       const banCheckKey = `ban_checked_${email}`;
+      const autoRegKey = `auto_reg_${email}`;
+      
       if (sessionStorage.getItem(banCheckKey)) {
         return;
       }
 
       try {
+        if (!sessionStorage.getItem(autoRegKey)) {
+          console.log("Attempting auto-registration...");
+          try {
+            const regResult = await backend.auth.autoRegister();
+            console.log("Auto-registration result:", regResult);
+            sessionStorage.setItem(autoRegKey, "true");
+          } catch (regError: any) {
+            console.error("Auto-registration failed:", regError);
+            if (!regError.message?.includes("already registered")) {
+              console.error("Registration error details:", regError);
+            }
+          }
+        }
+        
         const checkResult = await backend.auth.checkUser({ identifier: email });
         
         if (!checkResult.exists) {
-          console.log("User not registered, auto-registering...");
-          try {
-            const firstName = user.firstName || "";
-            const lastName = user.lastName || "";
-            const fullName = `${firstName} ${lastName}`.trim() || email.split("@")[0];
-            
-            await backend.auth.completeEmailRegistration({
-              email: email,
-              fullName: fullName,
-              clerkUserId: user.id,
-            });
-            
-            console.log("User auto-registered successfully");
-          } catch (regError) {
-            console.error("Auto-registration failed:", regError);
-          }
+          console.warn("User still not registered after auto-register attempt");
         }
       } catch (error: any) {
         if (error.message?.includes("dibanned")) {
