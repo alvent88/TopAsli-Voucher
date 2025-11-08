@@ -32,6 +32,7 @@ import AdminUniPlaySync from "./pages/admin/AdminUniPlaySync";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
+import AdminSyncPhone from "./pages/admin/AdminSyncPhone";
 
 const PUBLISHABLE_KEY = "pk_test_aGVscGluZy1rYW5nYXJvby03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
 
@@ -176,6 +177,7 @@ function AppInner() {
             <Route path="validation-games" element={<AdminValidationGames />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
             <Route path="login-history" element={<AdminLoginHistory />} />
+            <Route path="sync-phone" element={<AdminSyncPhone />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
