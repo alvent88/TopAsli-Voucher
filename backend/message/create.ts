@@ -26,8 +26,20 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
     const userId = auth.userID;
     const email = auth.email || "";
 
-    const user = await clerkClient.users.getUser(userId);
-    const phoneNumber = (user.publicMetadata?.phoneNumber as string) || null;
+    let phoneNumber: string | null = null;
+    
+    try {
+      const userFromDb = await db.queryRow<{ clerk_user_id: string }>`
+        SELECT clerk_user_id FROM email_registrations WHERE email = ${email}
+      `;
+      
+      if (userFromDb && userFromDb.clerk_user_id) {
+        const clerkUser = await clerkClient.users.getUser(userFromDb.clerk_user_id);
+        phoneNumber = (clerkUser.unsafeMetadata?.phoneNumber as string) || null;
+      }
+    } catch (err) {
+      console.log("Failed to fetch phone number from database/Clerk:", err);
+    }
 
     const rateLimitCheck = await db.queryRow<{ count: number, last_sent: Date | null }>`
       SELECT COUNT(*) as count, MAX(created_at) as last_sent
