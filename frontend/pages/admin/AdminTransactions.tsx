@@ -490,10 +490,10 @@ export default function AdminTransactions() {
                     <button onClick={() => { setDateFilterType("30days"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
                       30 hari sebelumnya
                     </button>
-                    <div className="px-3 py-2 text-xs font-semibold text-blue-400 border-t border-slate-700 mt-2">Per Hari</div>
-                    <div className="px-3 py-2 text-xs font-semibold text-purple-400 border-t border-slate-700 mt-2">Per Minggu</div>
-                    <div className="px-3 py-2 text-xs font-semibold text-green-400 border-t border-slate-700 mt-2">Per Bulan</div>
-                    <div className="px-3 py-2 text-xs font-semibold text-pink-400 border-t border-slate-700 mt-2">Berdasarkan Tahun</div>
+                    <button onClick={() => setDateFilterType("daily")} className="w-full text-left px-3 py-2 text-xs font-semibold text-blue-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Hari</button>
+                    <button onClick={() => setDateFilterType("weekly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-purple-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Minggu</button>
+                    <button onClick={() => setDateFilterType("monthly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-green-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Bulan</button>
+                    <button onClick={() => setDateFilterType("yearly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-pink-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Berdasarkan Tahun</button>
                   </div>
                 </div>
                 <div className="w-96 p-4">
