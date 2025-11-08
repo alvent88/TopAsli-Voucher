@@ -65,7 +65,7 @@ export default function LoginPage() {
 
       toast({
         title: "Kode OTP Terkirim",
-        description: "Silakan cek email Anda",
+        description: "Silakan cek email Anda (termasuk folder spam)",
       });
       setStep("verification");
     } catch (err: any) {
@@ -150,7 +150,7 @@ export default function LoginPage() {
               <CardDescription className="text-slate-400">
                 {step === "email"
                   ? "Masukkan email Anda untuk masuk"
-                  : "Kode OTP telah dikirim ke email Anda"}
+                  : "Kode OTP telah dikirim ke email Anda (periksa folder spam jika tidak terlihat)"}
               </CardDescription>
             </CardHeader>
             <CardContent>

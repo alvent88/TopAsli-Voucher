@@ -51,7 +51,7 @@ export default function RegisterPage() {
       
       toast({
         title: "Kode OTP Terkirim",
-        description: "Silakan cek email Anda",
+        description: "Silakan cek email Anda (termasuk folder spam)",
       });
       setStep("verification");
     } catch (err: any) {
@@ -273,7 +273,7 @@ export default function RegisterPage() {
                 {step === "email"
                   ? "Masukkan email Anda untuk mendaftar"
                   : step === "verification"
-                  ? "Kode OTP telah dikirim ke email Anda"
+                  ? "Kode OTP telah dikirim ke email Anda (periksa folder spam jika tidak terlihat)"
                   : "Isi nama lengkap dan nomor HP Anda"}
               </CardDescription>
             </CardHeader>
