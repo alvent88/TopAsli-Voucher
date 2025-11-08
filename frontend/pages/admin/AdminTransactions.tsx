@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import type { Transaction } from "~backend/transaction/get";
-import { RefreshCw, Search, FileDown, Calendar } from "lucide-react";
+import { RefreshCw, Search, FileDown, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import * as XLSX from "xlsx";
 
-type DateFilter = "realtime" | "today" | "7days" | "30days";
+type DateFilterType = "today" | "yesterday" | "7days" | "30days" | "daily" | "weekly" | "monthly" | "yearly";
 type StatusFilter = "all" | "success" | "failed";
 
 export default function AdminTransactions() {
@@ -33,9 +33,14 @@ export default function AdminTransactions() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [emailFilter, setEmailFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState<DateFilter>("realtime");
+  const [dateFilterType, setDateFilterType] = useState<DateFilterType>("today");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
+  
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     loadTransactions();
@@ -43,7 +48,7 @@ export default function AdminTransactions() {
 
   useEffect(() => {
     applyFilters();
-  }, [dateFilter, statusFilter, emailFilter, allTransactions]);
+  }, [dateFilterType, statusFilter, emailFilter, allTransactions, selectedDate, selectedMonth, selectedYear]);
 
   const applyFilters = () => {
     let filtered = [...allTransactions];
@@ -51,16 +56,54 @@ export default function AdminTransactions() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (dateFilter === "today") {
+    if (dateFilterType === "today") {
       filtered = filtered.filter((t) => new Date(t.createdAt) >= today);
-    } else if (dateFilter === "7days") {
+    } else if (dateFilterType === "yesterday") {
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= yesterday && tDate < today;
+      });
+    } else if (dateFilterType === "7days") {
       const sevenDaysAgo = new Date(today);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       filtered = filtered.filter((t) => new Date(t.createdAt) >= sevenDaysAgo);
-    } else if (dateFilter === "30days") {
+    } else if (dateFilterType === "30days") {
       const thirtyDaysAgo = new Date(today);
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       filtered = filtered.filter((t) => new Date(t.createdAt) >= thirtyDaysAgo);
+    } else if (dateFilterType === "daily") {
+      const dayStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= dayStart && tDate < dayEnd;
+      });
+    } else if (dateFilterType === "weekly") {
+      const weekStart = new Date(selectedDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= weekStart && tDate < weekEnd;
+      });
+    } else if (dateFilterType === "monthly") {
+      const monthStart = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+      const monthEnd = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1);
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= monthStart && tDate < monthEnd;
+      });
+    } else if (dateFilterType === "yearly") {
+      const yearStart = new Date(selectedYear, 0, 1);
+      const yearEnd = new Date(selectedYear + 1, 0, 1);
+      filtered = filtered.filter((t) => {
+        const tDate = new Date(t.createdAt);
+        return tDate >= yearStart && tDate < yearEnd;
+      });
     }
 
     if (statusFilter === "success") {
@@ -179,13 +222,218 @@ export default function AdminTransactions() {
   };
 
   const getDateFilterLabel = () => {
-    switch (dateFilter) {
-      case "realtime": return "Real-time - Hari Ini";
-      case "today": return "Kemarin";
-      case "7days": return "7 hari sebelumnya";
-      case "30days": return "30 hari sebelumnya";
-      default: return "Real-time - Hari Ini";
+    if (dateFilterType === "today") return "Hari Ini";
+    if (dateFilterType === "yesterday") return "Kemarin";
+    if (dateFilterType === "7days") return "7 hari sebelumnya";
+    if (dateFilterType === "30days") return "30 hari sebelumnya";
+    if (dateFilterType === "daily") return `Per Hari - ${selectedDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+    if (dateFilterType === "weekly") {
+      const weekStart = new Date(selectedDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return `Per Minggu - ${weekStart.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - ${weekEnd.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
     }
+    if (dateFilterType === "monthly") return `Per Bulan - ${selectedMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`;
+    if (dateFilterType === "yearly") return `Per Tahun - ${selectedYear}`;
+    return "Hari Ini";
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  const dayNames = ["M", "S", "S", "R", "K", "J", "S"];
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(calendarMonth);
+    const firstDay = getFirstDayOfMonth(calendarMonth);
+    const days = [];
+    
+    const prevMonthDays = getDaysInMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
+    for (let i = firstDay - 1; i >= 0; i--) {
+      days.push({ day: prevMonthDays - i, isCurrentMonth: false });
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, isCurrentMonth: true });
+    }
+    
+    const remainingDays = 42 - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      days.push({ day: i, isCurrentMonth: false });
+    }
+
+    return (
+      <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const newMonth = new Date(calendarMonth);
+              newMonth.setMonth(newMonth.getMonth() - 1);
+              setCalendarMonth(newMonth);
+            }}
+            className="text-white hover:bg-slate-700"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-white font-semibold">
+            {monthNames[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const newMonth = new Date(calendarMonth);
+              newMonth.setMonth(newMonth.getMonth() + 1);
+              setCalendarMonth(newMonth);
+            }}
+            className="text-white hover:bg-slate-700"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {dayNames.map((day, i) => (
+            <div key={i} className="text-center text-slate-400 text-xs font-semibold p-2">
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((dayObj, i) => {
+            const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + (dayObj.isCurrentMonth ? 0 : (i < 7 ? -1 : 1)), dayObj.day);
+            const isSelected = dateFilterType === "daily" && 
+              date.getDate() === selectedDate.getDate() && 
+              date.getMonth() === selectedDate.getMonth() && 
+              date.getFullYear() === selectedDate.getFullYear();
+            
+            return (
+              <button
+                key={i}
+                onClick={() => {
+                  setSelectedDate(date);
+                  setDateFilterType("daily");
+                  setIsDateFilterOpen(false);
+                }}
+                className={`p-2 text-sm rounded ${
+                  !dayObj.isCurrentMonth
+                    ? "text-slate-600"
+                    : isSelected
+                    ? "bg-blue-600 text-white font-semibold"
+                    : "text-white hover:bg-slate-700"
+                }`}
+              >
+                {dayObj.day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMonthPicker = () => {
+    return (
+      <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const newDate = new Date(selectedMonth);
+              newDate.setFullYear(newDate.getFullYear() - 1);
+              setSelectedMonth(newDate);
+            }}
+            className="text-white hover:bg-slate-700"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-white font-semibold">{selectedMonth.getFullYear()}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const newDate = new Date(selectedMonth);
+              newDate.setFullYear(newDate.getFullYear() + 1);
+              setSelectedMonth(newDate);
+            }}
+            className="text-white hover:bg-slate-700"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {monthNames.map((month, i) => {
+            const isSelected = dateFilterType === "monthly" && 
+              i === selectedMonth.getMonth() && 
+              selectedMonth.getFullYear() === selectedMonth.getFullYear();
+            
+            return (
+              <button
+                key={i}
+                onClick={() => {
+                  const newDate = new Date(selectedMonth.getFullYear(), i, 1);
+                  setSelectedMonth(newDate);
+                  setDateFilterType("monthly");
+                  setIsDateFilterOpen(false);
+                }}
+                className={`p-3 text-sm rounded ${
+                  isSelected
+                    ? "bg-blue-600 text-white font-semibold"
+                    : "text-white hover:bg-slate-700"
+                }`}
+              >
+                {month}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderYearPicker = () => {
+    const years = [];
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+      years.push(i);
+    }
+
+    return (
+      <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg">
+        <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+          {years.map((year) => {
+            const isSelected = dateFilterType === "yearly" && year === selectedYear;
+            
+            return (
+              <button
+                key={year}
+                onClick={() => {
+                  setSelectedYear(year);
+                  setDateFilterType("yearly");
+                  setIsDateFilterOpen(false);
+                }}
+                className={`p-3 text-sm rounded ${
+                  isSelected
+                    ? "bg-blue-600 text-white font-semibold"
+                    : "text-white hover:bg-slate-700"
+                }`}
+              >
+                {year}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -218,33 +466,42 @@ export default function AdminTransactions() {
         <div className="relative">
           <Button
             variant="outline"
-            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 justify-start min-w-72"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 justify-start min-w-96"
             onClick={() => setIsDateFilterOpen(!isDateFilterOpen)}
           >
             <Calendar className="mr-2 h-4 w-4" />
             Periode Data: {getDateFilterLabel()}
           </Button>
           {isDateFilterOpen && (
-            <div className="absolute top-full mt-2 w-72 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10 p-2">
-              <div className="space-y-1">
-                <div className="px-3 py-2 text-xs font-semibold text-red-400 border-b border-slate-700">Real-time</div>
-                <button onClick={() => { setDateFilter("realtime"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
-                  Real-time
-                </button>
-                <div className="px-3 py-2 text-xs font-semibold text-orange-400 border-t border-slate-700 mt-2">Hari Ini - Pk 08:00 (GMT+07)</div>
-                <button onClick={() => { setDateFilter("today"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
-                  Kemarin
-                </button>
-                <button onClick={() => { setDateFilter("7days"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
-                  7 hari sebelumnya.
-                </button>
-                <button onClick={() => { setDateFilter("30days"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
-                  30 hari sebelumnya.
-                </button>
-                <div className="px-3 py-2 text-xs font-semibold text-blue-400 border-t border-slate-700 mt-2">Per Hari</div>
-                <div className="px-3 py-2 text-xs font-semibold text-purple-400 border-t border-slate-700 mt-2">Per Minggu</div>
-                <div className="px-3 py-2 text-xs font-semibold text-green-400 border-t border-slate-700 mt-2">Per Bulan</div>
-                <div className="px-3 py-2 text-xs font-semibold text-pink-400 border-t border-slate-700 mt-2">Berdasarkan Tahun</div>
+            <div className="absolute top-full mt-2 w-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg z-10">
+              <div className="flex">
+                <div className="w-64 p-2 border-r border-slate-700">
+                  <div className="space-y-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-orange-400">Hari Ini</div>
+                    <button onClick={() => { setDateFilterType("today"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
+                      Hari Ini
+                    </button>
+                    <button onClick={() => { setDateFilterType("yesterday"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
+                      Kemarin
+                    </button>
+                    <button onClick={() => { setDateFilterType("7days"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
+                      7 hari sebelumnya
+                    </button>
+                    <button onClick={() => { setDateFilterType("30days"); setIsDateFilterOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 rounded">
+                      30 hari sebelumnya
+                    </button>
+                    <div className="px-3 py-2 text-xs font-semibold text-blue-400 border-t border-slate-700 mt-2">Per Hari</div>
+                    <div className="px-3 py-2 text-xs font-semibold text-purple-400 border-t border-slate-700 mt-2">Per Minggu</div>
+                    <div className="px-3 py-2 text-xs font-semibold text-green-400 border-t border-slate-700 mt-2">Per Bulan</div>
+                    <div className="px-3 py-2 text-xs font-semibold text-pink-400 border-t border-slate-700 mt-2">Berdasarkan Tahun</div>
+                  </div>
+                </div>
+                <div className="w-96 p-4">
+                  {dateFilterType === "daily" || dateFilterType === "weekly" ? renderCalendar() : 
+                   dateFilterType === "monthly" ? renderMonthPicker() :
+                   dateFilterType === "yearly" ? renderYearPicker() :
+                   <div className="text-slate-400 text-center py-12">Pilih periode dari menu</div>}
+                </div>
               </div>
             </div>
           )}
