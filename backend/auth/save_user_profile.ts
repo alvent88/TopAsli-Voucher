@@ -79,6 +79,9 @@ export const saveUserProfile = api<SaveUserProfileRequest, SaveUserProfileRespon
       
       console.log("Updating Clerk user metadata...");
       await clerkClient.users.updateUser(userId, {
+        publicMetadata: {
+          phoneNumber: formattedPhone,
+        },
         unsafeMetadata: {
           fullName,
           phoneNumber: formattedPhone,
