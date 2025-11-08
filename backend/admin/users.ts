@@ -69,12 +69,22 @@ export const listUsers = api<void, ListUsersResponse>(
           `;
           if (userRow && userRow.birth_date) {
             birthDate = userRow.birth_date.toISOString().split('T')[0];
-            console.log(`Birth date for ${user.id}: ${birthDate}`);
-          } else {
-            console.log(`No birth date found for user ${user.id}`);
           }
         } catch (err) {
-          console.log(`User ${user.id} not found in users table, will skip birth_date`);
+          const firstName = user.firstName || "";
+          const lastName = user.lastName || "";
+          const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
+          const phoneNumber = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || null;
+          
+          try {
+            await db.exec`
+              INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
+              VALUES (${user.id}, ${email}, ${fullName}, ${phoneNumber}, '2000-01-01', NOW(), NOW())
+            `;
+            birthDate = '2000-01-01';
+          } catch (insertErr) {
+            console.error(`Failed to auto-create user ${user.id}:`, insertErr);
+          }
         }
         
         if (email) {
