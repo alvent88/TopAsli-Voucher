@@ -44,7 +44,10 @@ export const getUserProfile = api<void, UserProfile>(
 
       if (!user && email) {
         console.log("Trying to find by email:", email);
-        user = await db.queryRow<{ 
+        
+        // Try multiple ways to find the user
+        const allMatches = [];
+        for await (const row of db.query<{ 
           clerk_user_id: string;
           email: string;
           full_name: string;
@@ -53,17 +56,20 @@ export const getUserProfile = api<void, UserProfile>(
         }>`
           SELECT clerk_user_id, email, full_name, phone_number, birth_date
           FROM users 
-          WHERE LOWER(email) = LOWER(${email})
-        `;
+          WHERE email ILIKE ${email}
+        `) {
+          allMatches.push(row);
+        }
 
-        console.log("User found by email:", user ? "Yes" : "No");
-
-        if (user) {
+        console.log("Found", allMatches.length, "matches for email");
+        
+        if (allMatches.length > 0) {
+          user = allMatches[0];
           console.log("Updating clerk_user_id from", user.clerk_user_id, "to", userId);
           await db.exec`
             UPDATE users 
             SET clerk_user_id = ${userId}, updated_at = NOW()
-            WHERE LOWER(email) = LOWER(${email})
+            WHERE email ILIKE ${email}
           `;
           user.clerk_user_id = userId;
         }
