@@ -51,9 +51,10 @@ export const autoRegister = api<void, AutoRegisterResponse>(
       console.log("Creating new user in database...");
       console.log("Full name:", fullName);
 
+      const now = Date.now();
       await db.exec`
-        INSERT INTO email_registrations (email, full_name, clerk_user_id, is_verified)
-        VALUES (${email}, ${fullName}, ${userId}, true)
+        INSERT INTO email_registrations (email, full_name, clerk_user_id, created_at, updated_at, is_banned, otp_request_count)
+        VALUES (${email}, ${fullName}, ${userId}, ${now}, ${now}, false, 0)
       `;
 
       console.log("User registered successfully!");
