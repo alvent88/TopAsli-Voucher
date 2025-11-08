@@ -84,62 +84,66 @@ export default function TransactionSuccessPage() {
       {showConfetti && (
         <>
           <div className="fireworks-container left">
-            {[...Array(10)].map((_, i) => (
-              <div
-                key={`firework-left-${i}`}
-                className="firework"
-                style={{
-                  left: `${Math.random() * 25}%`,
-                  top: `${Math.random() * 80 + 10}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                }}
-              >
-                {[...Array(30)].map((_, j) => {
-                  const angle = (j / 30) * 360;
-                  const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
-                  return (
-                    <div
-                      key={`particle-${j}`}
-                      className="particle"
-                      style={{
-                        '--angle': `${angle}deg`,
-                        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                        animationDelay: `${Math.random() * 0.5}s`,
-                      } as any}
-                    />
-                  );
-                })}
-              </div>
-            ))}
+            {[...Array(10)].map((_, i) => {
+              const baseDelay = i * 0.4;
+              return (
+                <div
+                  key={`firework-left-${i}`}
+                  className="firework"
+                  style={{
+                    left: `${Math.random() * 25}%`,
+                    top: `${Math.random() * 80 + 10}%`,
+                  }}
+                >
+                  {[...Array(30)].map((_, j) => {
+                    const angle = (j / 30) * 360;
+                    const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
+                    return (
+                      <div
+                        key={`particle-${j}`}
+                        className="particle"
+                        style={{
+                          '--angle': `${angle}deg`,
+                          backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                          animationDelay: `${baseDelay}s`,
+                        } as any}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
           <div className="fireworks-container right">
-            {[...Array(10)].map((_, i) => (
-              <div
-                key={`firework-right-${i}`}
-                className="firework"
-                style={{
-                  right: `${Math.random() * 25}%`,
-                  top: `${Math.random() * 80 + 10}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                }}
-              >
-                {[...Array(30)].map((_, j) => {
-                  const angle = (j / 30) * 360;
-                  const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
-                  return (
-                    <div
-                      key={`particle-${j}`}
-                      className="particle"
-                      style={{
-                        '--angle': `${angle}deg`,
-                        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                        animationDelay: `${Math.random() * 0.5}s`,
-                      } as any}
-                    />
-                  );
-                })}
-              </div>
-            ))}
+            {[...Array(10)].map((_, i) => {
+              const baseDelay = i * 0.4 + 0.2;
+              return (
+                <div
+                  key={`firework-right-${i}`}
+                  className="firework"
+                  style={{
+                    right: `${Math.random() * 25}%`,
+                    top: `${Math.random() * 80 + 10}%`,
+                  }}
+                >
+                  {[...Array(30)].map((_, j) => {
+                    const angle = (j / 30) * 360;
+                    const colors = ["#fbbf24", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#f97316", "#06b6d4", "#84cc16", "#a855f7", "#ef4444"];
+                    return (
+                      <div
+                        key={`particle-${j}`}
+                        className="particle"
+                        style={{
+                          '--angle': `${angle}deg`,
+                          backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+                          animationDelay: `${baseDelay}s`,
+                        } as any}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </>
       )}
