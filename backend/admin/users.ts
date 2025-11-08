@@ -77,13 +77,17 @@ export const listUsers = api<void, ListUsersResponse>(
           }
         }
         
+        const firstName = user.firstName || null;
+        const lastName = user.lastName || null;
+        const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
+        
         return {
           id: user.id,
           email,
-          phoneNumber: metadata?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || publicMeta?.phoneNumber || null,
-          firstName: user.firstName || null,
-          lastName: user.lastName || null,
-          fullName: metadata?.fullName || null,
+          phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || null,
+          firstName,
+          lastName,
+          fullName,
           createdAt: new Date(user.createdAt).toISOString(),
           lastSignInAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
           isAdmin: publicMeta?.isAdmin || false,

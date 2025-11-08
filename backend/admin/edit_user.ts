@@ -41,10 +41,12 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
     try {
       const user = await clerkClient.users.getUser(userId);
       
+      const oldFullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+      
       const oldValues: any = {
-        fullName: user.unsafeMetadata?.fullName,
+        fullName: oldFullName,
         email: user.emailAddresses[0]?.emailAddress,
-        phoneNumber: user.publicMetadata?.phoneNumber,
+        phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber,
       };
       
       const balanceResult = await db.queryRow<{ balance: number }>` 
@@ -57,10 +59,12 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const updates: any = {};
 
       if (fullName !== undefined) {
-        updates.unsafeMetadata = {
-          ...user.unsafeMetadata,
-          fullName,
-        };
+        const nameParts = fullName.trim().split(/\s+/);
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
+        
+        updates.firstName = firstName;
+        updates.lastName = lastName;
       }
 
       if (phoneNumber !== undefined) {
@@ -75,10 +79,23 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           formattedPhone = "+" + formattedPhone;
         }
 
-        updates.publicMetadata = {
-          ...user.publicMetadata,
+        console.log("Updating phone number to:", formattedPhone);
+        
+        if (user.phoneNumbers.length > 0) {
+          console.log("Deleting existing phone numbers");
+          for (const phone of user.phoneNumbers) {
+            await clerkClient.phoneNumbers.deletePhoneNumber(phone.id);
+          }
+        }
+        
+        const newPhoneNumber = await clerkClient.phoneNumbers.createPhoneNumber({
+          userId: userId,
           phoneNumber: formattedPhone,
-        };
+          verified: true,
+          primary: true,
+        });
+        
+        updates.primaryPhoneNumberId = newPhoneNumber.id;
       }
 
       if (email !== undefined && email !== user.emailAddresses[0]?.emailAddress) {

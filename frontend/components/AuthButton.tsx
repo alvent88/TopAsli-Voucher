@@ -47,7 +47,9 @@ export function AuthButton() {
   };
 
   if (isSignedIn) {
-    const fullName = user.fullName || user.firstName || "User";
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ") || "User";
     
     return (
       <DropdownMenu>

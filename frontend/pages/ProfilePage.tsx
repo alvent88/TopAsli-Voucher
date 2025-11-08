@@ -37,7 +37,9 @@ export default function ProfilePage() {
     }).format(amount);
   };
 
-  const fullName = user?.fullName || user?.firstName || "User";
+  const firstName = user?.firstName || "";
+  const lastName = user?.lastName || "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ") || "User";
   const email = user?.emailAddresses[0]?.emailAddress || "-";
   const phoneNumber = user?.primaryPhoneNumber?.phoneNumber || 
                       user?.phoneNumbers?.[0]?.phoneNumber || "-";
