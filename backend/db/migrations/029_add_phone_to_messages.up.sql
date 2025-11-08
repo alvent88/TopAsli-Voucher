@@ -1,1 +1,1 @@
-ALTER TABLE messages ADD COLUMN phone_number TEXT;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS phone_number TEXT;
