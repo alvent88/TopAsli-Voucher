@@ -550,7 +550,7 @@ export default function AdminUsers() {
                         <div>
                           {user.fullName || user.firstName || "-"}
                           {user.lastName && ` ${user.lastName}`}
-                          {user.birthDate && (
+                          {user.birthDate && user.birthDate !== '' && user.birthDate !== '2000-01-01' && (
                             <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {new Date(user.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}

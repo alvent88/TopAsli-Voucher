@@ -148,14 +148,25 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         `;
       }
 
-      if (birthDate !== undefined) {
-        const unsafeMetadata = user.unsafeMetadata as any || {};
-        unsafeMetadata.birthDate = birthDate;
-        updates.unsafeMetadata = unsafeMetadata;
-      }
-
       if (Object.keys(updates).length > 0) {
         await clerkClient.users.updateUser(userId, updates);
+      }
+
+      if (birthDate !== undefined) {
+        const unsafeMetadata = (user.unsafeMetadata as any) || {};
+        unsafeMetadata.birthDate = birthDate;
+        await clerkClient.users.updateUser(userId, {
+          unsafeMetadata: unsafeMetadata,
+        });
+        
+        const userEmail = user.emailAddresses[0]?.emailAddress;
+        if (userEmail) {
+          await db.exec`
+            UPDATE email_registrations 
+            SET birth_date = ${birthDate}
+            WHERE email = ${userEmail}
+          `;
+        }
       }
 
       console.log("User updated successfully");
