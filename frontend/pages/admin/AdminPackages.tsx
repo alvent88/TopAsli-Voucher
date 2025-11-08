@@ -334,29 +334,31 @@ export default function AdminPackages() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Paket</h1>
-          <p className="text-slate-400 mt-1">Kelola paket top-up</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Paket</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Kelola paket top-up</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canEdit && (
             <Button
               onClick={handleCreate}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm"
+              size="sm"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Tambah Paket
+              <span className="hidden sm:inline">Tambah</span> Paket
             </Button>
           )}
           <Button
             onClick={loadData}
             variant="outline"
-            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white text-sm"
+            size="sm"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            <span className="text-white">Refresh</span>
+            <span className="text-white hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -410,8 +412,8 @@ export default function AdminPackages() {
       )}
 
       <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white">Daftar Paket</CardTitle>
+        <CardHeader className="pb-3 md:pb-6">
+          <CardTitle className="text-white text-base md:text-lg">Daftar Paket</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -421,30 +423,30 @@ export default function AdminPackages() {
               {searchQuery ? "Tidak ada paket yang cocok dengan pencarian" : "Tidak ada paket"}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                    <TableHead className="text-slate-400">Produk</TableHead>
-                    <TableHead className="text-slate-400">Nama Paket</TableHead>
-                    <TableHead className="text-slate-400">Harga Asli</TableHead>
-                    <TableHead className="text-slate-400">Harga Setelah Diskon</TableHead>
-                    <TableHead className="text-slate-400">Special Item</TableHead>
-                    <TableHead className="text-slate-400">Status</TableHead>
-                    <TableHead className="text-slate-400 text-right">Aksi</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Produk</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Nama Paket</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Harga</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden md:table-cell">Harga Diskon</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden lg:table-cell">Special</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Status</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPackages.map((pkg) => (
                     <TableRow key={pkg.id} className="border-slate-800 hover:bg-slate-800/50">
-                      <TableCell className="text-white font-medium">
+                      <TableCell className="text-white font-medium text-xs md:text-sm max-w-[120px] truncate">
                         {getProductName(pkg.productId)}
                       </TableCell>
-                      <TableCell className="text-slate-300">{pkg.name}</TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-slate-300 text-xs md:text-sm max-w-[150px] truncate">{pkg.name}</TableCell>
+                      <TableCell className="text-slate-300 text-xs md:text-sm whitespace-nowrap">
                         {formatCurrency(pkg.price)}
                       </TableCell>
-                      <TableCell className="text-green-300 font-medium">
+                      <TableCell className="text-green-300 font-medium text-xs md:text-sm whitespace-nowrap hidden md:table-cell">
                         {pkg.discountPrice && pkg.discountPrice < pkg.price 
                           ? formatCurrency(pkg.discountPrice)
                           : formatCurrency(calculateDiscountedPrice(pkg.price))
@@ -453,7 +455,7 @@ export default function AdminPackages() {
                           <span className="ml-2 text-xs text-red-400">(-{globalDiscount}%)</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         {canEdit ? (
                           <Switch
                             checked={pkg.isSpecialItem}
@@ -491,26 +493,26 @@ export default function AdminPackages() {
                       </TableCell>
                       <TableCell className="text-right">
                         {canEdit ? (
-                          <div className="flex justify-end gap-2">
+                          <div className="flex justify-end gap-1 md:gap-2">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-blue-700 text-blue-400 hover:bg-blue-900/20"
+                              className="border-blue-700 text-blue-400 hover:bg-blue-900/20 h-8 w-8 p-0"
                               onClick={() => handleEdit(pkg)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-700 text-red-400 hover:bg-red-900/20"
+                              className="border-red-700 text-red-400 hover:bg-red-900/20 h-8 w-8 p-0"
                               onClick={() => handleDelete(pkg)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                             </Button>
                           </div>
                         ) : (
-                          <Badge className="bg-slate-600 text-xs">View Only</Badge>
+                          <Badge className="bg-slate-600 text-xs hidden md:inline-flex">View Only</Badge>
                         )}
                       </TableCell>
                     </TableRow>

@@ -280,26 +280,26 @@ export default function ProductPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <Card className="bg-white/5 border-white/10">
-              <CardHeader>
-                <div className="flex items-center gap-4">
+              <CardHeader className="pb-3 md:pb-6">
+                <div className="flex items-center gap-3 md:gap-4">
                   {product.iconUrl ? (
                     <img
                       src={product.iconUrl}
                       alt={product.name}
-                      className="h-16 w-16 rounded-lg object-cover"
+                      className="h-12 w-12 md:h-16 md:w-16 rounded-lg object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-16 w-16 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <Gamepad2 className="h-8 w-8 text-purple-400" />
+                    <div className="h-12 w-12 md:h-16 md:w-16 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Gamepad2 className="h-6 w-6 md:h-8 md:w-8 text-purple-400" />
                     </div>
                   )}
-                  <div>
-                    <CardTitle className="text-white">{product.name}</CardTitle>
-                    <p className="text-sm text-gray-400">{product.category}</p>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-white text-base md:text-lg break-words">{product.name}</CardTitle>
+                    <p className="text-xs md:text-sm text-gray-400">{product.category}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -307,7 +307,7 @@ export default function ProductPage() {
                 {product?.category?.toLowerCase() !== 'voucher' && (
                   <>
                     <div>
-                      <Label htmlFor="userId" className="text-white">
+                      <Label htmlFor="userId" className="text-white text-sm md:text-base">
                         User ID
                       </Label>
                       <div className="relative">
@@ -316,7 +316,7 @@ export default function ProductPage() {
                           value={userId}
                           onChange={(e) => setUserId(e.target.value)}
                           placeholder={product?.name?.toLowerCase().includes("valorant") ? "Masukkan Riot ID (contoh: yuyun#123)" : "Masukkan User ID"}
-                          className={`bg-white/10 text-white pr-10 ${
+                          className={`bg-white/10 text-white pr-10 text-sm md:text-base ${
                             validationStatus === "invalid" ? "border-red-500" : validationStatus === "valid" ? "border-green-500" : "border-white/20"
                           }`}
                         />
@@ -355,7 +355,7 @@ export default function ProductPage() {
                     </div>
                     {product?.requiresServerId !== false && (
                       <div>
-                        <Label htmlFor="gameId" className="text-white">
+                        <Label htmlFor="gameId" className="text-white text-sm md:text-base">
                           {product?.name?.toLowerCase().includes("genshin") ? "Server" : "Server ID"}
                         </Label>
                         {product?.name?.toLowerCase().includes("genshin") ? (
@@ -384,8 +384,8 @@ export default function ProductPage() {
                   </>
                 )}
                 {product?.category?.toLowerCase() === 'voucher' && (
-                  <div className="p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
-                    <p className="text-purple-200 text-sm">
+                  <div className="p-3 md:p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
+                    <p className="text-purple-200 text-xs md:text-sm">
                       Voucher akan dikirimkan ke email Anda setelah pembayaran berhasil
                     </p>
                   </div>
@@ -395,10 +395,10 @@ export default function ProductPage() {
 
             {packages.some((pkg) => pkg.isSpecialItem) && (
               <Card className="bg-white/5 border-yellow-500/30">
-                <CardHeader>
+                <CardHeader className="pb-3 md:pb-6">
                   <div className="flex items-center gap-2">
-                    <Flame className="h-5 w-5 text-yellow-500" />
-                    <CardTitle className="text-white">Special Item</CardTitle>
+                    <Flame className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
+                    <CardTitle className="text-white text-base md:text-lg">Special Item</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -406,7 +406,7 @@ export default function ProductPage() {
                     value={selectedPackage?.toString()}
                     onValueChange={(value) => setSelectedPackage(parseInt(value))}
                   >
-                    <div className="grid md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {packages
                         .filter((pkg) => pkg.isSpecialItem)
                         .map((pkg) => {
@@ -419,7 +419,7 @@ export default function ProductPage() {
                           return (
                           <label
                             key={pkg.id}
-                            className={`relative flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
+                            className={`relative flex items-center justify-between p-3 md:p-4 rounded-lg border cursor-pointer transition-all ${
                               selectedPackage === pkg.id
                                 ? "bg-yellow-500/20 border-yellow-400"
                                 : "bg-white/5 border-yellow-500/30 hover:bg-yellow-500/10"
@@ -430,19 +430,19 @@ export default function ProductPage() {
                                 -{discountPercent}%
                               </div>
                             )}
-                            <div className="flex items-center gap-3">
-                              <RadioGroupItem value={pkg.id.toString()} />
-                              <div>
-                                <div className="text-white font-medium">
+                            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                              <RadioGroupItem value={pkg.id.toString()} className="flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-white font-medium text-sm md:text-base break-words">
                                   {pkg.name}
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   {hasDiscount && (
-                                    <div className="text-gray-500 text-xs line-through">
+                                    <div className="text-gray-500 text-xs md:text-sm line-through">
                                       {formatCurrency(pkg.price)}
                                     </div>
                                   )}
-                                  <div className={hasDiscount ? "text-yellow-300 text-sm font-bold" : "text-yellow-300 text-sm"}>
+                                  <div className={hasDiscount ? "text-yellow-300 text-xs md:text-sm font-bold" : "text-yellow-300 text-xs md:text-sm"}>
                                     {formatCurrency(displayPrice)}
                                   </div>
                                 </div>
@@ -458,15 +458,15 @@ export default function ProductPage() {
             )}
 
             <Card className="bg-white/5 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white">Top Up {product.category}</CardTitle>
+              <CardHeader className="pb-3 md:pb-6">
+                <CardTitle className="text-white text-base md:text-lg">Top Up {product.category}</CardTitle>
               </CardHeader>
               <CardContent>
                 <RadioGroup
                   value={selectedPackage?.toString()}
                   onValueChange={(value) => setSelectedPackage(parseInt(value))}
                 >
-                  <div className="grid md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {packages
                       .filter((pkg) => !pkg.isSpecialItem)
                       .map((pkg) => {
@@ -479,7 +479,7 @@ export default function ProductPage() {
                         return (
                         <label
                           key={pkg.id}
-                          className={`relative flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
+                          className={`relative flex items-center justify-between p-3 md:p-4 rounded-lg border cursor-pointer transition-all ${
                             selectedPackage === pkg.id
                               ? "bg-purple-500/20 border-purple-400"
                               : "bg-white/5 border-white/10 hover:bg-white/10"
@@ -490,19 +490,19 @@ export default function ProductPage() {
                               -{discountPercent}%
                             </div>
                           )}
-                          <div className="flex items-center gap-3">
-                            <RadioGroupItem value={pkg.id.toString()} />
-                            <div>
-                              <div className="text-white font-medium">
+                          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                            <RadioGroupItem value={pkg.id.toString()} className="flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-white font-medium text-sm md:text-base break-words">
                                 {pkg.name}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 {hasDiscount && (
-                                  <div className="text-gray-500 text-xs line-through">
+                                  <div className="text-gray-500 text-xs md:text-sm line-through">
                                     {formatCurrency(pkg.price)}
                                   </div>
                                 )}
-                                <div className={hasDiscount ? "text-purple-300 text-sm font-bold" : "text-purple-300 text-sm"}>
+                                <div className={hasDiscount ? "text-purple-300 text-xs md:text-sm font-bold" : "text-purple-300 text-xs md:text-sm"}>
                                   {formatCurrency(displayPrice)}
                                 </div>
                               </div>
@@ -518,27 +518,27 @@ export default function ProductPage() {
           </div>
 
           <div>
-            <Card className="bg-white/5 border-white/10 sticky top-4">
-              <CardHeader>
-                <CardTitle className="text-white">Ringkasan Pesanan</CardTitle>
+            <Card className="bg-white/5 border-white/10 lg:sticky lg:top-4">
+              <CardHeader className="pb-3 md:pb-6">
+                <CardTitle className="text-white text-base md:text-lg">Ringkasan Pesanan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-400">
-                    <span>Produk</span>
-                    <span className="text-white">{product.name}</span>
+                <div className="space-y-2 text-xs md:text-sm">
+                  <div className="flex justify-between text-gray-400 gap-2">
+                    <span className="flex-shrink-0">Produk</span>
+                    <span className="text-white text-right break-words">{product.name}</span>
                   </div>
                   {selectedPackage && (
                     <>
-                      <div className="flex justify-between text-gray-400">
-                        <span>Nominal</span>
-                        <span className="text-white">
+                      <div className="flex justify-between text-gray-400 gap-2">
+                        <span className="flex-shrink-0">Nominal</span>
+                        <span className="text-white text-right break-words">
                           {packages.find((p) => p.id === selectedPackage)?.name}
                         </span>
                       </div>
-                      <div className="flex justify-between text-gray-400">
-                        <span>Harga</span>
-                        <span className="text-white">
+                      <div className="flex justify-between text-gray-400 gap-2">
+                        <span className="flex-shrink-0">Harga</span>
+                        <span className="text-white text-right">
                           {(() => {
                             const pkg = packages.find((p) => p.id === selectedPackage);
                             if (!pkg) return formatCurrency(0);
@@ -564,14 +564,14 @@ export default function ProductPage() {
                     )) ||
                     loading
                   }
-                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                 >
-                  {validationStatus === "validating" ? "Memvalidasi Username..." : 
+                  {validationStatus === "validating" ? "Memvalidasi..." : 
                    validationStatus === "invalid" ? "Username Invalid" :
                    loading ? "Memproses..." : "Beli Sekarang"}
                 </Button>
                 {validationStatus === "invalid" && (
-                  <p className="text-red-400 text-xs text-center">
+                  <p className="text-red-400 text-xs md:text-sm text-center">
                     Silakan periksa kembali User ID dan Server ID Anda
                   </p>
                 )}

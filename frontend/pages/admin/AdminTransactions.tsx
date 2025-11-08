@@ -421,40 +421,42 @@ export default function AdminTransactions() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Transaksi</h1>
-          <p className="text-slate-400 mt-1">Kelola semua transaksi</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Transaksi</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Kelola semua transaksi</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             onClick={handleExportToXLSX}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm"
+            size="sm"
           >
             <FileDown className="mr-2 h-4 w-4" />
-            Export XLSX
+            <span className="hidden sm:inline">Export</span> XLSX
           </Button>
           <Button
             onClick={loadTransactions}
             variant="outline"
-            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white text-sm"
+            size="sm"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            <span className="text-white">Refresh</span>
+            <span className="text-white hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative w-full sm:w-auto">
           <Button
             variant="outline"
-            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 justify-start min-w-96"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 justify-start w-full sm:min-w-80 text-sm"
             onClick={() => setIsDateFilterOpen(!isDateFilterOpen)}
           >
-            <Calendar className="mr-2 h-4 w-4" />
-            Periode Data: {getDateFilterLabel()}
+            <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span className="truncate">Periode Data: {getDateFilterLabel()}</span>
           </Button>
           {isDateFilterOpen && (
             <div className="absolute top-full mt-2 w-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg z-10">
@@ -490,7 +492,7 @@ export default function AdminTransactions() {
           )}
         </div>
         <Select value={statusFilter} onValueChange={(v: StatusFilter) => setStatusFilter(v)}>
-          <SelectTrigger className="w-48 bg-slate-800 border-slate-700 text-white">
+          <SelectTrigger className="w-full sm:w-48 bg-slate-800 border-slate-700 text-white text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-slate-700 text-white">
@@ -499,20 +501,20 @@ export default function AdminTransactions() {
             <SelectItem value="failed" className="text-white hover:bg-slate-700">Failed</SelectItem>
           </SelectContent>
         </Select>
-        <div className="relative flex-1">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Filter by email..."
             value={emailFilter}
             onChange={(e) => setEmailFilter(e.target.value)}
-            className="pl-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+            className="pl-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm"
           />
         </div>
       </div>
 
       <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white">Daftar Transaksi ({transactions.length})</CardTitle>
+        <CardHeader className="pb-3 md:pb-6">
+          <CardTitle className="text-white text-base md:text-lg">Daftar Transaksi ({transactions.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -520,19 +522,19 @@ export default function AdminTransactions() {
           ) : transactions.length === 0 ? (
             <div className="text-slate-400 text-center py-8">Tidak ada transaksi</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                    <TableHead className="text-slate-400">ID</TableHead>
-                    <TableHead className="text-slate-400">Email</TableHead>
-                    <TableHead className="text-slate-400">Produk</TableHead>
-                    <TableHead className="text-slate-400">Paket</TableHead>
-                    <TableHead className="text-slate-400">User ID</TableHead>
-                    <TableHead className="text-slate-400">Total</TableHead>
-                    <TableHead className="text-slate-400">Status</TableHead>
-                    <TableHead className="text-slate-400">Tanggal</TableHead>
-                    <TableHead className="text-slate-400">Aksi</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">ID</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Email</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Produk</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Paket</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden lg:table-cell">User ID</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Total</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Status</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden md:table-cell">Tanggal</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -544,17 +546,17 @@ export default function AdminTransactions() {
                       <TableCell className="text-white font-mono text-xs">
                         {transaction.id.substring(0, 8)}...
                       </TableCell>
-                      <TableCell className="text-slate-300 text-xs">
+                      <TableCell className="text-slate-300 text-xs max-w-[150px] truncate">
                         {transaction.userEmail || "-"}
                       </TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-slate-300 text-xs md:text-sm">
                         {transaction.productName}
                       </TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-slate-300 text-xs md:text-sm max-w-[120px] truncate">
                         {transaction.packageName}
                       </TableCell>
-                      <TableCell className="text-slate-300">{transaction.userId}</TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-slate-300 text-xs hidden lg:table-cell">{transaction.userId}</TableCell>
+                      <TableCell className="text-slate-300 text-xs md:text-sm whitespace-nowrap">
                         {formatCurrency(transaction.total)}
                       </TableCell>
                       <TableCell>
@@ -566,7 +568,7 @@ export default function AdminTransactions() {
                           {transaction.status}
                         </span>
                       </TableCell>
-                      <TableCell className="text-slate-300 text-xs">
+                      <TableCell className="text-slate-300 text-xs hidden md:table-cell whitespace-nowrap">
                         {new Date(transaction.createdAt).toLocaleDateString("id-ID")}
                       </TableCell>
                       <TableCell>
@@ -574,7 +576,7 @@ export default function AdminTransactions() {
                           value={transaction.status}
                           onValueChange={(value) => updateStatus(transaction.id, value)}
                         >
-                          <SelectTrigger className="w-32 bg-slate-800 border-slate-700 text-white">
+                          <SelectTrigger className="w-24 md:w-32 bg-slate-800 border-slate-700 text-white text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-800 border-slate-700 text-white">

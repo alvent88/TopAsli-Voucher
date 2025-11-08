@@ -729,28 +729,28 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-slate-400 mt-1">Ringkasan statistik dan aktivitas</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Ringkasan statistik dan aktivitas</p>
         </div>
         <Button
           onClick={loadStats}
           variant="outline"
-          className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+          className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white text-sm"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
           <span className="text-white">Refresh</span>
         </Button>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.title} className="bg-slate-900 border-slate-800">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-slate-400">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-xs md:text-sm font-medium text-slate-400">
                   {stat.title}
                 </CardTitle>
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -759,7 +759,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
+                  <div className="text-lg md:text-2xl font-bold text-white break-words">{stat.value}</div>
                   {stat.action && (
                     <Button
                       onClick={stat.action}
@@ -781,7 +781,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <Card className="bg-slate-900 border-slate-800">
           <CardHeader>
             <div className="flex items-center gap-3">

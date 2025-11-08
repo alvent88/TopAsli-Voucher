@@ -350,29 +350,31 @@ export default function AdminProducts() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Produk</h1>
-          <p className="text-slate-400 mt-1">Kelola produk game</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Produk</h1>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Kelola produk game</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canEdit && (
             <Button
               onClick={handleCreate}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm"
+              size="sm"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Tambah Produk
+              <span className="hidden sm:inline">Tambah</span> Produk
             </Button>
           )}
           <Button
             onClick={loadProducts}
             variant="outline"
-            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white"
+            className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white text-sm"
+            size="sm"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            <span className="text-white">Refresh</span>
+            <span className="text-white hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -389,8 +391,8 @@ export default function AdminProducts() {
       </div>
 
       <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white">Daftar Produk</CardTitle>
+        <CardHeader className="pb-3 md:pb-6">
+          <CardTitle className="text-white text-base md:text-lg">Daftar Produk</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -400,16 +402,16 @@ export default function AdminProducts() {
               {searchQuery ? "Tidak ada produk yang cocok dengan pencarian" : "Tidak ada produk"}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                    <TableHead className="text-slate-400">Icon</TableHead>
-                    <TableHead className="text-slate-400">Nama</TableHead>
-                    <TableHead className="text-slate-400">Status</TableHead>
-                    <TableHead className="text-slate-400">Unggulan</TableHead>
-                    <TableHead className="text-slate-400">Perlu Server ID</TableHead>
-                    <TableHead className="text-slate-400 text-right">Aksi</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Icon</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Nama</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Status</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden md:table-cell">Unggulan</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm hidden lg:table-cell">Perlu Server ID</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -423,15 +425,15 @@ export default function AdminProducts() {
                           <img
                             src={product.iconUrl}
                             alt={product.name}
-                            className="h-12 w-12 rounded-lg object-cover"
+                            className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="h-12 w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                            <Gamepad2 className="h-6 w-6 text-purple-400" />
+                          <div className="h-10 w-10 md:h-12 md:w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                            <Gamepad2 className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-white font-medium">
+                      <TableCell className="text-white font-medium text-xs md:text-sm max-w-[150px] truncate">
                         {product.name}
                       </TableCell>
                       <TableCell>
