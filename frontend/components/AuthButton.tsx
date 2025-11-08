@@ -47,7 +47,7 @@ export function AuthButton() {
   };
 
   if (isSignedIn) {
-    const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "User";
+    const fullName = user.fullName || user.firstName || "User";
     
     return (
       <DropdownMenu>

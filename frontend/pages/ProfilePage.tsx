@@ -37,9 +37,10 @@ export default function ProfilePage() {
     }).format(amount);
   };
 
-  const fullName = (user?.unsafeMetadata?.fullName as string) || user?.firstName || "User";
+  const fullName = user?.fullName || user?.firstName || "User";
   const email = user?.emailAddresses[0]?.emailAddress || "-";
-  const phoneNumber = (user?.unsafeMetadata?.phoneNumber as string) || "-";
+  const phoneNumber = user?.primaryPhoneNumber?.phoneNumber || 
+                      user?.phoneNumbers?.[0]?.phoneNumber || "-";
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
