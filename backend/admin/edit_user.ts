@@ -161,11 +161,23 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       if (birthDate !== undefined) {
-        await db.exec`
-          UPDATE users 
-          SET birth_date = ${birthDate}, updated_at = NOW()
-          WHERE clerk_user_id = ${userId}
+        const existingUserRow = await db.queryRow<{ clerk_user_id: string }>`
+          SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
         `;
+        
+        if (existingUserRow) {
+          await db.exec`
+            UPDATE users 
+            SET birth_date = ${birthDate}, updated_at = NOW()
+            WHERE clerk_user_id = ${userId}
+          `;
+        } else {
+          const userEmail = user.emailAddresses[0]?.emailAddress || null;
+          await db.exec`
+            INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
+            VALUES (${userId}, ${userEmail}, ${fullName || ''}, ${phoneNumber || ''}, ${birthDate}, NOW(), NOW())
+          `;
+        }
       }
 
       if (Object.keys(updates).length > 0) {
