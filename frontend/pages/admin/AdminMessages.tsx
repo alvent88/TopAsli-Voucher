@@ -35,6 +35,7 @@ interface Message {
   id: number;
   name: string;
   email: string;
+  phoneNumber: string | null;
   subject: string;
   message: string;
   isRead: boolean;
@@ -222,6 +223,7 @@ export default function AdminMessages() {
                     <TableRow className="border-slate-700 hover:bg-slate-800/50">
                       <TableHead className="text-slate-400 w-12"></TableHead>
                       <TableHead className="text-slate-400">Pengirim</TableHead>
+                      <TableHead className="text-slate-400">WhatsApp</TableHead>
                       <TableHead className="text-slate-400">Subjek</TableHead>
                       <TableHead className="text-slate-400">Tanggal</TableHead>
                       <TableHead className="text-slate-400 text-right">Aksi</TableHead>
@@ -254,6 +256,9 @@ export default function AdminMessages() {
                             {message.name}
                           </div>
                           <div className="text-xs text-slate-500">{message.email}</div>
+                        </TableCell>
+                        <TableCell className="text-slate-400 text-sm">
+                          {message.phoneNumber || "-"}
                         </TableCell>
                         <TableCell className={`${message.isRead ? "text-slate-400" : "text-white font-medium"}`}>
                           {message.subject}
@@ -297,6 +302,9 @@ export default function AdminMessages() {
                   <label className="text-slate-400 text-xs font-medium">Dari</label>
                   <p className="text-white font-semibold">{selectedMessage.name}</p>
                   <p className="text-slate-400 text-sm">{selectedMessage.email}</p>
+                  {selectedMessage.phoneNumber && (
+                    <p className="text-slate-400 text-sm">WhatsApp: {selectedMessage.phoneNumber}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-slate-400 text-xs font-medium">Subjek</label>

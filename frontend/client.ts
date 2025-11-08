@@ -677,6 +677,7 @@ export namespace audit {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { autoRegister as api_auth_auto_register_autoRegister } from "~backend/auth/auto_register";
 import { checkUser as api_auth_check_user_checkUser } from "~backend/auth/check_user";
 import { completeEmailRegistration as api_auth_complete_email_registration_completeEmailRegistration } from "~backend/auth/complete_email_registration";
 import { completeProfile as api_auth_complete_profile_completeProfile } from "~backend/auth/complete_profile";
@@ -695,6 +696,7 @@ export namespace auth {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.autoRegister = this.autoRegister.bind(this)
             this.checkUser = this.checkUser.bind(this)
             this.completeEmailRegistration = this.completeEmailRegistration.bind(this)
             this.completeProfile = this.completeProfile.bind(this)
@@ -705,6 +707,12 @@ export namespace auth {
             this.saveUserProfile = this.saveUserProfile.bind(this)
             this.trackLogin = this.trackLogin.bind(this)
             this.updateProfile = this.updateProfile.bind(this)
+        }
+
+        public async autoRegister(): Promise<ResponseType<typeof api_auth_auto_register_autoRegister>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/auto-register`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_auto_register_autoRegister>
         }
 
         public async checkUser(params: RequestType<typeof api_auth_check_user_checkUser>): Promise<ResponseType<typeof api_auth_check_user_checkUser>> {

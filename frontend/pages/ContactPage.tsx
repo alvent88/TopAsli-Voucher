@@ -14,12 +14,13 @@ export default function ContactPage() {
   const { toast } = useToast();
   const { isSignedIn, isLoaded } = useUser();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     subject: "",
     message: "",
   });
+  const userEmail = user?.emailAddresses[0]?.emailAddress || "";
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -40,7 +41,6 @@ export default function ContactPage() {
     try {
       await backend.message.create({
         name: formData.name,
-        email: formData.email,
         subject: formData.subject,
         message: formData.message,
       });
@@ -49,7 +49,7 @@ export default function ContactPage() {
         title: "Pesan Terkirim!",
         description: "Kami akan segera menghubungi Anda.",
       });
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", subject: "", message: "" });
     } catch (error) {
       console.error("Failed to send message:", error);
       toast({
@@ -141,9 +141,9 @@ export default function ContactPage() {
                       <Input
                         required
                         type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="bg-slate-800 border-slate-600 text-white"
+                        value={userEmail}
+                        disabled
+                        className="bg-slate-700 border-slate-600 text-slate-300 cursor-not-allowed"
                         placeholder="email@contoh.com"
                       />
                     </div>

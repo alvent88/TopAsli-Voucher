@@ -2,10 +2,14 @@ import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { messageTopic } from "../notification/events";
+import { createClerkClient } from "@clerk/backend";
+import { secret } from "encore.dev/config";
+
+const clerkSecretKey = secret("ClerkSecretKey");
+const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 export interface CreateMessageRequest {
   name: string;
-  email: string;
   subject: string;
   message: string;
 }
@@ -17,9 +21,13 @@ export interface CreateMessageResponse {
 
 export const create = api<CreateMessageRequest, CreateMessageResponse>(
   { expose: true, method: "POST", path: "/messages", auth: true },
-  async ({ name, email, subject, message }) => {
+  async ({ name, subject, message }) => {
     const auth = getAuthData()!;
     const userId = auth.userID;
+    const email = auth.email || "";
+
+    const user = await clerkClient.users.getUser(userId);
+    const phoneNumber = (user.publicMetadata?.phoneNumber as string) || null;
 
     const rateLimitCheck = await db.queryRow<{ count: number, last_sent: Date | null }>`
       SELECT COUNT(*) as count, MAX(created_at) as last_sent
@@ -39,8 +47,8 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
       }
     }
     const row = await db.queryRow<{ id: number }>`
-      INSERT INTO messages (name, email, subject, message)
-      VALUES (${name}, ${email}, ${subject}, ${message})
+      INSERT INTO messages (name, email, subject, message, phone_number)
+      VALUES (${name}, ${email}, ${subject}, ${message}, ${phoneNumber})
       RETURNING id
     `;
 
@@ -72,6 +80,7 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
         const whatsappMessage = `🔔 *Pesan Baru dari Contact Form*\n\n` +
           `👤 *Nama:* ${name}\n` +
           `📧 *Email:* ${email}\n` +
+          `📱 *WhatsApp:* ${phoneNumber || '-'}\n` +
           `📋 *Subjek:* ${subject}\n\n` +
           `💬 *Pesan:*\n${message}\n\n` +
           `_Pesan ini dikirim otomatis dari website TopAsli_`;

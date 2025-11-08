@@ -7,6 +7,7 @@ export interface Message {
   id: number;
   name: string;
   email: string;
+  phoneNumber: string | null;
   subject: string;
   message: string;
   isRead: boolean;
@@ -34,7 +35,7 @@ export const list = api<ListMessagesRequest, ListMessagesResponse>(
     }
 
     let query = `
-      SELECT id, name, email, subject, message, is_read, created_at
+      SELECT id, name, email, phone_number, subject, message, is_read, created_at
       FROM messages
     `;
 
@@ -57,6 +58,7 @@ export const list = api<ListMessagesRequest, ListMessagesResponse>(
       id: row.id,
       name: row.name,
       email: row.email,
+      phoneNumber: row.phone_number,
       subject: row.subject,
       message: row.message,
       isRead: row.is_read,
