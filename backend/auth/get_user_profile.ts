@@ -37,6 +37,7 @@ export const getUserProfile = api<void, UserProfile>(
       `;
 
       if (!user) {
+        // User doesn't exist yet, create with minimal data
         await db.exec`
           INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
           VALUES (${userId}, ${email}, '', '', '2000-01-01', NOW(), NOW())
@@ -47,16 +48,19 @@ export const getUserProfile = api<void, UserProfile>(
           email: email,
           fullName: null,
           phoneNumber: null,
-          birthDate: '2000-01-01',
+          birthDate: null,
         };
       }
 
+      // Return data from database, with proper null handling
+      const birthDateStr = user.birth_date ? user.birth_date.toISOString().split('T')[0] : null;
+      
       return {
         clerkUserId: user.clerk_user_id,
-        email: user.email,
-        fullName: user.full_name || null,
-        phoneNumber: user.phone_number || null,
-        birthDate: user.birth_date ? user.birth_date.toISOString().split('T')[0] : null,
+        email: user.email || null,
+        fullName: user.full_name && user.full_name.trim() !== '' ? user.full_name : null,
+        phoneNumber: user.phone_number && user.phone_number.trim() !== '' ? user.phone_number : null,
+        birthDate: birthDateStr === '2000-01-01' ? null : birthDateStr,
       };
     } catch (err: any) {
       console.error("Get user profile error:", err);

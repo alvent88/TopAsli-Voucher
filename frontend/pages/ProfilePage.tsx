@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const loadUserProfile = async () => {
     try {
       const profile = await backend.auth.getUserProfile();
+      console.log("Loaded user profile:", profile);
       setUserProfile(profile);
     } catch (error) {
       console.error("Failed to load user profile:", error);
@@ -48,15 +49,24 @@ export default function ProfilePage() {
     }).format(amount);
   };
 
+  // Priority: Database data > Clerk data > Default
   const firstName = user?.firstName || "";
   const lastName = user?.lastName || "";
   const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ");
-  const fullName = userProfile?.fullName || fullNameFromClerk || "User";
+  
+  // Show database fullName if exists and not empty, otherwise use Clerk, otherwise "User"
+  const fullName = (userProfile?.fullName && userProfile.fullName.trim() !== '') 
+    ? userProfile.fullName 
+    : fullNameFromClerk || "User";
+  
   const email = userProfile?.email || user?.emailAddresses[0]?.emailAddress || "-";
-  const phoneNumber = userProfile?.phoneNumber || 
-                      user?.primaryPhoneNumber?.phoneNumber || 
-                      user?.phoneNumbers?.[0]?.phoneNumber || 
-                      (user?.publicMetadata?.phoneNumber as string) || "-";
+  
+  const phoneNumber = (userProfile?.phoneNumber && userProfile.phoneNumber.trim() !== '')
+    ? userProfile.phoneNumber
+    : user?.primaryPhoneNumber?.phoneNumber || 
+      user?.phoneNumbers?.[0]?.phoneNumber || 
+      (user?.publicMetadata?.phoneNumber as string) || "-";
+  
   const birthDate = userProfile?.birthDate || null;
 
   return (
@@ -147,7 +157,7 @@ export default function ProfilePage() {
                     Tanggal Lahir
                   </label>
                   <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base">
-                    {birthDate && birthDate !== '2000-01-01' 
+                    {birthDate 
                       ? new Date(birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                       : '-'}
                   </div>
