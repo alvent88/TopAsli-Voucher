@@ -29,13 +29,23 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
     let phoneNumber: string | null = null;
     
     try {
-      const userFromDb = await db.queryRow<{ clerk_user_id: string }>`
-        SELECT clerk_user_id FROM email_registrations WHERE email = ${email}
+      let userFromDb = await db.queryRow<{ clerk_user_id: string, phone_number: string | null }>`
+        SELECT clerk_user_id, NULL as phone_number FROM email_registrations WHERE email = ${email}
       `;
       
-      if (userFromDb && userFromDb.clerk_user_id) {
-        const clerkUser = await clerkClient.users.getUser(userFromDb.clerk_user_id);
-        phoneNumber = (clerkUser.unsafeMetadata?.phoneNumber as string) || null;
+      if (!userFromDb) {
+        userFromDb = await db.queryRow<{ clerk_user_id: string, phone_number: string | null }>`
+          SELECT clerk_user_id, phone_number FROM phone_registrations WHERE email = ${email}
+        `;
+      }
+      
+      if (userFromDb) {
+        if (userFromDb.phone_number) {
+          phoneNumber = userFromDb.phone_number;
+        } else if (userFromDb.clerk_user_id) {
+          const clerkUser = await clerkClient.users.getUser(userFromDb.clerk_user_id);
+          phoneNumber = (clerkUser.unsafeMetadata?.phoneNumber as string) || null;
+        }
       }
     } catch (err) {
       console.log("Failed to fetch phone number from database/Clerk:", err);
