@@ -89,9 +89,9 @@ export default function TransactionSuccessPage() {
                 key={`firework-left-${i}`}
                 className="firework"
                 style={{
-                  left: `${10 + Math.random() * 10}%`,
-                  top: `${10 + i * 8}%`,
-                  animationDelay: `${i * 0.3}s`,
+                  left: `${Math.random() * 25}%`,
+                  top: `${Math.random() * 80 + 10}%`,
+                  animationDelay: `${Math.random() * 2}s`,
                 }}
               >
                 {[...Array(30)].map((_, j) => {
@@ -104,7 +104,7 @@ export default function TransactionSuccessPage() {
                       style={{
                         '--angle': `${angle}deg`,
                         backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                        animationDelay: `${i * 0.3}s`,
+                        animationDelay: `${Math.random() * 0.5}s`,
                       } as any}
                     />
                   );
@@ -118,9 +118,9 @@ export default function TransactionSuccessPage() {
                 key={`firework-right-${i}`}
                 className="firework"
                 style={{
-                  right: `${10 + Math.random() * 10}%`,
-                  top: `${10 + i * 8}%`,
-                  animationDelay: `${i * 0.3}s`,
+                  right: `${Math.random() * 25}%`,
+                  top: `${Math.random() * 80 + 10}%`,
+                  animationDelay: `${Math.random() * 2}s`,
                 }}
               >
                 {[...Array(30)].map((_, j) => {
@@ -133,7 +133,7 @@ export default function TransactionSuccessPage() {
                       style={{
                         '--angle': `${angle}deg`,
                         backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                        animationDelay: `${i * 0.3}s`,
+                        animationDelay: `${Math.random() * 0.5}s`,
                       } as any}
                     />
                   );
