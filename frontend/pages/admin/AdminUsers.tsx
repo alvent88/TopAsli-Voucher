@@ -411,6 +411,24 @@ export default function AdminUsers() {
     }
   };
 
+  const handlePopulateUsers = async () => {
+    try {
+      const result = await backend.admin.populateUsers();
+      toast({
+        title: "Berhasil",
+        description: `${result.created} user dibuat, ${result.updated} user diupdate, ${result.skipped} diskip`,
+      });
+      loadUsers();
+    } catch (error: any) {
+      console.error("Failed to populate users:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal populate users",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -424,6 +442,14 @@ export default function AdminUsers() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={handlePopulateUsers}
+            variant="outline"
+            className="border-purple-600 text-purple-400 hover:bg-purple-900/20"
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Sync Users
+          </Button>
           <Button
             onClick={handleDownloadUsers}
             variant="outline"
