@@ -72,14 +72,12 @@ export default function ProfilePage() {
       user?.phoneNumbers?.[0]?.phoneNumber || 
       (user?.publicMetadata?.phoneNumber as string) || "-";
   
-  const dbBirthDate = userProfile?.birthDate;
-  // Filter out default date '2000-01-01'
-  const birthDate = (dbBirthDate && dbBirthDate !== '2000-01-01') ? dbBirthDate : null;
+  const birthDate = userProfile?.birthDate || null;
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
       <nav className="border-b border-slate-800 bg-[#0f1229]">
-        <div className="container mx-auto px-4 py-3 lg:py-4">
+        <div className="container mx-auto px-4 py-3 lg:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -89,6 +87,26 @@ export default function ProfilePage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
           </Button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-300">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="break-words">{fullName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <span className="break-all">{email}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              <span>{phoneNumber}</span>
+            </div>
+            {birthDate && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>{new Date(birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
