@@ -61,15 +61,27 @@ export const listUsers = api<void, ListUsersResponse>(
         let bannedAt = null;
         let bannedReason = null;
         let birthDate = null;
+        let fullNameFromDB = null;
+        let phoneFromDB = null;
         const email = user.emailAddresses[0]?.emailAddress || null;
         
         try {
-          const userRow = await db.queryRow<{ birth_date: string | null }>`
-            SELECT birth_date::text as birth_date FROM users WHERE clerk_user_id = ${user.id}
+          const userRow = await db.queryRow<{ 
+            birth_date: string | null;
+            full_name: string | null;
+            phone_number: string | null;
+          }>`
+            SELECT birth_date::text as birth_date, full_name, phone_number 
+            FROM users 
+            WHERE clerk_user_id = ${user.id}
           `;
           
-          if (userRow && userRow.birth_date) {
-            birthDate = userRow.birth_date.split('T')[0];
+          if (userRow) {
+            if (userRow.birth_date) {
+              birthDate = userRow.birth_date.split('T')[0];
+            }
+            fullNameFromDB = userRow.full_name;
+            phoneFromDB = userRow.phone_number;
           }
         } catch (err) {
           const firstName = user.firstName || "";
@@ -108,12 +120,17 @@ export const listUsers = api<void, ListUsersResponse>(
         const firstName = user.firstName || null;
         const lastName = user.lastName || null;
         const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ") || null;
-        const fullName = metadata?.fullName || fullNameFromClerk || null;
+        
+        // Priority: Database > Clerk metadata > Clerk firstName/lastName
+        const fullName = fullNameFromDB || metadata?.fullName || fullNameFromClerk || null;
+        
+        // Priority: Database > Clerk phone > metadata phone
+        const phoneNumber = phoneFromDB || user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || publicMeta?.phoneNumber || metadata?.phoneNumber || null;
         
         return {
           id: user.id,
           email,
-          phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || publicMeta?.phoneNumber || metadata?.phoneNumber || null,
+          phoneNumber,
           firstName,
           lastName,
           fullName,

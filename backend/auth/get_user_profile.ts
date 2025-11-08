@@ -52,27 +52,16 @@ export const getUserProfile = api<void, UserProfile>(
         };
       }
 
-      // Return data from database - just return everything as-is
+      // Return data from database
       const birthDateStr = user.birth_date ? user.birth_date.toISOString().split('T')[0] : null;
       
-      console.log("=== getUserProfile Debug ===");
-      console.log("User from DB:", JSON.stringify(user, null, 2));
-      console.log("Birth date from DB:", user.birth_date);
-      console.log("Birth date string:", birthDateStr);
-      console.log("Full name:", user.full_name);
-      console.log("Phone number:", user.phone_number);
-      
-      const result = {
+      return {
         clerkUserId: user.clerk_user_id,
         email: user.email,
         fullName: user.full_name,
         phoneNumber: user.phone_number,
         birthDate: birthDateStr,
       };
-      
-      console.log("Returning profile:", JSON.stringify(result, null, 2));
-      
-      return result;
     } catch (err: any) {
       console.error("Get user profile error:", err);
       throw APIError.internal(err.message || "Gagal mengambil profil");

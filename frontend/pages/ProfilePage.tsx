@@ -34,12 +34,7 @@ export default function ProfilePage() {
   const loadUserProfile = async () => {
     try {
       const profile = await backend.auth.getUserProfile();
-      console.log("=== FRONTEND: Loaded user profile ===");
-      console.log("Full profile object:", profile);
-      console.log("fullName:", profile.fullName);
-      console.log("phoneNumber:", profile.phoneNumber);
-      console.log("birthDate:", profile.birthDate);
-      console.log("email:", profile.email);
+      console.log("Loaded profile from backend:", profile);
       setUserProfile(profile);
     } catch (error) {
       console.error("Failed to load user profile:", error);
@@ -80,20 +75,6 @@ export default function ProfilePage() {
   const dbBirthDate = userProfile?.birthDate;
   // Filter out default date '2000-01-01'
   const birthDate = (dbBirthDate && dbBirthDate !== '2000-01-01') ? dbBirthDate : null;
-  
-  console.log("=== FRONTEND: Display Values ===");
-  console.log("DB values from userProfile:", {
-    fullName: dbFullName,
-    email: dbEmail,
-    phone: dbPhone,
-    birthDate: dbBirthDate,
-  });
-  console.log("Final display values:", {
-    fullName,
-    email,
-    phoneNumber,
-    birthDate,
-  });
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
