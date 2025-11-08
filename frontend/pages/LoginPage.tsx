@@ -1,6 +1,6 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, Chrome } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,26 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "verification">("email");
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    if (!signIn) return;
+    setLoading(true);
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/",
+        redirectUrlComplete: "/",
+      });
+    } catch (err: any) {
+      console.error("Google sign-in error:", err);
+      toast({
+        title: "Error",
+        description: err.message || "Gagal masuk dengan Google",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,8 +175,37 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent>
               {step === "email" ? (
-                <form onSubmit={handleSendCode} className="space-y-4">
-                  <div className="space-y-2">
+                <>
+                  <Button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 font-semibold"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Menghubungkan...
+                      </>
+                    ) : (
+                      <>
+                        <Chrome className="mr-2 h-5 w-5" />
+                        Masuk dengan Google
+                      </>
+                    )}
+                  </Button>
+                  
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-700"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-[#1a1f3a] text-slate-400">Atau masuk dengan email</span>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSendCode} className="space-y-4">
+                    <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-300">
                       Email
                     </Label>
@@ -187,7 +236,8 @@ export default function LoginPage() {
                       "Kirim Kode OTP"
                     )}
                   </Button>
-                </form>
+                  </form>
+                </>
               ) : (
                 <form onSubmit={handleVerifyCode} className="space-y-4">
                   <div className="space-y-2">
