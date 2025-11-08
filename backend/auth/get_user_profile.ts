@@ -26,8 +26,8 @@ export const getUserProfile = api<void, UserProfile>(
       email: string;
       full_name: string;
       phone_number: string;
-      birth_date: Date;
-    }>`SELECT clerk_user_id, email, full_name, phone_number, birth_date FROM users`) {
+      birth_date: string;
+    }>`SELECT clerk_user_id, email, full_name, phone_number, birth_date::text as birth_date FROM users`) {
       allUsers.push(row);
     }
 
@@ -60,7 +60,7 @@ export const getUserProfile = api<void, UserProfile>(
       };
     }
 
-    const birthDateStr = user.birth_date ? user.birth_date.toISOString().split('T')[0] : null;
+    const birthDateStr = user.birth_date ? user.birth_date.split('T')[0] : null;
     
     return {
       clerkUserId: auth.userID,
