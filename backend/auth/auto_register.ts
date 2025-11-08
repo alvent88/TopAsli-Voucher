@@ -19,15 +19,24 @@ export const autoRegister = api<void, AutoRegisterResponse>(
   async () => {
     const auth = getAuthData()!;
     const userId = auth.userID;
-    const email = auth.email;
-
-    if (!email) {
-      throw APIError.invalidArgument("Email not found in auth data");
-    }
+    let email = auth.email;
 
     console.log("=== AUTO-REGISTER START ===");
     console.log("User ID:", userId);
-    console.log("Email:", email);
+    console.log("Email from auth:", email);
+
+    if (!email) {
+      console.log("Email not in auth data, fetching from Clerk user...");
+      const user = await clerkClient.users.getUser(userId);
+      email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+      console.log("Email from Clerk:", email);
+      
+      if (!email) {
+        throw APIError.invalidArgument("Email not found");
+      }
+    }
+
+    console.log("Final email:", email);
 
     const existingUser = await db.queryRow<{ email: string }>`
       SELECT email FROM email_registrations WHERE email = ${email}
@@ -43,6 +52,7 @@ export const autoRegister = api<void, AutoRegisterResponse>(
     }
 
     try {
+      console.log("Fetching user from Clerk...");
       const user = await clerkClient.users.getUser(userId);
       const firstName = user.firstName || "";
       const lastName = user.lastName || "";
@@ -50,12 +60,17 @@ export const autoRegister = api<void, AutoRegisterResponse>(
 
       console.log("Creating new user in database...");
       console.log("Full name:", fullName);
+      console.log("User ID:", userId);
+      console.log("Email:", email);
 
       const now = Date.now();
-      await db.exec`
+      
+      console.log("Executing INSERT query...");
+      const result = await db.exec`
         INSERT INTO email_registrations (email, full_name, clerk_user_id, created_at, updated_at, is_banned, otp_request_count)
         VALUES (${email}, ${fullName}, ${userId}, ${now}, ${now}, false, 0)
       `;
+      console.log("INSERT result:", result);
 
       console.log("User registered successfully!");
       console.log("=== AUTO-REGISTER SUCCESS ===");
@@ -67,7 +82,9 @@ export const autoRegister = api<void, AutoRegisterResponse>(
       };
     } catch (err: any) {
       console.error("=== AUTO-REGISTER ERROR ===");
-      console.error("Error:", err);
+      console.error("Error message:", err.message);
+      console.error("Error stack:", err.stack);
+      console.error("Full error:", err);
       
       if (err instanceof APIError) {
         throw err;
