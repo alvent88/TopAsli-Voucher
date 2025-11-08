@@ -35,6 +35,7 @@ interface User {
   firstName: string | null;
   lastName: string | null;
   fullName: string | null;
+  birthDate: string | null;
   createdAt: string;
   lastSignInAt: string | null;
   isAdmin: boolean;
@@ -63,6 +64,7 @@ export default function AdminUsers() {
   const [editFullName, setEditFullName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhoneNumber, setEditPhoneNumber] = useState("");
+  const [editBirthDate, setEditBirthDate] = useState("");
   const [editBalance, setEditBalance] = useState<number>(0);
   const [editing, setEditing] = useState(false);
 
@@ -291,6 +293,7 @@ export default function AdminUsers() {
     setEditFullName(user.fullName || "");
     setEditEmail(user.email || "");
     setEditPhoneNumber(user.phoneNumber || "");
+    setEditBirthDate(user.birthDate || "");
     setEditBalance(user.balance || 0);
     setEditDialogOpen(true);
   };
@@ -305,6 +308,7 @@ export default function AdminUsers() {
         fullName: editFullName || undefined,
         email: editEmail || undefined,
         phoneNumber: editPhoneNumber || undefined,
+        birthDate: editBirthDate || undefined,
         balance: editBalance,
       });
       toast({
@@ -543,8 +547,16 @@ export default function AdminUsers() {
                       className={`border-slate-700 hover:bg-slate-800/50 ${user.isBanned ? 'bg-red-900/10' : ''}`}
                     >
                       <TableCell className="text-white font-medium">
-                        {user.fullName || user.firstName || "-"}
-                        {user.lastName && ` ${user.lastName}`}
+                        <div>
+                          {user.fullName || user.firstName || "-"}
+                          {user.lastName && ` ${user.lastName}`}
+                          {user.birthDate && (
+                            <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(user.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-slate-300">
                         <div className="flex items-center gap-2">
@@ -880,6 +892,19 @@ export default function AdminUsers() {
                 value={editPhoneNumber}
                 onChange={(e) => setEditPhoneNumber(e.target.value)}
                 placeholder="Masukkan nomor HP (contoh: 081234567890)"
+                className="bg-slate-800 border-slate-700 text-white"
+                disabled={editing}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-birthdate" className="text-sm font-medium text-slate-300">
+                Tanggal Lahir
+              </Label>
+              <Input
+                id="edit-birthdate"
+                type="date"
+                value={editBirthDate}
+                onChange={(e) => setEditBirthDate(e.target.value)}
                 className="bg-slate-800 border-slate-700 text-white"
                 disabled={editing}
               />

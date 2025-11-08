@@ -10,6 +10,7 @@ const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 export interface RegisterPhoneRequest {
   phoneNumber: string;
   fullName: string;
+  birthDate?: string;
 }
 
 export interface RegisterPhoneResponse {
@@ -20,11 +21,12 @@ export interface RegisterPhoneResponse {
 
 export const registerPhone = api<RegisterPhoneRequest, RegisterPhoneResponse>(
   { expose: true, method: "POST", path: "/auth/register-phone" },
-  async ({ phoneNumber, fullName }) => {
+  async ({ phoneNumber, fullName, birthDate }) => {
     console.log("=== REGISTER PHONE START ===");
     console.log("Input data:", {
       phoneNumber,
       fullName,
+      birthDate,
     });
     
     try {
@@ -49,6 +51,7 @@ export const registerPhone = api<RegisterPhoneRequest, RegisterPhoneResponse>(
         await db.exec`
           UPDATE phone_registrations
           SET full_name = ${fullName},
+              birth_date = ${birthDate || ''},
               created_at = ${Math.floor(Date.now() / 1000)}
           WHERE phone_number = ${formattedPhone}
         `;
@@ -65,7 +68,7 @@ export const registerPhone = api<RegisterPhoneRequest, RegisterPhoneResponse>(
         console.log("Creating new registration in database");
         await db.exec`
           INSERT INTO phone_registrations (phone_number, full_name, birth_place, birth_date, created_at)
-          VALUES (${formattedPhone}, ${fullName}, '', '', ${Math.floor(Date.now() / 1000)})
+          VALUES (${formattedPhone}, ${fullName}, '', ${birthDate || ''}, ${Math.floor(Date.now() / 1000)})
         `;
         console.log("Insert completed");
       }
@@ -88,6 +91,7 @@ export const registerPhone = api<RegisterPhoneRequest, RegisterPhoneResponse>(
           await clerkClient.users.updateUser(clerkUserId, {
             unsafeMetadata: {
               fullName,
+              birthDate: birthDate || '',
               profileComplete: true,
             },
           });
@@ -100,6 +104,7 @@ export const registerPhone = api<RegisterPhoneRequest, RegisterPhoneResponse>(
             skipPasswordChecks: true,
             unsafeMetadata: {
               fullName,
+              birthDate: birthDate || '',
               profileComplete: true,
             },
             publicMetadata: {

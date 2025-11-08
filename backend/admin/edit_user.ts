@@ -15,6 +15,7 @@ export interface EditUserRequest {
   email?: string;
   phoneNumber?: string;
   balance?: number;
+  birthDate?: string;
 }
 
 export interface EditUserResponse {
@@ -24,7 +25,7 @@ export interface EditUserResponse {
 
 export const editUser = api<EditUserRequest, EditUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/edit", auth: true },
-  async ({ userId, fullName, email, phoneNumber, balance }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async ({ userId, fullName, email, phoneNumber, balance, birthDate }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -37,16 +38,19 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
     console.log("Email:", email);
     console.log("Phone number:", phoneNumber);
     console.log("Balance:", balance);
+    console.log("Birth date:", birthDate);
 
     try {
       const user = await clerkClient.users.getUser(userId);
       
       const oldFullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+      const oldMetadata = user.unsafeMetadata as any;
       
       const oldValues: any = {
         fullName: oldFullName,
         email: user.emailAddresses[0]?.emailAddress,
         phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber,
+        birthDate: oldMetadata?.birthDate,
       };
       
       const balanceResult = await db.queryRow<{ balance: number }>` 
@@ -144,6 +148,12 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         `;
       }
 
+      if (birthDate !== undefined) {
+        const unsafeMetadata = user.unsafeMetadata as any || {};
+        unsafeMetadata.birthDate = birthDate;
+        updates.unsafeMetadata = unsafeMetadata;
+      }
+
       if (Object.keys(updates).length > 0) {
         await clerkClient.users.updateUser(userId, updates);
       }
@@ -155,10 +165,10 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         entityType: "USER",
         entityId: userId,
         oldValues,
-        newValues: { fullName, email, phoneNumber, balance },
+        newValues: { fullName, email, phoneNumber, balance, birthDate },
         metadata: {
-          fieldsUpdated: Object.keys({ fullName, email, phoneNumber, balance }).filter(
-            (key) => (({ fullName, email, phoneNumber, balance } as any)[key]) !== undefined
+          fieldsUpdated: Object.keys({ fullName, email, phoneNumber, balance, birthDate }).filter(
+            (key) => (({ fullName, email, phoneNumber, balance, birthDate } as any)[key]) !== undefined
           ),
         },
       }, ipAddress, userAgent);

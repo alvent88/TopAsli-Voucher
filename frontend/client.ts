@@ -150,6 +150,7 @@ import {
     deletePackage as api_admin_packages_crud_deletePackage,
     updatePackage as api_admin_packages_crud_updatePackage
 } from "~backend/admin/packages_crud";
+import { populateUsers as api_admin_populate_users_populateUsers } from "~backend/admin/populate_users";
 import { listAllProducts as api_admin_products_listAllProducts } from "~backend/admin/products";
 import {
     createProduct as api_admin_products_crud_createProduct,
@@ -160,6 +161,7 @@ import {
     demoteFromAdmin as api_admin_promote_admin_demoteFromAdmin,
     promoteToAdmin as api_admin_promote_admin_promoteToAdmin
 } from "~backend/admin/promote_admin";
+import { syncAllUsers as api_admin_sync_users_syncAllUsers } from "~backend/admin/sync_users";
 import { toggleServerIdRequirement as api_admin_toggle_server_id_toggleServerIdRequirement } from "~backend/admin/toggle_server_id";
 import { toggleSpecialItem as api_admin_toggle_special_item_toggleSpecialItem } from "~backend/admin/toggle_special_item";
 import {
@@ -244,10 +246,12 @@ export namespace admin {
             this.listUsers = this.listUsers.bind(this)
             this.listVouchers = this.listVouchers.bind(this)
             this.listWhatsAppCS = this.listWhatsAppCS.bind(this)
+            this.populateUsers = this.populateUsers.bind(this)
             this.promoteToAdmin = this.promoteToAdmin.bind(this)
             this.saveConfig = this.saveConfig.bind(this)
             this.saveGlobalDiscount = this.saveGlobalDiscount.bind(this)
             this.setAdmin = this.setAdmin.bind(this)
+            this.syncAllUsers = this.syncAllUsers.bind(this)
             this.toggleFeatured = this.toggleFeatured.bind(this)
             this.togglePackage = this.togglePackage.bind(this)
             this.toggleProduct = this.toggleProduct.bind(this)
@@ -362,6 +366,7 @@ export namespace admin {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
             const body: Record<string, any> = {
                 balance:     params.balance,
+                birthDate:   params.birthDate,
                 email:       params.email,
                 fullName:    params.fullName,
                 phoneNumber: params.phoneNumber,
@@ -505,6 +510,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_whatsapp_cs_listWhatsAppCS>
         }
 
+        public async populateUsers(): Promise<ResponseType<typeof api_admin_populate_users_populateUsers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/users/populate`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_populate_users_populateUsers>
+        }
+
         public async promoteToAdmin(params: RequestType<typeof api_admin_promote_admin_promoteToAdmin>): Promise<ResponseType<typeof api_admin_promote_admin_promoteToAdmin>> {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
             const body: Record<string, any> = {
@@ -532,6 +543,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/set-admin`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_manage_user_setAdmin>
+        }
+
+        public async syncAllUsers(): Promise<ResponseType<typeof api_admin_sync_users_syncAllUsers>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/sync-all-users`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_sync_users_syncAllUsers>
         }
 
         public async toggleFeatured(params: RequestType<typeof api_admin_toggle_visibility_toggleFeatured>): Promise<ResponseType<typeof api_admin_toggle_visibility_toggleFeatured>> {
@@ -682,12 +699,14 @@ import { checkUser as api_auth_check_user_checkUser } from "~backend/auth/check_
 import { completeEmailRegistration as api_auth_complete_email_registration_completeEmailRegistration } from "~backend/auth/complete_email_registration";
 import { completeProfile as api_auth_complete_profile_completeProfile } from "~backend/auth/complete_profile";
 import { ensureUserExists as api_auth_ensure_user_exists_ensureUserExists } from "~backend/auth/ensure_user_exists";
+import { getUserProfile as api_auth_get_user_profile_getUserProfile } from "~backend/auth/get_user_profile";
 import { loginPhone as api_auth_login_phone_loginPhone } from "~backend/auth/login_phone";
 import { registerEmail as api_auth_register_email_registerEmail } from "~backend/auth/register_email";
 import { registerPhone as api_auth_register_phone_registerPhone } from "~backend/auth/register_phone";
 import { saveUserProfile as api_auth_save_user_profile_saveUserProfile } from "~backend/auth/save_user_profile";
 import { trackLogin as api_auth_track_login_trackLogin } from "~backend/auth/track_login";
 import { updateProfile as api_auth_update_profile_updateProfile } from "~backend/auth/update_profile";
+import { updateUserProfile as api_auth_update_user_profile_updateUserProfile } from "~backend/auth/update_user_profile";
 
 export namespace auth {
 
@@ -701,12 +720,14 @@ export namespace auth {
             this.completeEmailRegistration = this.completeEmailRegistration.bind(this)
             this.completeProfile = this.completeProfile.bind(this)
             this.ensureUserExists = this.ensureUserExists.bind(this)
+            this.getUserProfile = this.getUserProfile.bind(this)
             this.loginPhone = this.loginPhone.bind(this)
             this.registerEmail = this.registerEmail.bind(this)
             this.registerPhone = this.registerPhone.bind(this)
             this.saveUserProfile = this.saveUserProfile.bind(this)
             this.trackLogin = this.trackLogin.bind(this)
             this.updateProfile = this.updateProfile.bind(this)
+            this.updateUserProfile = this.updateUserProfile.bind(this)
         }
 
         public async autoRegister(): Promise<ResponseType<typeof api_auth_auto_register_autoRegister>> {
@@ -737,6 +758,12 @@ export namespace auth {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/auth/ensure-user-exists`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_ensure_user_exists_ensureUserExists>
+        }
+
+        public async getUserProfile(): Promise<ResponseType<typeof api_auth_get_user_profile_getUserProfile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/user-profile`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_get_user_profile_getUserProfile>
         }
 
         public async loginPhone(params: RequestType<typeof api_auth_login_phone_loginPhone>): Promise<ResponseType<typeof api_auth_login_phone_loginPhone>> {
@@ -773,6 +800,12 @@ export namespace auth {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/auth/update-profile`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_update_profile_updateProfile>
+        }
+
+        public async updateUserProfile(params: RequestType<typeof api_auth_update_user_profile_updateUserProfile>): Promise<ResponseType<typeof api_auth_update_user_profile_updateUserProfile>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/update-user-profile`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_update_user_profile_updateUserProfile>
         }
     }
 }

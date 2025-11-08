@@ -1,6 +1,6 @@
 import { useSignUp, useUser } from "@clerk/clerk-react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2, User, Phone } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, User, Phone, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [code, setCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [step, setStep] = useState<"email" | "verification" | "profile">("email");
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -191,12 +192,22 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!birthDate.trim()) {
+      toast({
+        title: "Peringatan",
+        description: "Tanggal lahir wajib diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       console.log("=== SAVE PROFILE START ===");
       console.log("Email:", email);
       console.log("Full name:", fullName);
       console.log("Phone number:", phoneNumber);
+      console.log("Birth date:", birthDate);
       
       // Ensure user exists in Clerk first
       console.log("Ensuring user exists in Clerk...");
@@ -217,6 +228,15 @@ export default function RegisterPage() {
         clerkUserId: userId,
       });
       console.log("Profile saved to backend:", result);
+
+      console.log("Calling registerEmail API with birth date...");
+      await backend.auth.registerEmail({
+        email,
+        fullName,
+        clerkUserId: userId,
+        birthDate,
+      });
+      console.log("Birth date saved to backend");
 
       toast({
         title: "Registrasi Berhasil! 🎉",
@@ -274,7 +294,7 @@ export default function RegisterPage() {
                   ? "Masukkan email Anda untuk mendaftar"
                   : step === "verification"
                   ? "Kode OTP telah dikirim ke email Anda (periksa folder spam jika tidak terlihat)"
-                  : "Isi nama lengkap dan nomor HP Anda"}
+                  : "Isi nama lengkap, nomor HP, dan tanggal lahir Anda"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -408,10 +428,27 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="birthDate" className="text-slate-300">
+                      Tanggal Lahir *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="birthDate"
+                        type="date"
+                        value={birthDate}
+                        onChange={(e) => setBirthDate(e.target.value)}
+                        className="bg-slate-800 border-slate-600 text-white pl-10"
+                        disabled={loading}
+                      />
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    </div>
+                  </div>
+
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    disabled={loading || !fullName.trim() || !phoneNumber.trim()}
+                    disabled={loading || !fullName.trim() || !phoneNumber.trim() || !birthDate.trim()}
                   >
                     {loading ? (
                       <>
@@ -446,7 +483,7 @@ export default function RegisterPage() {
               <p className="text-blue-400 text-xs leading-relaxed">
                 <strong>Proses Registrasi:</strong><br />
                 1. Masukkan email → Verifikasi OTP<br />
-                2. Isi nama lengkap dan nomor HP<br />
+                2. Isi nama lengkap, nomor HP, dan tanggal lahir<br />
                 3. Selesai! Akun siap digunakan
               </p>
             </div>

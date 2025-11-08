@@ -16,6 +16,7 @@ interface ListUsersResponse {
     firstName: string | null;
     lastName: string | null;
     fullName: string | null;
+    birthDate: string | null;
     createdAt: string;
     lastSignInAt: string | null;
     isAdmin: boolean;
@@ -81,6 +82,7 @@ export const listUsers = api<void, ListUsersResponse>(
         const lastName = user.lastName || null;
         const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ") || null;
         const fullName = metadata?.fullName || fullNameFromClerk || null;
+        const birthDate = metadata?.birthDate || null;
         
         return {
           id: user.id,
@@ -89,6 +91,7 @@ export const listUsers = api<void, ListUsersResponse>(
           firstName,
           lastName,
           fullName,
+          birthDate,
           createdAt: new Date(user.createdAt).toISOString(),
           lastSignInAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
           isAdmin: publicMeta?.isAdmin || false,

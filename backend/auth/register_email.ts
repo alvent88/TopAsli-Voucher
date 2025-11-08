@@ -6,6 +6,7 @@ export interface RegisterEmailRequest {
   email: string;
   fullName: string;
   clerkUserId: string;
+  birthDate?: string;
 }
 
 export interface RegisterEmailResponse {
@@ -15,12 +16,13 @@ export interface RegisterEmailResponse {
 
 export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
   { expose: true, method: "POST", path: "/auth/register-email" },
-  async ({ email, fullName, clerkUserId }) => {
+  async ({ email, fullName, clerkUserId, birthDate }) => {
     try {
       console.log("=== REGISTER EMAIL START ===");
       console.log("Email:", email);
       console.log("Full name:", fullName);
       console.log("Clerk User ID:", clerkUserId);
+      console.log("Birth date:", birthDate);
       
       const timestamp = Math.floor(Date.now() / 1000);
       
@@ -53,6 +55,7 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
           UPDATE email_registrations
           SET full_name = ${fullName}, 
               clerk_user_id = ${clerkUserId}, 
+              birth_date = ${birthDate || ''},
               updated_at = ${timestamp},
               last_otp_request_at = ${timestamp},
               otp_request_count = ${newRequestCount}
@@ -62,11 +65,11 @@ export const registerEmail = api<RegisterEmailRequest, RegisterEmailResponse>(
         console.log("New email registration, inserting...");
         await db.exec`
           INSERT INTO email_registrations (
-            email, full_name, clerk_user_id, created_at, updated_at, 
+            email, full_name, clerk_user_id, birth_date, created_at, updated_at, 
             last_otp_request_at, otp_request_count
           )
           VALUES (
-            ${email}, ${fullName}, ${clerkUserId}, ${timestamp}, ${timestamp},
+            ${email}, ${fullName}, ${clerkUserId}, ${birthDate || ''}, ${timestamp}, ${timestamp},
             ${timestamp}, 1
           )
         `;
