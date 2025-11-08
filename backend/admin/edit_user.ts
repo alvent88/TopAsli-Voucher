@@ -49,15 +49,30 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const currentFullName = [firstName, lastName].filter(Boolean).join(" ");
       const currentPhone = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || "";
       
-      const existingUserRow = await db.queryRow<{ clerk_user_id: string }>`
-        SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
+      console.log("User email from Clerk:", userEmail);
+      console.log("User full name from Clerk:", currentFullName);
+      console.log("User phone from Clerk:", currentPhone);
+      
+      const existingUserRow = await db.queryRow<{ clerk_user_id: string, email: string | null }>`
+        SELECT clerk_user_id, email FROM users WHERE clerk_user_id = ${userId}
       `;
       
       if (!existingUserRow) {
         console.log("User not found in users table, creating record...");
+        const emailToUse = userEmail || (email !== undefined ? email : null);
+        console.log("Email to use for new user:", emailToUse);
+        
         await db.exec`
           INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
-          VALUES (${userId}, ${userEmail}, ${currentFullName}, ${currentPhone}, '2000-01-01', NOW(), NOW())
+          VALUES (${userId}, ${emailToUse}, ${currentFullName}, ${currentPhone}, '2000-01-01', NOW(), NOW())
+        `;
+        console.log("User created in users table");
+      } else if (!existingUserRow.email && email !== undefined) {
+        console.log("User exists but has no email, will update with:", email);
+        await db.exec`
+          UPDATE users 
+          SET email = ${email}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
         `;
       }
       
@@ -65,7 +80,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       
       const oldValues: any = {
         fullName: oldFullName,
-        email: user.emailAddresses[0]?.emailAddress,
+        email: userEmail || null,
         phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber,
       };
       
@@ -90,6 +105,14 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const updates: any = {};
 
       if (fullName !== undefined) {
+        console.log("Updating full name to:", fullName);
+        
+        await db.exec`
+          UPDATE users 
+          SET full_name = ${fullName}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
+        
         const nameParts = fullName.trim().split(/\s+/);
         const firstName = nameParts[0] || "";
         const lastName = nameParts.slice(1).join(" ") || "";
@@ -112,6 +135,12 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
         console.log("Updating phone number to:", formattedPhone);
         
+        await db.exec`
+          UPDATE users 
+          SET phone_number = ${formattedPhone}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
+        
         if (user.phoneNumbers.length > 0) {
           console.log("Deleting existing phone numbers");
           for (const phone of user.phoneNumbers) {
@@ -129,7 +158,9 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         updates.primaryPhoneNumberId = newPhoneNumber.id;
       }
 
-      if (email !== undefined && email !== user.emailAddresses[0]?.emailAddress) {
+      if (email !== undefined && email !== userEmail) {
+        console.log("Updating email from", userEmail, "to", email);
+        
         const existingUsers = await clerkClient.users.getUserList({
           emailAddress: [email],
         });
@@ -138,23 +169,29 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           throw APIError.invalidArgument("Email sudah digunakan oleh user lain");
         }
 
-        const oldEmail = user.emailAddresses[0]?.emailAddress;
-        
-        if (oldEmail) {
+        if (userEmail) {
           await db.exec`
             UPDATE email_registrations 
             SET email = ${email}
-            WHERE email = ${oldEmail}
+            WHERE email = ${userEmail}
           `;
         }
+        
+        await db.exec`
+          UPDATE users 
+          SET email = ${email}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
 
-        await clerkClient.users.updateUser(userId, {
-          primaryEmailAddressID: undefined,
-        });
+        if (user.emailAddresses.length > 0) {
+          await clerkClient.users.updateUser(userId, {
+            primaryEmailAddressID: undefined,
+          });
 
-        const emailAddresses = user.emailAddresses;
-        for (const emailAddr of emailAddresses) {
-          await clerkClient.emailAddresses.deleteEmailAddress(emailAddr.id);
+          const emailAddresses = user.emailAddresses;
+          for (const emailAddr of emailAddresses) {
+            await clerkClient.emailAddresses.deleteEmailAddress(emailAddr.id);
+          }
         }
 
         const newEmailAddress = await clerkClient.emailAddresses.createEmailAddress({
