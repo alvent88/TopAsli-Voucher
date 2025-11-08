@@ -43,6 +43,24 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
     try {
       const user = await clerkClient.users.getUser(userId);
       
+      const userEmail = user.emailAddresses[0]?.emailAddress || null;
+      const firstName = user.firstName || "";
+      const lastName = user.lastName || "";
+      const currentFullName = [firstName, lastName].filter(Boolean).join(" ");
+      const currentPhone = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || "";
+      
+      const existingUserRow = await db.queryRow<{ clerk_user_id: string }>`
+        SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
+      `;
+      
+      if (!existingUserRow) {
+        console.log("User not found in users table, creating record...");
+        await db.exec`
+          INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
+          VALUES (${userId}, ${userEmail}, ${currentFullName}, ${currentPhone}, '2000-01-01', NOW(), NOW())
+        `;
+      }
+      
       const oldFullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
       
       const oldValues: any = {
@@ -51,18 +69,15 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber,
       };
       
-      const userEmail = user.emailAddresses[0]?.emailAddress;
-      if (userEmail) {
-        try {
-          const userRow = await db.queryRow<{ birth_date: Date }>`
-            SELECT birth_date FROM users WHERE clerk_user_id = ${userId}
-          `;
-          if (userRow) {
-            oldValues.birthDate = userRow.birth_date ? userRow.birth_date.toISOString().split('T')[0] : null;
-          }
-        } catch (err) {
-          console.log("No birth_date found in users table");
+      try {
+        const userRow = await db.queryRow<{ birth_date: Date }>`
+          SELECT birth_date FROM users WHERE clerk_user_id = ${userId}
+        `;
+        if (userRow) {
+          oldValues.birthDate = userRow.birth_date ? userRow.birth_date.toISOString().split('T')[0] : null;
         }
+      } catch (err) {
+        console.log("No birth_date found in users table");
       }
       
       const balanceResult = await db.queryRow<{ balance: number }>` 
@@ -161,28 +176,11 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       if (birthDate !== undefined) {
-        const existingUserRow = await db.queryRow<{ clerk_user_id: string }>`
-          SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
+        await db.exec`
+          UPDATE users 
+          SET birth_date = ${birthDate}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
         `;
-        
-        if (existingUserRow) {
-          await db.exec`
-            UPDATE users 
-            SET birth_date = ${birthDate}, updated_at = NOW()
-            WHERE clerk_user_id = ${userId}
-          `;
-        } else {
-          const userEmail = user.emailAddresses[0]?.emailAddress || null;
-          const firstName = user.firstName || "";
-          const lastName = user.lastName || "";
-          const currentFullName = [firstName, lastName].filter(Boolean).join(" ");
-          const currentPhone = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || "";
-          
-          await db.exec`
-            INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
-            VALUES (${userId}, ${userEmail}, ${currentFullName}, ${currentPhone}, ${birthDate}, NOW(), NOW())
-          `;
-        }
       }
 
       if (Object.keys(updates).length > 0) {
