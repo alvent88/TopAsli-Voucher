@@ -29,26 +29,31 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
     let phoneNumber: string | null = null;
     
     try {
-      let userFromDb = await db.queryRow<{ clerk_user_id: string, phone_number: string | null }>`
-        SELECT clerk_user_id, NULL as phone_number FROM email_registrations WHERE email = ${email}
-      `;
+      console.log("Fetching phone number for email:", email);
       
-      if (!userFromDb) {
-        userFromDb = await db.queryRow<{ clerk_user_id: string, phone_number: string | null }>`
-          SELECT clerk_user_id, phone_number FROM phone_registrations WHERE email = ${email}
+      const clerkUser = await clerkClient.users.getUser(userId);
+      console.log("Clerk user metadata:", clerkUser.publicMetadata, clerkUser.unsafeMetadata);
+      
+      phoneNumber = (clerkUser.publicMetadata?.phoneNumber as string) || 
+                    (clerkUser.unsafeMetadata?.phoneNumber as string) || 
+                    null;
+      
+      console.log("Phone number from Clerk:", phoneNumber);
+      
+      if (!phoneNumber) {
+        const phoneReg = await db.queryRow<{ phone_number: string }>`
+          SELECT phone_number FROM phone_registrations WHERE clerk_user_id = ${userId}
         `;
-      }
-      
-      if (userFromDb) {
-        if (userFromDb.phone_number) {
-          phoneNumber = userFromDb.phone_number;
-        } else if (userFromDb.clerk_user_id) {
-          const clerkUser = await clerkClient.users.getUser(userFromDb.clerk_user_id);
-          phoneNumber = (clerkUser.unsafeMetadata?.phoneNumber as string) || null;
+        
+        if (phoneReg) {
+          phoneNumber = phoneReg.phone_number;
+          console.log("Phone number from phone_registrations:", phoneNumber);
         }
       }
+      
+      console.log("Final phone number:", phoneNumber);
     } catch (err) {
-      console.log("Failed to fetch phone number from database/Clerk:", err);
+      console.error("Failed to fetch phone number:", err);
     }
 
     const rateLimitCheck = await db.queryRow<{ count: number, last_sent: Date | null }>`
