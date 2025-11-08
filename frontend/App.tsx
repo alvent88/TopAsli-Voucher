@@ -33,7 +33,7 @@ import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
 
-const PUBLISHABLE_KEY = "pk_live_Y2xlcmsudG9wYXNsaS5jb20k";
+const PUBLISHABLE_KEY = "pk_test_cGF0aWVudC1nbmF0LTI5LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
