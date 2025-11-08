@@ -23,7 +23,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import * as XLSX from "xlsx";
 
-type DateFilterType = "today" | "yesterday" | "7days" | "30days" | "daily" | "weekly" | "monthly" | "yearly";
+type DateFilterType = "today" | "yesterday" | "7days" | "30days" | "daily" | "monthly" | "yearly";
 type StatusFilter = "all" | "success" | "failed";
 
 export default function AdminTransactions() {
@@ -80,15 +80,6 @@ export default function AdminTransactions() {
       filtered = filtered.filter((t) => {
         const tDate = new Date(t.createdAt);
         return tDate >= dayStart && tDate < dayEnd;
-      });
-    } else if (dateFilterType === "weekly") {
-      const weekStart = new Date(selectedDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-      filtered = filtered.filter((t) => {
-        const tDate = new Date(t.createdAt);
-        return tDate >= weekStart && tDate < weekEnd;
       });
     } else if (dateFilterType === "monthly") {
       const monthStart = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
@@ -227,13 +218,6 @@ export default function AdminTransactions() {
     if (dateFilterType === "7days") return "7 hari sebelumnya";
     if (dateFilterType === "30days") return "30 hari sebelumnya";
     if (dateFilterType === "daily") return `Per Hari - ${selectedDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
-    if (dateFilterType === "weekly") {
-      const weekStart = new Date(selectedDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      return `Per Minggu - ${weekStart.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - ${weekEnd.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
-    }
     if (dateFilterType === "monthly") return `Per Bulan - ${selectedMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`;
     if (dateFilterType === "yearly") return `Per Tahun - ${selectedYear}`;
     return "Hari Ini";
@@ -491,13 +475,12 @@ export default function AdminTransactions() {
                       30 hari sebelumnya
                     </button>
                     <button onClick={() => setDateFilterType("daily")} className="w-full text-left px-3 py-2 text-xs font-semibold text-blue-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Hari</button>
-                    <button onClick={() => setDateFilterType("weekly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-purple-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Minggu</button>
                     <button onClick={() => setDateFilterType("monthly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-green-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Per Bulan</button>
                     <button onClick={() => setDateFilterType("yearly")} className="w-full text-left px-3 py-2 text-xs font-semibold text-pink-400 border-t border-slate-700 mt-2 hover:bg-slate-700 rounded">Berdasarkan Tahun</button>
                   </div>
                 </div>
                 <div className="w-96 p-4">
-                  {dateFilterType === "daily" || dateFilterType === "weekly" ? renderCalendar() : 
+                  {dateFilterType === "daily" ? renderCalendar() : 
                    dateFilterType === "monthly" ? renderMonthPicker() :
                    dateFilterType === "yearly" ? renderYearPicker() :
                    <div className="text-slate-400 text-center py-12">Pilih periode dari menu</div>}
