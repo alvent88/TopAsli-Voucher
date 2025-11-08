@@ -24,6 +24,10 @@ export const getUserProfile = api<void, UserProfile>(
       const userId = auth.userID;
       const email = auth.email;
       
+      console.log("=== GET USER PROFILE ===");
+      console.log("userId:", userId);
+      console.log("email:", email);
+      
       let user = await db.queryRow<{ 
         clerk_user_id: string;
         email: string;
@@ -36,8 +40,10 @@ export const getUserProfile = api<void, UserProfile>(
         WHERE clerk_user_id = ${userId}
       `;
 
+      console.log("User found by clerk_user_id:", user ? "Yes" : "No");
+
       if (!user && email) {
-        console.log("User not found by clerk_user_id, trying email:", email);
+        console.log("Trying to find by email:", email);
         user = await db.queryRow<{ 
           clerk_user_id: string;
           email: string;
@@ -47,22 +53,24 @@ export const getUserProfile = api<void, UserProfile>(
         }>`
           SELECT clerk_user_id, email, full_name, phone_number, birth_date
           FROM users 
-          WHERE email = ${email}
+          WHERE LOWER(email) = LOWER(${email})
         `;
 
+        console.log("User found by email:", user ? "Yes" : "No");
+
         if (user) {
-          console.log("User found by email, updating clerk_user_id from", user.clerk_user_id, "to", userId);
+          console.log("Updating clerk_user_id from", user.clerk_user_id, "to", userId);
           await db.exec`
             UPDATE users 
             SET clerk_user_id = ${userId}, updated_at = NOW()
-            WHERE email = ${email}
+            WHERE LOWER(email) = LOWER(${email})
           `;
           user.clerk_user_id = userId;
         }
       }
 
       if (!user) {
-        console.log("User not found in database");
+        console.log("User not found in database, creating new entry");
         await db.exec`
           INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
           VALUES (${userId}, ${email}, '', '', '2000-01-01', NOW(), NOW())
