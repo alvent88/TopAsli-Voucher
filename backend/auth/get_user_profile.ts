@@ -24,7 +24,7 @@ export const getUserProfile = api<void, UserProfile>(
       const userId = auth.userID;
       const email = auth.email;
       
-      const user = await db.queryRow<{ 
+      let user = await db.queryRow<{ 
         clerk_user_id: string;
         email: string;
         full_name: string;
@@ -36,8 +36,33 @@ export const getUserProfile = api<void, UserProfile>(
         WHERE clerk_user_id = ${userId}
       `;
 
+      if (!user && email) {
+        console.log("User not found by clerk_user_id, trying email:", email);
+        user = await db.queryRow<{ 
+          clerk_user_id: string;
+          email: string;
+          full_name: string;
+          phone_number: string;
+          birth_date: Date;
+        }>`
+          SELECT clerk_user_id, email, full_name, phone_number, birth_date
+          FROM users 
+          WHERE email = ${email}
+        `;
+
+        if (user) {
+          console.log("User found by email, updating clerk_user_id from", user.clerk_user_id, "to", userId);
+          await db.exec`
+            UPDATE users 
+            SET clerk_user_id = ${userId}, updated_at = NOW()
+            WHERE email = ${email}
+          `;
+          user.clerk_user_id = userId;
+        }
+      }
+
       if (!user) {
-        // User doesn't exist yet, create with minimal data
+        console.log("User not found in database");
         await db.exec`
           INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
           VALUES (${userId}, ${email}, '', '', '2000-01-01', NOW(), NOW())
