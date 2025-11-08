@@ -176,31 +176,52 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       if (birthDate !== undefined) {
-        await db.exec`
-          UPDATE users 
-          SET birth_date = ${birthDate}, updated_at = NOW()
-          WHERE clerk_user_id = ${userId}
-        `;
+        console.log("Updating birth date to:", birthDate);
+        try {
+          await db.exec`
+            UPDATE users 
+            SET birth_date = ${birthDate}, updated_at = NOW()
+            WHERE clerk_user_id = ${userId}
+          `;
+          console.log("Birth date updated successfully");
+        } catch (birthDateError: any) {
+          console.error("Failed to update birth date:", birthDateError);
+          throw APIError.internal(`Failed to update birth date: ${birthDateError.message}`);
+        }
       }
 
+      console.log("Checking if Clerk updates are needed, updates object:", updates);
       if (Object.keys(updates).length > 0) {
-        await clerkClient.users.updateUser(userId, updates);
+        console.log("Updating Clerk user with:", updates);
+        try {
+          await clerkClient.users.updateUser(userId, updates);
+          console.log("Clerk user updated successfully");
+        } catch (clerkError: any) {
+          console.error("Failed to update Clerk user:", clerkError);
+          throw APIError.internal(`Failed to update Clerk user: ${clerkError.message}`);
+        }
       }
 
       console.log("User updated successfully");
       
-      await logAuditAction({
-        actionType: "UPDATE",
-        entityType: "USER",
-        entityId: userId,
-        oldValues,
-        newValues: { fullName, email, phoneNumber, balance, birthDate },
-        metadata: {
-          fieldsUpdated: Object.keys({ fullName, email, phoneNumber, balance, birthDate }).filter(
-            (key) => (({ fullName, email, phoneNumber, balance, birthDate } as any)[key]) !== undefined
-          ),
-        },
-      }, ipAddress, userAgent);
+      console.log("Logging audit action...");
+      try {
+        await logAuditAction({
+          actionType: "UPDATE",
+          entityType: "USER",
+          entityId: userId,
+          oldValues,
+          newValues: { fullName, email, phoneNumber, balance, birthDate },
+          metadata: {
+            fieldsUpdated: Object.keys({ fullName, email, phoneNumber, balance, birthDate }).filter(
+              (key) => (({ fullName, email, phoneNumber, balance, birthDate } as any)[key]) !== undefined
+            ),
+          },
+        }, ipAddress, userAgent);
+        console.log("Audit action logged successfully");
+      } catch (auditError: any) {
+        console.error("Failed to log audit action:", auditError);
+      }
 
       return {
         success: true,
