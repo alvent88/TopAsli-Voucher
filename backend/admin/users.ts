@@ -63,15 +63,15 @@ export const listUsers = api<void, ListUsersResponse>(
         let birthDate = null;
         const email = user.emailAddresses[0]?.emailAddress || null;
         
-        const userRow = await db.queryRow<{ birth_date: Date | null }>`
-          SELECT birth_date FROM users WHERE clerk_user_id = ${user.id}
-        `;
-        
-        if (userRow) {
-          if (userRow.birth_date) {
-            birthDate = userRow.birth_date.toISOString().split('T')[0];
+        try {
+          const userRow = await db.queryRow<{ birth_date: string | null }>`
+            SELECT birth_date::text as birth_date FROM users WHERE clerk_user_id = ${user.id}
+          `;
+          
+          if (userRow && userRow.birth_date) {
+            birthDate = userRow.birth_date.split('T')[0];
           }
-        } else {
+        } catch (err) {
           const firstName = user.firstName || "";
           const lastName = user.lastName || "";
           const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
