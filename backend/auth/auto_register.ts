@@ -12,6 +12,12 @@ export interface AutoRegisterResponse {
   success: boolean;
   message: string;
   isNewUser: boolean;
+  debug?: {
+    userId?: string;
+    email?: string;
+    existingUser?: boolean;
+    error?: string;
+  };
 }
 
 export const autoRegister = api<void, AutoRegisterResponse>(
@@ -48,6 +54,11 @@ export const autoRegister = api<void, AutoRegisterResponse>(
         success: true,
         message: "User already registered",
         isNewUser: false,
+        debug: {
+          userId,
+          email,
+          existingUser: true,
+        },
       };
     }
 
@@ -79,6 +90,11 @@ export const autoRegister = api<void, AutoRegisterResponse>(
         success: true,
         message: "User registered successfully",
         isNewUser: true,
+        debug: {
+          userId,
+          email,
+          existingUser: false,
+        },
       };
     } catch (err: any) {
       console.error("=== AUTO-REGISTER ERROR ===");
@@ -86,11 +102,16 @@ export const autoRegister = api<void, AutoRegisterResponse>(
       console.error("Error stack:", err.stack);
       console.error("Full error:", err);
       
-      if (err instanceof APIError) {
-        throw err;
-      }
-      
-      throw APIError.internal(err.message || "Failed to auto-register user");
+      return {
+        success: false,
+        message: err.message || "Failed to auto-register user",
+        isNewUser: false,
+        debug: {
+          userId,
+          email: email || "unknown",
+          error: err.message,
+        },
+      };
     }
   }
 );
