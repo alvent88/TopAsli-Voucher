@@ -566,7 +566,7 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-300">
-                        {user.birthDate && user.birthDate !== '' && user.birthDate !== '2000-01-01' ? (
+                        {user.birthDate && user.birthDate !== '' ? (
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-slate-500" />
                             <span className="text-xs">
