@@ -500,6 +500,9 @@ export default function AdminUsers() {
                         {getSortIcon("phone")}
                       </div>
                     </TableHead>
+                    <TableHead className="text-slate-400">
+                      Tanggal Lahir
+                    </TableHead>
                     <TableHead 
                       className="text-slate-400 cursor-pointer select-none"
                       onClick={() => handleSort("balance")}
@@ -547,16 +550,8 @@ export default function AdminUsers() {
                       className={`border-slate-700 hover:bg-slate-800/50 ${user.isBanned ? 'bg-red-900/10' : ''}`}
                     >
                       <TableCell className="text-white font-medium">
-                        <div>
-                          {user.fullName || user.firstName || "-"}
-                          {user.lastName && ` ${user.lastName}`}
-                          {user.birthDate && user.birthDate !== '' && user.birthDate !== '2000-01-01' && (
-                            <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(user.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </div>
-                          )}
-                        </div>
+                        {user.fullName || user.firstName || "-"}
+                        {user.lastName && ` ${user.lastName}`}
                       </TableCell>
                       <TableCell className="text-slate-300">
                         <div className="flex items-center gap-2">
@@ -569,6 +564,18 @@ export default function AdminUsers() {
                           <Phone className="h-4 w-4 text-slate-500" />
                           <span className="font-mono text-xs">{user.phoneNumber || "-"}</span>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        {user.birthDate && user.birthDate !== '' && user.birthDate !== '2000-01-01' ? (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-slate-500" />
+                            <span className="text-xs">
+                              {new Date(user.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 text-xs">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-white font-semibold">
                         <div className="flex items-center gap-2">
