@@ -95,7 +95,7 @@ export default function ProfilePage() {
               <CardHeader className="pb-3 lg:pb-6">
                 <CardTitle className="text-white text-base lg:text-lg">Informasi Akun</CardTitle>
                 <CardDescription className="text-slate-400 text-xs lg:text-sm">
-                  Data pribadi Anda (tidak dapat diedit)
+                  Data pribadi Anda
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 lg:space-y-6">
