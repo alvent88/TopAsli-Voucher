@@ -52,16 +52,27 @@ export const getUserProfile = api<void, UserProfile>(
         };
       }
 
-      // Return data from database, with proper null handling
+      // Return data from database - just return everything as-is
       const birthDateStr = user.birth_date ? user.birth_date.toISOString().split('T')[0] : null;
       
-      return {
+      console.log("=== getUserProfile Debug ===");
+      console.log("User from DB:", JSON.stringify(user, null, 2));
+      console.log("Birth date from DB:", user.birth_date);
+      console.log("Birth date string:", birthDateStr);
+      console.log("Full name:", user.full_name);
+      console.log("Phone number:", user.phone_number);
+      
+      const result = {
         clerkUserId: user.clerk_user_id,
-        email: user.email || null,
-        fullName: user.full_name && user.full_name.trim() !== '' ? user.full_name : null,
-        phoneNumber: user.phone_number && user.phone_number.trim() !== '' ? user.phone_number : null,
-        birthDate: birthDateStr === '2000-01-01' ? null : birthDateStr,
+        email: user.email,
+        fullName: user.full_name,
+        phoneNumber: user.phone_number,
+        birthDate: birthDateStr,
       };
+      
+      console.log("Returning profile:", JSON.stringify(result, null, 2));
+      
+      return result;
     } catch (err: any) {
       console.error("Get user profile error:", err);
       throw APIError.internal(err.message || "Gagal mengambil profil");

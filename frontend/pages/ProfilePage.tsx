@@ -34,7 +34,12 @@ export default function ProfilePage() {
   const loadUserProfile = async () => {
     try {
       const profile = await backend.auth.getUserProfile();
-      console.log("Loaded user profile:", profile);
+      console.log("=== FRONTEND: Loaded user profile ===");
+      console.log("Full profile object:", profile);
+      console.log("fullName:", profile.fullName);
+      console.log("phoneNumber:", profile.phoneNumber);
+      console.log("birthDate:", profile.birthDate);
+      console.log("email:", profile.email);
       setUserProfile(profile);
     } catch (error) {
       console.error("Failed to load user profile:", error);
@@ -55,19 +60,41 @@ export default function ProfilePage() {
   const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ");
   
   // Show database fullName if exists and not empty, otherwise use Clerk, otherwise "User"
-  const fullName = (userProfile?.fullName && userProfile.fullName.trim() !== '') 
-    ? userProfile.fullName 
+  const dbFullName = userProfile?.fullName;
+  const fullName = (dbFullName && dbFullName.trim() !== '') 
+    ? dbFullName
     : fullNameFromClerk || "User";
   
-  const email = userProfile?.email || user?.emailAddresses[0]?.emailAddress || "-";
+  const dbEmail = userProfile?.email;
+  const email = (dbEmail && dbEmail.trim() !== '')
+    ? dbEmail
+    : user?.emailAddresses[0]?.emailAddress || "-";
   
-  const phoneNumber = (userProfile?.phoneNumber && userProfile.phoneNumber.trim() !== '')
-    ? userProfile.phoneNumber
+  const dbPhone = userProfile?.phoneNumber;
+  const phoneNumber = (dbPhone && dbPhone.trim() !== '')
+    ? dbPhone
     : user?.primaryPhoneNumber?.phoneNumber || 
       user?.phoneNumbers?.[0]?.phoneNumber || 
       (user?.publicMetadata?.phoneNumber as string) || "-";
   
-  const birthDate = userProfile?.birthDate || null;
+  const dbBirthDate = userProfile?.birthDate;
+  // Filter out default date '2000-01-01'
+  const birthDate = (dbBirthDate && dbBirthDate !== '2000-01-01') ? dbBirthDate : null;
+  
+  console.log("=== FRONTEND: Display Values ===");
+  console.log("DB values from userProfile:", {
+    fullName: dbFullName,
+    email: dbEmail,
+    phone: dbPhone,
+    birthDate: dbBirthDate,
+  });
+  console.log("Final display values:", {
+    fullName,
+    email,
+    phoneNumber,
+    birthDate,
+  });
+  console.log("Clerk user:", user);
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
