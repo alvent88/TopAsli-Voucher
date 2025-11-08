@@ -59,17 +59,17 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
     const rateLimitCheck = await db.queryRow<{ count: number, last_sent: Date | null }>`
       SELECT COUNT(*) as count, MAX(created_at) as last_sent
       FROM messages
-      WHERE created_at > NOW() - INTERVAL '1 hour'
+      WHERE created_at > NOW() - INTERVAL '1 minute'
         AND (email = ${email} OR name = ${name})
     `;
 
-    if (rateLimitCheck && rateLimitCheck.count >= 3) {
+    if (rateLimitCheck && rateLimitCheck.count >= 1) {
       const lastSent = rateLimitCheck.last_sent;
       if (lastSent) {
         const timeSinceLastMessage = Date.now() - new Date(lastSent).getTime();
-        const minutesRemaining = Math.ceil((3600000 - timeSinceLastMessage) / 60000);
+        const secondsRemaining = Math.ceil((60000 - timeSinceLastMessage) / 1000);
         throw APIError.resourceExhausted(
-          `Anda telah mencapai batas pengiriman pesan (3 pesan per jam). Silakan coba lagi dalam ${minutesRemaining} menit.`
+          `Anda baru saja mengirim pesan. Silakan tunggu ${secondsRemaining} detik lagi sebelum mengirim pesan baru.`
         );
       }
     }
