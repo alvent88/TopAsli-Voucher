@@ -293,7 +293,19 @@ export default function AdminUsers() {
     setEditFullName(user.fullName || "");
     setEditEmail(user.email || "");
     setEditPhoneNumber(user.phoneNumber || "");
-    setEditBirthDate(user.birthDate || "");
+    
+    // Format birth date untuk input date HTML (YYYY-MM-DD)
+    let formattedBirthDate = "";
+    if (user.birthDate) {
+      try {
+        const date = new Date(user.birthDate);
+        formattedBirthDate = date.toISOString().split('T')[0];
+      } catch (e) {
+        formattedBirthDate = user.birthDate;
+      }
+    }
+    setEditBirthDate(formattedBirthDate);
+    
     setEditBalance(user.balance || 0);
     setEditDialogOpen(true);
   };
