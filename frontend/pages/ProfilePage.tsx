@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Mail, Phone, Wallet } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Wallet, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBackend } from "@/lib/useBackend";
@@ -12,9 +12,11 @@ export default function ProfilePage() {
   const backend = useBackend();
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     loadBalance();
+    loadUserProfile();
   }, []);
 
   const loadBalance = async () => {
@@ -29,6 +31,15 @@ export default function ProfilePage() {
     }
   };
 
+  const loadUserProfile = async () => {
+    try {
+      const profile = await backend.auth.getUserProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -40,12 +51,13 @@ export default function ProfilePage() {
   const firstName = user?.firstName || "";
   const lastName = user?.lastName || "";
   const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ");
-  const fullName = (user?.unsafeMetadata?.fullName as string) || fullNameFromClerk || "User";
-  const email = user?.emailAddresses[0]?.emailAddress || "-";
-  const phoneNumber = user?.primaryPhoneNumber?.phoneNumber || 
+  const fullName = userProfile?.fullName || fullNameFromClerk || "User";
+  const email = userProfile?.email || user?.emailAddresses[0]?.emailAddress || "-";
+  const phoneNumber = userProfile?.phoneNumber || 
+                      user?.primaryPhoneNumber?.phoneNumber || 
                       user?.phoneNumbers?.[0]?.phoneNumber || 
-                      (user?.publicMetadata?.phoneNumber as string) ||
-                      (user?.unsafeMetadata?.phoneNumber as string) || "-";
+                      (user?.publicMetadata?.phoneNumber as string) || "-";
+  const birthDate = userProfile?.birthDate || null;
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
@@ -126,6 +138,18 @@ export default function ProfilePage() {
                   </label>
                   <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base">
                     {phoneNumber}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs lg:text-sm font-medium text-slate-300 flex items-center gap-2">
+                    <Calendar className="h-3 w-3 lg:h-4 lg:w-4" />
+                    Tanggal Lahir
+                  </label>
+                  <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base">
+                    {birthDate && birthDate !== '2000-01-01' 
+                      ? new Date(birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : '-'}
                   </div>
                 </div>
               </CardContent>

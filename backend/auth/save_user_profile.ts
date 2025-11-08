@@ -11,6 +11,7 @@ export interface SaveUserProfileRequest {
   email: string;
   fullName: string;
   phoneNumber: string;
+  birthDate?: string;
   clerkUserId?: string;
 }
 
@@ -22,7 +23,7 @@ export interface SaveUserProfileResponse {
 
 export const saveUserProfile = api<SaveUserProfileRequest, SaveUserProfileResponse>(
   { expose: true, method: "POST", path: "/auth/save-user-profile" },
-  async ({ email, fullName, phoneNumber, clerkUserId }) => {
+  async ({ email, fullName, phoneNumber, birthDate, clerkUserId }) => {
     try {
       console.log("=== SAVE USER PROFILE START ===");
       console.log("Email:", email);
@@ -82,12 +83,25 @@ export const saveUserProfile = api<SaveUserProfileRequest, SaveUserProfileRespon
         publicMetadata: {
           phoneNumber: formattedPhone,
         },
-        unsafeMetadata: {
-          fullName,
-          phoneNumber: formattedPhone,
-          profileComplete: true,
-        },
       });
+      
+      const existingUserRow = await db.queryRow<{ clerk_user_id: string }>`
+        SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
+      `;
+
+      if (existingUserRow) {
+        await db.exec`
+          UPDATE users
+          SET email = ${email}, full_name = ${fullName}, phone_number = ${formattedPhone}, 
+              birth_date = ${birthDate || '2000-01-01'}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
+      } else {
+        await db.exec`
+          INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
+          VALUES (${userId}, ${email}, ${fullName}, ${formattedPhone}, ${birthDate || '2000-01-01'}, NOW(), NOW())
+        `;
+      }
       
       console.log("User profile saved successfully");
       console.log("=== SAVE USER PROFILE SUCCESS ===");

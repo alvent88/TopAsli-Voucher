@@ -54,14 +54,14 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const userEmail = user.emailAddresses[0]?.emailAddress;
       if (userEmail) {
         try {
-          const registrationRow = await db.queryRow<{ birth_date: string }>`
-            SELECT birth_date FROM email_registrations WHERE email = ${userEmail}
+          const userRow = await db.queryRow<{ birth_date: Date }>`
+            SELECT birth_date FROM users WHERE clerk_user_id = ${userId}
           `;
-          if (registrationRow) {
-            oldValues.birthDate = registrationRow.birth_date;
+          if (userRow) {
+            oldValues.birthDate = userRow.birth_date ? userRow.birth_date.toISOString().split('T')[0] : null;
           }
         } catch (err) {
-          console.log("No birth_date found in email_registrations");
+          console.log("No birth_date found in users table");
         }
       }
       
@@ -161,14 +161,11 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       if (birthDate !== undefined) {
-        const userEmail = user.emailAddresses[0]?.emailAddress;
-        if (userEmail) {
-          await db.exec`
-            UPDATE email_registrations 
-            SET birth_date = ${birthDate}
-            WHERE email = ${userEmail}
-          `;
-        }
+        await db.exec`
+          UPDATE users 
+          SET birth_date = ${birthDate}, updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
       }
 
       if (Object.keys(updates).length > 0) {

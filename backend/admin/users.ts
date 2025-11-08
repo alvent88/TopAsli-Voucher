@@ -62,10 +62,22 @@ export const listUsers = api<void, ListUsersResponse>(
         let bannedReason = null;
         let birthDate = null;
         const email = user.emailAddresses[0]?.emailAddress || null;
+        
+        try {
+          const userRow = await db.queryRow<{ birth_date: Date }>`
+            SELECT birth_date FROM users WHERE clerk_user_id = ${user.id}
+          `;
+          if (userRow) {
+            birthDate = userRow.birth_date ? userRow.birth_date.toISOString().split('T')[0] : null;
+          }
+        } catch (err) {
+          console.error(`Failed to get user data for ${user.id}:`, err);
+        }
+        
         if (email) {
           try {
-            const registrationRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string; birth_date: string }>`
-              SELECT is_banned, banned_at, banned_reason, birth_date
+            const registrationRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string }>`
+              SELECT is_banned, banned_at, banned_reason
               FROM email_registrations 
               WHERE email = ${email}
             `;
@@ -73,7 +85,6 @@ export const listUsers = api<void, ListUsersResponse>(
               isBanned = registrationRow.is_banned;
               bannedAt = registrationRow.banned_at ? new Date(registrationRow.banned_at).toISOString() : null;
               bannedReason = registrationRow.banned_reason;
-              birthDate = registrationRow.birth_date || null;
             }
           } catch (err) {
             console.error(`Failed to get registration data for user ${user.id}:`, err);

@@ -225,18 +225,10 @@ export default function RegisterPage() {
         email,
         fullName,
         phoneNumber,
+        birthDate,
         clerkUserId: userId,
       });
       console.log("Profile saved to backend:", result);
-
-      console.log("Calling registerEmail API with birth date...");
-      await backend.auth.registerEmail({
-        email,
-        fullName,
-        clerkUserId: userId,
-        birthDate,
-      });
-      console.log("Birth date saved to backend");
 
       toast({
         title: "Registrasi Berhasil! 🎉",
