@@ -64,14 +64,17 @@ export const listUsers = api<void, ListUsersResponse>(
         const email = user.emailAddresses[0]?.emailAddress || null;
         
         try {
-          const userRow = await db.queryRow<{ birth_date: Date }>`
+          const userRow = await db.queryRow<{ birth_date: Date | null }>`
             SELECT birth_date FROM users WHERE clerk_user_id = ${user.id}
           `;
-          if (userRow) {
-            birthDate = userRow.birth_date ? userRow.birth_date.toISOString().split('T')[0] : null;
+          if (userRow && userRow.birth_date) {
+            birthDate = userRow.birth_date.toISOString().split('T')[0];
+            console.log(`Birth date for ${user.id}: ${birthDate}`);
+          } else {
+            console.log(`No birth date found for user ${user.id}`);
           }
         } catch (err) {
-          console.error(`Failed to get user data for ${user.id}:`, err);
+          console.log(`User ${user.id} not found in users table, will skip birth_date`);
         }
         
         if (email) {
