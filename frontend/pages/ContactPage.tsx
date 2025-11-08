@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthButton } from "@/components/AuthButton";
 import { useToast } from "@/components/ui/use-toast";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 
 export default function ContactPage() {
   const { toast } = useToast();
   const { isSignedIn, isLoaded } = useUser();
   const navigate = useNavigate();
   const { user } = useUser();
+  const backend = useBackend();
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
