@@ -44,14 +44,26 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const user = await clerkClient.users.getUser(userId);
       
       const oldFullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
-      const oldMetadata = user.unsafeMetadata as any;
       
       const oldValues: any = {
         fullName: oldFullName,
         email: user.emailAddresses[0]?.emailAddress,
         phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber,
-        birthDate: oldMetadata?.birthDate,
       };
+      
+      const userEmail = user.emailAddresses[0]?.emailAddress;
+      if (userEmail) {
+        try {
+          const registrationRow = await db.queryRow<{ birth_date: string }>`
+            SELECT birth_date FROM email_registrations WHERE email = ${userEmail}
+          `;
+          if (registrationRow) {
+            oldValues.birthDate = registrationRow.birth_date;
+          }
+        } catch (err) {
+          console.log("No birth_date found in email_registrations");
+        }
+      }
       
       const balanceResult = await db.queryRow<{ balance: number }>` 
         SELECT balance FROM user_balance WHERE user_id = ${userId}
@@ -148,17 +160,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         `;
       }
 
-      if (Object.keys(updates).length > 0) {
-        await clerkClient.users.updateUser(userId, updates);
-      }
-
       if (birthDate !== undefined) {
-        const unsafeMetadata = (user.unsafeMetadata as any) || {};
-        unsafeMetadata.birthDate = birthDate;
-        await clerkClient.users.updateUser(userId, {
-          unsafeMetadata: unsafeMetadata,
-        });
-        
         const userEmail = user.emailAddresses[0]?.emailAddress;
         if (userEmail) {
           await db.exec`
@@ -167,6 +169,10 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
             WHERE email = ${userEmail}
           `;
         }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await clerkClient.users.updateUser(userId, updates);
       }
 
       console.log("User updated successfully");

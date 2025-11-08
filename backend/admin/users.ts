@@ -60,21 +60,23 @@ export const listUsers = api<void, ListUsersResponse>(
         let isBanned = false;
         let bannedAt = null;
         let bannedReason = null;
+        let birthDate = null;
         const email = user.emailAddresses[0]?.emailAddress || null;
         if (email) {
           try {
-            const banRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string }>`
-              SELECT is_banned, banned_at, banned_reason 
+            const registrationRow = await db.queryRow<{ is_banned: boolean; banned_at: Date; banned_reason: string; birth_date: string }>`
+              SELECT is_banned, banned_at, banned_reason, birth_date
               FROM email_registrations 
               WHERE email = ${email}
             `;
-            if (banRow) {
-              isBanned = banRow.is_banned;
-              bannedAt = banRow.banned_at ? new Date(banRow.banned_at).toISOString() : null;
-              bannedReason = banRow.banned_reason;
+            if (registrationRow) {
+              isBanned = registrationRow.is_banned;
+              bannedAt = registrationRow.banned_at ? new Date(registrationRow.banned_at).toISOString() : null;
+              bannedReason = registrationRow.banned_reason;
+              birthDate = registrationRow.birth_date || null;
             }
           } catch (err) {
-            console.error(`Failed to get ban status for user ${user.id}:`, err);
+            console.error(`Failed to get registration data for user ${user.id}:`, err);
           }
         }
         
@@ -82,7 +84,6 @@ export const listUsers = api<void, ListUsersResponse>(
         const lastName = user.lastName || null;
         const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ") || null;
         const fullName = metadata?.fullName || fullNameFromClerk || null;
-        const birthDate = metadata?.birthDate || null;
         
         return {
           id: user.id,
