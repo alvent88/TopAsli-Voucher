@@ -173,9 +173,14 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           `;
         } else {
           const userEmail = user.emailAddresses[0]?.emailAddress || null;
+          const firstName = user.firstName || "";
+          const lastName = user.lastName || "";
+          const currentFullName = [firstName, lastName].filter(Boolean).join(" ");
+          const currentPhone = user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || "";
+          
           await db.exec`
             INSERT INTO users (clerk_user_id, email, full_name, phone_number, birth_date, created_at, updated_at)
-            VALUES (${userId}, ${userEmail}, ${fullName || ''}, ${phoneNumber || ''}, ${birthDate}, NOW(), NOW())
+            VALUES (${userId}, ${userEmail}, ${currentFullName}, ${currentPhone}, ${birthDate}, NOW(), NOW())
           `;
         }
       }
