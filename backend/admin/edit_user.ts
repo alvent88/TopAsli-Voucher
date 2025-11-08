@@ -102,8 +102,6 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         oldValues.balance = balanceResult.balance;
       }
       
-      const updates: any = {};
-
       if (fullName !== undefined) {
         console.log("Updating full name to:", fullName);
         
@@ -112,13 +110,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           SET full_name = ${fullName}, updated_at = NOW()
           WHERE clerk_user_id = ${userId}
         `;
-        
-        const nameParts = fullName.trim().split(/\s+/);
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts.slice(1).join(" ") || "";
-        
-        updates.firstName = firstName;
-        updates.lastName = lastName;
+        console.log("Full name updated in users table");
       }
 
       if (phoneNumber !== undefined) {
@@ -140,35 +132,12 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           SET phone_number = ${formattedPhone}, updated_at = NOW()
           WHERE clerk_user_id = ${userId}
         `;
-        
-        if (user.phoneNumbers.length > 0) {
-          console.log("Deleting existing phone numbers");
-          for (const phone of user.phoneNumbers) {
-            await clerkClient.phoneNumbers.deletePhoneNumber(phone.id);
-          }
-        }
-        
-        const newPhoneNumber = await clerkClient.phoneNumbers.createPhoneNumber({
-          userId: userId,
-          phoneNumber: formattedPhone,
-          verified: true,
-          primary: true,
-        });
-        
-        updates.primaryPhoneNumberId = newPhoneNumber.id;
+        console.log("Phone number updated in users table");
       }
 
       if (email !== undefined && email !== userEmail) {
         console.log("Updating email from", userEmail, "to", email);
         
-        const existingUsers = await clerkClient.users.getUserList({
-          emailAddress: [email],
-        });
-
-        if (existingUsers.data.length > 0 && existingUsers.data[0].id !== userId) {
-          throw APIError.invalidArgument("Email sudah digunakan oleh user lain");
-        }
-
         if (userEmail) {
           await db.exec`
             UPDATE email_registrations 
@@ -182,25 +151,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
           SET email = ${email}, updated_at = NOW()
           WHERE clerk_user_id = ${userId}
         `;
-
-        if (user.emailAddresses.length > 0) {
-          await clerkClient.users.updateUser(userId, {
-            primaryEmailAddressID: undefined,
-          });
-
-          const emailAddresses = user.emailAddresses;
-          for (const emailAddr of emailAddresses) {
-            await clerkClient.emailAddresses.deleteEmailAddress(emailAddr.id);
-          }
-        }
-
-        const newEmailAddress = await clerkClient.emailAddresses.createEmailAddress({
-          userId: userId,
-          emailAddress: email,
-          verified: true,
-        });
-
-        updates.primaryEmailAddressId = newEmailAddress.id;
+        console.log("Email updated in users table");
       }
 
       if (balance !== undefined) {
@@ -224,18 +175,6 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         } catch (birthDateError: any) {
           console.error("Failed to update birth date:", birthDateError);
           throw APIError.internal(`Failed to update birth date: ${birthDateError.message}`);
-        }
-      }
-
-      console.log("Checking if Clerk updates are needed, updates object:", updates);
-      if (Object.keys(updates).length > 0) {
-        console.log("Updating Clerk user with:", updates);
-        try {
-          await clerkClient.users.updateUser(userId, updates);
-          console.log("Clerk user updated successfully");
-        } catch (clerkError: any) {
-          console.error("Failed to update Clerk user:", clerkError);
-          throw APIError.internal(`Failed to update Clerk user: ${clerkError.message}`);
         }
       }
 
