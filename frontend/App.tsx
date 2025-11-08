@@ -82,12 +82,12 @@ function BanChecker() {
 }
 
 function LoginTracker() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const backend = useBackend();
 
   useEffect(() => {
     const trackLogin = async () => {
-      if (!isLoaded || !user) return;
+      if (!isLoaded || !user || !isSignedIn) return;
 
       const loginTrackedKey = `login_tracked_${user.id}`;
       const autoRegKey = `auto_reg_${user.id}`;
@@ -104,6 +104,9 @@ function LoginTracker() {
           console.log("=== AUTO-REGISTRATION ATTEMPT ===");
           console.log("User ID:", user.id);
           console.log("Email:", email);
+          console.log("Is signed in:", isSignedIn);
+          
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
           try {
             const regResult = await backend.auth.autoRegister();
@@ -123,6 +126,10 @@ function LoginTracker() {
               code: regError.code,
               status: regError.status,
             });
+            
+            if (regError.code === "authorization_invalid") {
+              console.log("⏳ Auth token not ready, will retry on next page load");
+            }
           }
         }
         
@@ -158,7 +165,7 @@ function LoginTracker() {
     };
 
     trackLogin();
-  }, [isLoaded, user, backend]);
+  }, [isLoaded, user, isSignedIn, backend]);
 
   return null;
 }
