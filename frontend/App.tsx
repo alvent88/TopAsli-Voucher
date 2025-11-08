@@ -53,7 +53,26 @@ function BanChecker() {
       }
 
       try {
-        await backend.auth.checkUser({ identifier: email });
+        const checkResult = await backend.auth.checkUser({ identifier: email });
+        
+        if (!checkResult.exists) {
+          console.log("User not registered, auto-registering...");
+          try {
+            const firstName = user.firstName || "";
+            const lastName = user.lastName || "";
+            const fullName = `${firstName} ${lastName}`.trim() || email.split("@")[0];
+            
+            await backend.auth.completeEmailRegistration({
+              email: email,
+              fullName: fullName,
+              clerkUserId: user.id,
+            });
+            
+            console.log("User auto-registered successfully");
+          } catch (regError) {
+            console.error("Auto-registration failed:", regError);
+          }
+        }
       } catch (error: any) {
         if (error.message?.includes("dibanned")) {
           sessionStorage.setItem(banCheckKey, "true");
