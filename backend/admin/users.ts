@@ -79,12 +79,13 @@ export const listUsers = api<void, ListUsersResponse>(
         
         const firstName = user.firstName || null;
         const lastName = user.lastName || null;
-        const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
+        const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ") || null;
+        const fullName = metadata?.fullName || fullNameFromClerk || null;
         
         return {
           id: user.id,
           email,
-          phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || null,
+          phoneNumber: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers[0]?.phoneNumber || publicMeta?.phoneNumber || metadata?.phoneNumber || null,
           firstName,
           lastName,
           fullName,

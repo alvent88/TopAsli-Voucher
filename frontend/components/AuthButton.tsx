@@ -49,7 +49,8 @@ export function AuthButton() {
   if (isSignedIn) {
     const firstName = user.firstName || "";
     const lastName = user.lastName || "";
-    const fullName = [firstName, lastName].filter(Boolean).join(" ") || "User";
+    const fullNameFromClerk = [firstName, lastName].filter(Boolean).join(" ");
+    const fullName = (user.unsafeMetadata?.fullName as string) || fullNameFromClerk || "User";
     
     return (
       <DropdownMenu>
