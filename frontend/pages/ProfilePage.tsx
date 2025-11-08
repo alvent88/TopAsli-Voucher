@@ -94,7 +94,6 @@ export default function ProfilePage() {
     phoneNumber,
     birthDate,
   });
-  console.log("Clerk user:", user);
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
