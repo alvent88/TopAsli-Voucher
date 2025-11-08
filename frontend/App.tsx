@@ -82,15 +82,14 @@ function BanChecker() {
 }
 
 function LoginTracker() {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded } = useUser();
   const backend = useBackend();
 
   useEffect(() => {
     const trackLogin = async () => {
-      if (!isLoaded || !user || !isSignedIn) return;
+      if (!isLoaded || !user) return;
 
       const loginTrackedKey = `login_tracked_${user.id}`;
-      const autoRegKey = `auto_reg_${user.id}`;
       
       if (sessionStorage.getItem(loginTrackedKey)) {
         return;
@@ -99,39 +98,6 @@ function LoginTracker() {
       try {
         const email = user.primaryEmailAddress?.emailAddress;
         const phoneNumber = user.primaryPhoneNumber?.phoneNumber;
-        
-        if (!sessionStorage.getItem(autoRegKey) && email) {
-          console.log("=== AUTO-REGISTRATION ATTEMPT ===");
-          console.log("User ID:", user.id);
-          console.log("Email:", email);
-          console.log("Is signed in:", isSignedIn);
-          
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          try {
-            const regResult = await backend.auth.autoRegister();
-            console.log("Auto-registration result:", regResult);
-            
-            if (regResult.isNewUser) {
-              console.log("✅ New user registered successfully!");
-            } else {
-              console.log("ℹ️ User already exists in database");
-            }
-            
-            sessionStorage.setItem(autoRegKey, "true");
-          } catch (regError: any) {
-            console.error("❌ Auto-registration failed:", regError);
-            console.error("Error details:", {
-              message: regError.message,
-              code: regError.code,
-              status: regError.status,
-            });
-            
-            if (regError.code === "authorization_invalid") {
-              console.log("⏳ Auth token not ready, will retry on next page load");
-            }
-          }
-        }
         
         let ipAddress = 'unknown';
         try {
@@ -165,7 +131,7 @@ function LoginTracker() {
     };
 
     trackLogin();
-  }, [isLoaded, user, isSignedIn, backend]);
+  }, [isLoaded, user, backend]);
 
   return null;
 }

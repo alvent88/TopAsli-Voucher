@@ -1,6 +1,6 @@
 import { useSignUp, useUser } from "@clerk/clerk-react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2, User, Phone, Chrome } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,36 +23,6 @@ export default function RegisterPage() {
   const [step, setStep] = useState<"email" | "verification" | "profile">("email");
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  const handleGoogleSignUp = async () => {
-    if (!signUp) return;
-    
-    if (!acceptedTerms) {
-      toast({
-        title: "Peringatan",
-        description: "Anda harus menyetujui Syarat dan Ketentuan terlebih dahulu",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      await signUp.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/",
-        redirectUrlComplete: "/",
-      });
-    } catch (err: any) {
-      console.error("Google sign-up error:", err);
-      toast({
-        title: "Error",
-        description: err.message || "Gagal daftar dengan Google",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -309,36 +279,7 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
               {step === "email" ? (
-                <>
-                  <Button
-                    type="button"
-                    onClick={handleGoogleSignUp}
-                    disabled={loading || !acceptedTerms}
-                    className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 font-semibold"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Menghubungkan...
-                      </>
-                    ) : (
-                      <>
-                        <Chrome className="mr-2 h-5 w-5" />
-                        Daftar dengan Google
-                      </>
-                    )}
-                  </Button>
-                  
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-700"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-[#1a1f3a] text-slate-400">Atau daftar dengan email</span>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleSendCode} className="space-y-4">
+                <form onSubmit={handleSendCode} className="space-y-4">
                     <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-300">
                       Email
@@ -387,8 +328,7 @@ export default function RegisterPage() {
                       "Kirim Kode OTP"
                     )}
                   </Button>
-                  </form>
-                </>
+                </form>
               ) : step === "verification" ? (
                 <form onSubmit={handleVerifyCode} className="space-y-4">
                   <div className="space-y-2">
