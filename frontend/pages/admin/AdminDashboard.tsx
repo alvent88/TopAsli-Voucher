@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
-import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2, Wallet, Users } from "lucide-react";
+import { TrendingUp, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2, Wallet, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,6 @@ import {
 interface DashboardStats {
   totalTransactions: number;
   totalRevenue: number;
-  pendingTransactions: number;
-  successTransactions: number;
   totalUsers: number;
 }
 
@@ -33,8 +31,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalTransactions: 0,
     totalRevenue: 0,
-    pendingTransactions: 0,
-    successTransactions: 0,
     totalUsers: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -702,20 +698,6 @@ export default function AdminDashboard() {
       bgColor: "bg-green-500/10",
     },
     {
-      title: "Transaksi Pending",
-      value: stats.pendingTransactions.toString(),
-      icon: Clock,
-      color: "text-yellow-400",
-      bgColor: "bg-yellow-500/10",
-    },
-    {
-      title: "Transaksi Berhasil",
-      value: stats.successTransactions.toString(),
-      icon: CheckCircle,
-      color: "text-purple-400",
-      bgColor: "bg-purple-500/10",
-    },
-    {
       title: "Saldo UniPlay",
       value: loadingBalance 
         ? "Loading..." 
@@ -753,7 +735,7 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
