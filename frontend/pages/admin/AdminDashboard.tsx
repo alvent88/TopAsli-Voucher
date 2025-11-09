@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
-import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2, Wallet } from "lucide-react";
+import { TrendingUp, Clock, CheckCircle, DollarSign, RefreshCw, MessageSquare, ShoppingBag, TestTube2, Wallet, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ interface DashboardStats {
   totalRevenue: number;
   pendingTransactions: number;
   successTransactions: number;
+  totalUsers: number;
 }
 
 export default function AdminDashboard() {
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
     totalRevenue: 0,
     pendingTransactions: 0,
     successTransactions: 0,
+    totalUsers: 0,
   });
   const [loading, setLoading] = useState(true);
   const [testingWhatsApp, setTestingWhatsApp] = useState(false);
@@ -679,6 +681,13 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
+      title: "Total Pengguna",
+      value: stats.totalUsers.toString(),
+      icon: Users,
+      color: "text-indigo-400",
+      bgColor: "bg-indigo-500/10",
+    },
+    {
       title: "Total Transaksi",
       value: stats.totalTransactions.toString(),
       icon: TrendingUp,
@@ -744,7 +753,7 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (

@@ -6,6 +6,7 @@ interface DashboardStats {
   totalRevenue: number;
   pendingTransactions: number;
   successTransactions: number;
+  totalUsers: number;
 }
 
 export const dashboard = api<void, DashboardStats>(
@@ -20,11 +21,16 @@ export const dashboard = api<void, DashboardStats>(
       FROM transactions
     `;
 
+    const userCount = await db.queryRow<any>`
+      SELECT COUNT(*) as total_users FROM users
+    `;
+
     return {
       totalTransactions: parseInt(stats.total_transactions),
       totalRevenue: parseInt(stats.total_revenue),
       pendingTransactions: parseInt(stats.pending_transactions),
       successTransactions: parseInt(stats.success_transactions),
+      totalUsers: parseInt(userCount.total_users),
     };
   }
 );
