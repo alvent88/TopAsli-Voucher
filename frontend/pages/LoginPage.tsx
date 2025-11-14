@@ -168,6 +168,16 @@ export default function LoginPage() {
                 </Button>
               </form>
 
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+                >
+                  Lupa password?
+                </button>
+              </div>
+
               <div className="mt-6 text-center">
                 <p className="text-slate-400 text-sm">
                   Belum punya akun?{" "}

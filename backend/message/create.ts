@@ -1,12 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
-import { messageTopic } from "../notification/events";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 export interface CreateMessageRequest {
   name: string;
@@ -29,29 +23,12 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
     let phoneNumber: string | null = null;
     
     try {
-      console.log("Fetching phone number for email:", email);
+      const user = await db.queryRow<{ phone_number: string | null }>`
+        SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
+      `;
       
-      const clerkUser = await clerkClient.users.getUser(userId);
-      console.log("Clerk user metadata:", clerkUser.publicMetadata, clerkUser.unsafeMetadata);
-      
-      phoneNumber = (clerkUser.publicMetadata?.phoneNumber as string) || 
-                    (clerkUser.unsafeMetadata?.phoneNumber as string) || 
-                    null;
-      
-      console.log("Phone number from Clerk:", phoneNumber);
-      
-      if (!phoneNumber) {
-        const phoneReg = await db.queryRow<{ phone_number: string }>`
-          SELECT phone_number FROM phone_registrations WHERE clerk_user_id = ${userId}
-        `;
-        
-        if (phoneReg) {
-          phoneNumber = phoneReg.phone_number;
-          console.log("Phone number from phone_registrations:", phoneNumber);
-        }
-      }
-      
-      console.log("Final phone number:", phoneNumber);
+      phoneNumber = user?.phone_number || null;
+      console.log("Phone number from database:", phoneNumber);
     } catch (err) {
       console.error("Failed to fetch phone number:", err);
     }
@@ -137,13 +114,7 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
       console.error("Failed to send WhatsApp notifications:", err);
     }
 
-    await messageTopic.publish({
-      messageId: row.id.toString(),
-      name,
-      email,
-      subject,
-      timestamp: new Date(),
-    });
+
 
     return { success: true, id: row.id };
   }
