@@ -1,35 +1,52 @@
 import backend from "~backend/client";
+import { useMemo } from "react";
 
 const customFetcher: typeof fetch = async (input, init) => {
-  const url = typeof input === 'string' ? input : input.url;
-  const options = typeof input === 'string' ? init : input;
+  const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString());
+  const options: RequestInit = typeof input === 'string' ? (init || {}) : (input instanceof Request ? input : {});
   
-  const headers = new Headers(options?.headers || {});
-  headers.set('Accept', 'application/json');
+  const headers = new Headers(options.headers || {});
   
-  const response = await fetch(url, {
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json');
+  }
+  
+  const method = options.method || 'GET';
+  if (!headers.has('Content-Type') && method !== 'GET' && method !== 'HEAD') {
+    headers.set('Content-Type', 'application/json');
+  }
+  
+  const requestConfig: RequestInit = {
     ...options,
-    headers,
-    credentials: 'include',
+    headers: Object.fromEntries(headers.entries()),
+    credentials: 'same-origin',
     mode: 'cors',
-  });
+  };
   
-  return response;
+  try {
+    const response = await fetch(url, requestConfig);
+    return response;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
 };
 
 export function useBackend() {
   const token = sessionStorage.getItem("authToken");
   
-  if (!token) {
+  return useMemo(() => {
+    if (!token) {
+      return backend.with({
+        fetcher: customFetcher,
+      });
+    }
+    
     return backend.with({
       fetcher: customFetcher,
+      auth: async () => {
+        return { authorization: `Bearer ${token}` };
+      },
     });
-  }
-  
-  return backend.with({
-    fetcher: customFetcher,
-    auth: async () => {
-      return { authorization: `Bearer ${token}` };
-    },
-  });
+  }, [token]);
 }

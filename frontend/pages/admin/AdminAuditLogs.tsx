@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ const entityTypeColors: Record<string, string> = {
 };
 
 export default function AdminAuditLogs() {
-  const authenticatedBackend = backend;
+  const backend = useBackend();
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -70,7 +70,7 @@ export default function AdminAuditLogs() {
         setLoading(true);
         setError("");
 
-        const response = await authenticatedBackend.audit.list({
+        const response = await backend.audit.list({
           limit,
           offset: page * limit,
           actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
@@ -89,7 +89,7 @@ export default function AdminAuditLogs() {
     };
 
     loadLogs();
-  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter, authenticatedBackend, limit]);
+  }, [page, actionTypeFilter, entityTypeFilter, adminIdFilter, limit]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
@@ -112,7 +112,7 @@ export default function AdminAuditLogs() {
 
   const handleDownloadLogs = async () => {
     try {
-      const response = await authenticatedBackend.audit.exportLogs({
+      const response = await backend.audit.exportLogs({
         actionType: actionTypeFilter === "all" ? undefined : actionTypeFilter,
         entityType: entityTypeFilter === "all" ? undefined : entityTypeFilter,
         adminId: adminIdFilter || undefined,
