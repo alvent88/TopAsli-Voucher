@@ -1,20 +1,8 @@
 import { Client } from "~backend/client";
 
-const getBaseURL = () => {
-  if (import.meta.env.VITE_CLIENT_TARGET) {
-    return import.meta.env.VITE_CLIENT_TARGET;
-  }
-  
-  if (typeof window !== 'undefined') {
-    return window.location.origin.replace('.lp.dev', '.api.lp.dev');
-  }
-  
-  return 'http://localhost:4000';
-};
-
-const backend = new Client(getBaseURL(), {
+const backend = new Client("https://gaming-top-up-platform-d3pg4ec82vjikj791feg.api.lp.dev", {
   requestInit: {
-    credentials: 'omit',
+    credentials: 'include',
   }
 });
 
