@@ -1,4 +1,4 @@
-import backend from "./backend";
+import backend from "~backend/client";
 import { useMemo } from "react";
 
 export function useBackend() {
