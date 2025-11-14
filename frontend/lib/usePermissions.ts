@@ -1,7 +1,7 @@
 export function usePermissions() {
-  const userEmail = sessionStorage.getItem("userEmail") || "";
+  const userPhone = sessionStorage.getItem("userPhone") || "";
   
-  const isSuperAdmin = userEmail === "alvent88@gmail.com";
+  const isSuperAdmin = userPhone === "62818848168";
   const isAdmin = isSuperAdmin;
   
   const canEdit = isSuperAdmin;
