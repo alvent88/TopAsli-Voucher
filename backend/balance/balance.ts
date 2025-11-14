@@ -54,29 +54,19 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
     try {
       console.log("=== REDEEM VOUCHER START ===");
       console.log("User ID:", auth.userID);
+      console.log("User email:", auth.email);
       console.log("Voucher code:", code);
-      
-      const { createClerkClient } = await import("@clerk/backend");
-      const { secret } = await import("encore.dev/config");
-      const clerkSecretKey = secret("ClerkSecretKey");
-      const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
-      
-      const user = await clerkClient.users.getUser(auth.userID);
-      const userEmail = user.emailAddresses[0]?.emailAddress || "unknown";
-      console.log("User email:", userEmail);
 
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const recentFailedAttempts = await db.rawQueryAll<{ count: number }>(
-        `SELECT COUNT(*)::int as count 
-         FROM voucher_claim_attempts 
-         WHERE user_id = $1 
-         AND success = false 
-         AND attempted_at > $2`,
-        auth.userID,
-        fiveMinutesAgo
-      );
+      const recentFailedAttempts = await db.queryAll<{ count: string }>`
+        SELECT COUNT(*) as count 
+        FROM voucher_claim_attempts 
+        WHERE user_id = ${auth.userID}
+        AND success = false 
+        AND attempted_at > ${fiveMinutesAgo}
+      `;
 
-      const failedCount = recentFailedAttempts[0]?.count || 0;
+      const failedCount = parseInt(recentFailedAttempts[0]?.count || '0');
       
       if (failedCount >= 5) {
         throw APIError.permissionDenied("Anda telah mencoba kode voucher yang salah terlalu banyak. Silakan coba lagi dalam 5 menit.");
@@ -153,7 +143,7 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       await db.exec`
         UPDATE vouchers
         SET claimed_by_user_id = ${auth.userID},
-            claimed_by_email = ${userEmail},
+            claimed_by_email = ${auth.email},
             claimed_at = NOW(),
             used_count = used_count + 1
         WHERE code = ${code}

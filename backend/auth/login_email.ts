@@ -56,6 +56,20 @@ export const loginEmail = api<LoginEmailRequest, LoginEmailResponse>(
       }
       
       console.log("Login successful for user:", user.clerk_user_id);
+      
+      const balanceExists = await db.queryRow<{ exists: boolean }>`
+        SELECT EXISTS(SELECT 1 FROM user_balance WHERE user_id = ${user.clerk_user_id}) as exists
+      `;
+      
+      if (!balanceExists?.exists) {
+        console.log("Creating user_balance for user:", user.clerk_user_id);
+        await db.exec`
+          INSERT INTO user_balance (user_id, balance)
+          VALUES (${user.clerk_user_id}, 0)
+          ON CONFLICT (user_id) DO NOTHING
+        `;
+      }
+      
       console.log("=== LOGIN EMAIL SUCCESS ===");
       
       const token = generateToken(user.clerk_user_id, user.email, user.full_name);
