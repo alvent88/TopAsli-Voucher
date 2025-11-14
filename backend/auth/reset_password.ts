@@ -17,13 +17,15 @@ export const resetPassword = api<ResetPasswordRequest, ResetPasswordResponse>(
   async ({ resetToken, newPassword }) => {
     console.log("Resetting password with token");
 
-    let tokenData: { userId: string; timestamp: number; phoneNumber: string };
+    let tokenData: { userId: string; email: string; timestamp: number };
     try {
       const decoded = Buffer.from(resetToken, "base64").toString("utf-8");
       tokenData = JSON.parse(decoded);
     } catch (err) {
       throw APIError.invalidArgument("Token reset tidak valid");
     }
+
+    console.log("Token data:", { userId: tokenData.userId, email: tokenData.email });
 
     const tokenAge = Date.now() - tokenData.timestamp;
     const fifteenMinutes = 15 * 60 * 1000;
@@ -38,11 +40,14 @@ export const resetPassword = api<ResetPasswordRequest, ResetPasswordResponse>(
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    const result = await db.exec`
+    console.log("Updating password for user:", tokenData.userId);
+    console.log("Password hash:", passwordHash.substring(0, 20) + "...");
+
+    await db.exec`
       UPDATE users
       SET password_hash = ${passwordHash}
       WHERE clerk_user_id = ${tokenData.userId}
-        AND phone_number = ${tokenData.phoneNumber}
+        AND email = ${tokenData.email}
     `;
 
     console.log("Password reset successful for user:", tokenData.userId);
