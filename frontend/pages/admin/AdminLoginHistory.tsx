@@ -33,7 +33,7 @@ interface UserIPInfo {
 }
 
 export default function AdminLoginHistory() {
-  const authenticatedBackend = useBackend();
+  const backend = useBackend();
 
   const [entries, setEntries] = useState<LoginHistoryEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -56,7 +56,7 @@ export default function AdminLoginHistory() {
         setLoading(true);
         setError("");
 
-        const response = await authenticatedBackend.admin.listLoginHistory({
+        const response = await backend.admin.listLoginHistory({
           limit,
           offset: page * limit,
           ipAddress: ipFilter || undefined,
@@ -75,7 +75,7 @@ export default function AdminLoginHistory() {
     };
 
     loadHistory();
-  }, [page, ipFilter, userIdFilter, statusFilter, authenticatedBackend, limit]);
+  }, [page, ipFilter, userIdFilter, statusFilter, limit]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
@@ -105,7 +105,7 @@ export default function AdminLoginHistory() {
 
     try {
       setError("");
-      const response = await authenticatedBackend.admin.getUsersByIP({
+      const response = await backend.admin.getUsersByIP({
         ipAddress: searchIp.trim(),
       });
       setIpUsers(response.users);
@@ -118,7 +118,7 @@ export default function AdminLoginHistory() {
 
   const handleDownloadHistory = async () => {
     try {
-      const response = await authenticatedBackend.admin.exportLoginHistory({
+      const response = await backend.admin.exportLoginHistory({
         ipAddress: ipFilter || undefined,
         userId: userIdFilter || undefined,
         loginStatus: statusFilter === "all" ? undefined : statusFilter,
