@@ -1,13 +1,8 @@
 import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 export interface ExportUsersResponse {
   csv: string;
@@ -23,34 +18,31 @@ export const exportUsers = api<void, ExportUsersResponse>(
     }
 
     try {
-      const users = await clerkClient.users.getUserList({ limit: 500 });
+      const dbUsers = await db.queryAll<any>`
+        SELECT u.clerk_user_id, u.phone_number, u.full_name, u.created_at,
+               COALESCE(b.balance, 0) as balance
+        FROM users u
+        LEFT JOIN user_balance b ON u.clerk_user_id = b.user_id
+        ORDER BY u.created_at DESC
+        LIMIT 500
+      `;
       
-      const usersData = await Promise.all(
-        users.data.map(async (user) => {
-          const balanceRow = await db.queryRow<{ balance: number }>`
-            SELECT balance FROM user_balance WHERE user_id = ${user.id}
-          `;
-          
-          const metadata = user.publicMetadata as any;
-          const unsafeMetadata = user.unsafeMetadata as any;
-          
-          return {
-            userId: user.id,
-            email: user.emailAddresses[0]?.emailAddress || "",
-            phoneNumber: metadata?.phoneNumber || "",
-            fullName: unsafeMetadata?.fullName || "",
-            balance: balanceRow?.balance || 0,
-            isAdmin: metadata?.isAdmin || false,
-            isSuperAdmin: metadata?.isSuperAdmin || false,
-            isBanned: metadata?.isBanned || false,
-            createdAt: new Date(user.createdAt).toISOString(),
-          };
-        })
-      );
+      const usersData = dbUsers.map((user: any) => {
+        const phoneNumber = user.phone_number || "";
+        return {
+          userId: user.clerk_user_id,
+          phoneNumber: phoneNumber,
+          fullName: user.full_name || "",
+          balance: user.balance || 0,
+          isAdmin: phoneNumber === "62818848168",
+          isSuperAdmin: phoneNumber === "62818848168",
+          isBanned: false,
+          createdAt: user.created_at ? new Date(user.created_at).toISOString() : "",
+        };
+      });
 
       const headers = [
         "User ID",
-        "Email",
         "Phone Number",
         "Full Name",
         "Balance",
@@ -62,7 +54,6 @@ export const exportUsers = api<void, ExportUsersResponse>(
 
       const csvRows = usersData.map((user) => [
         user.userId,
-        user.email,
         user.phoneNumber,
         user.fullName,
         user.balance.toString(),
@@ -118,7 +109,6 @@ export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
       
       const expectedHeaders = [
         "User ID",
-        "Email",
         "Phone Number",
         "Full Name",
         "Balance",
@@ -141,13 +131,13 @@ export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
         try {
           const values = lines[i].split(",").map((v) => v.replace(/^"|"$/g, "").replace(/""/g, '"'));
           
-          if (values.length < 9) {
+          if (values.length < 8) {
             errors.push(`Line ${i + 1}: Invalid number of columns`);
             skipped++;
             continue;
           }
 
-          const [userId, email, phoneNumber, fullName, balanceStr, isAdminStr, isSuperAdminStr, isBannedStr, createdAt] = values;
+          const [userId, phoneNumber, fullName, balanceStr, isAdminStr, isSuperAdminStr, isBannedStr, createdAt] = values;
           const balance = parseFloat(balanceStr);
 
           if (isNaN(balance)) {
@@ -157,7 +147,15 @@ export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
           }
 
           try {
-            const user = await clerkClient.users.getUser(userId);
+            const userRow = await db.queryRow<{ clerk_user_id: string }>`
+              SELECT clerk_user_id FROM users WHERE clerk_user_id = ${userId}
+            `;
+            
+            if (!userRow) {
+              errors.push(`Line ${i + 1}: User not found (${phoneNumber})`);
+              skipped++;
+              continue;
+            }
             
             const oldBalanceRow = await db.queryRow<{ balance: number }>`
               SELECT balance FROM user_balance WHERE user_id = ${userId}
@@ -180,18 +178,14 @@ export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
                 newValues: { balance },
                 metadata: { 
                   method: "CSV Import",
-                  email: user.emailAddresses[0]?.emailAddress,
+                  phoneNumber: phoneNumber,
                 },
               }, ipAddress, userAgent);
             }
 
             updated++;
           } catch (err: any) {
-            if (err.status === 404) {
-              errors.push(`Line ${i + 1}: User not found (${email})`);
-            } else {
-              errors.push(`Line ${i + 1}: ${err.message}`);
-            }
+            errors.push(`Line ${i + 1}: ${err.message}`);
             skipped++;
           }
         } catch (err: any) {

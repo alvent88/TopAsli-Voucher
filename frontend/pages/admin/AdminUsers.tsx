@@ -30,7 +30,6 @@ import { usePermissions } from "@/lib/usePermissions";
 
 interface User {
   id: string;
-  email: string | null;
   phoneNumber: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -46,7 +45,7 @@ interface User {
   bannedReason: string | null;
 }
 
-type SortField = "name" | "email" | "phone" | "balance" | "createdAt" | "role" | "status";
+type SortField = "name" | "phone" | "balance" | "createdAt" | "role" | "status";
 type SortOrder = "asc" | "desc";
 
 export default function AdminUsers() {
@@ -189,10 +188,6 @@ export default function AdminUsers() {
         aVal = (a.fullName || a.firstName || "").toLowerCase();
         bVal = (b.fullName || b.firstName || "").toLowerCase();
         break;
-      case "email":
-        aVal = (a.email || "").toLowerCase();
-        bVal = (b.email || "").toLowerCase();
-        break;
       case "phone":
         aVal = a.phoneNumber || "";
         bVal = b.phoneNumber || "";
@@ -257,7 +252,7 @@ export default function AdminUsers() {
       await backend.admin.promoteToAdmin({ userId: user.id, role });
       toast({
         title: "Berhasil 🎉",
-        description: `${user.fullName || user.email || user.phoneNumber} berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}`,
+        description: `${user.fullName || user.phoneNumber} berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}`,
       });
       loadUsers();
     } catch (error: any) {
@@ -275,7 +270,7 @@ export default function AdminUsers() {
       await backend.admin.demoteFromAdmin({ userId: user.id });
       toast({
         title: "Berhasil",
-        description: `${user.fullName || user.email || user.phoneNumber} berhasil diturunkan dari admin`,
+        description: `${user.fullName || user.phoneNumber} berhasil diturunkan dari admin`,
       });
       loadUsers();
     } catch (error: any) {
@@ -291,7 +286,7 @@ export default function AdminUsers() {
   const handleEditClick = (user: User) => {
     setUserToEdit(user);
     setEditFullName(user.fullName || "");
-    setEditEmail(user.email || "");
+    setEditEmail("");
     setEditPhoneNumber(user.phoneNumber || "");
     
     // Format birth date untuk input date HTML (YYYY-MM-DD)
@@ -356,10 +351,10 @@ export default function AdminUsers() {
     if (!reason) return;
 
     try {
-      await backend.admin.banUser({ email: user.email || "", reason });
+      await backend.admin.banUser({ phoneNumber: user.phoneNumber || "", reason });
       toast({
         title: "Berhasil",
-        description: `${user.fullName || user.email} berhasil dibanned`,
+        description: `${user.fullName || user.phoneNumber} berhasil dibanned`,
       });
       loadUsers();
     } catch (error: any) {
@@ -374,10 +369,10 @@ export default function AdminUsers() {
 
   const handleUnbanUser = async (user: User) => {
     try {
-      await backend.admin.unbanUser({ email: user.email || "" });
+      await backend.admin.unbanUser({ phoneNumber: user.phoneNumber || "" });
       toast({
         title: "Berhasil",
-        description: `${user.fullName || user.email} berhasil diunban`,
+        description: `${user.fullName || user.phoneNumber} berhasil diunban`,
       });
       
       setTimeout(() => {
@@ -505,15 +500,6 @@ export default function AdminUsers() {
                     </TableHead>
                     <TableHead 
                       className="text-slate-400 cursor-pointer select-none"
-                      onClick={() => handleSort("email")}
-                    >
-                      <div className="flex items-center">
-                        Email
-                        {getSortIcon("email")}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="text-slate-400 cursor-pointer select-none"
                       onClick={() => handleSort("phone")}
                     >
                       <div className="flex items-center">
@@ -573,12 +559,6 @@ export default function AdminUsers() {
                       <TableCell className="text-white font-medium">
                         {user.fullName || user.firstName || "-"}
                         {user.lastName && ` ${user.lastName}`}
-                      </TableCell>
-                      <TableCell className="text-slate-300">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-slate-500" />
-                          <span className="truncate max-w-[200px]">{user.email || "-"}</span>
-                        </div>
                       </TableCell>
                       <TableCell className="text-slate-300">
                         <div className="flex items-center gap-2">
@@ -764,7 +744,7 @@ export default function AdminUsers() {
             <AlertDialogDescription className="text-slate-400">
               Apakah Anda yakin ingin menghapus pengguna{" "}
               <span className="text-white font-semibold">
-                {userToDelete?.fullName || userToDelete?.email || userToDelete?.phoneNumber}
+                {userToDelete?.fullName || userToDelete?.phoneNumber}
               </span>
               ? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
@@ -805,7 +785,7 @@ export default function AdminUsers() {
               Riwayat Transaksi
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Riwayat transaksi untuk: {selectedUser?.fullName || selectedUser?.email || selectedUser?.phoneNumber}
+              Riwayat transaksi untuk: {selectedUser?.fullName || selectedUser?.phoneNumber}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -880,7 +860,7 @@ export default function AdminUsers() {
               Edit Data Pengguna
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Ubah data pengguna: {userToEdit?.fullName || userToEdit?.email || userToEdit?.phoneNumber}
+              Ubah data pengguna: {userToEdit?.fullName || userToEdit?.phoneNumber}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

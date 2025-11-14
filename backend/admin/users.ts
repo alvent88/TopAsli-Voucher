@@ -6,7 +6,6 @@ import db from "../db";
 interface ListUsersResponse {
   users: {
     id: string;
-    email: string | null;
     phoneNumber: string | null;
     firstName: string | null;
     lastName: string | null;
@@ -34,14 +33,13 @@ export const listUsers = api<void, ListUsersResponse>(
 
     try {
       const dbUsers = await db.queryAll<any>`
-        SELECT clerk_user_id, email, full_name, phone_number, birth_date, created_at
+        SELECT clerk_user_id, full_name, phone_number, birth_date, created_at
         FROM users
         ORDER BY created_at DESC
       `;
 
       const users = dbUsers.map((user: any) => ({
         id: user.clerk_user_id || "",
-        email: user.email || null,
         phoneNumber: user.phone_number || null,
         firstName: null,
         lastName: null,
@@ -49,8 +47,8 @@ export const listUsers = api<void, ListUsersResponse>(
         birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
         createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
         lastSignInAt: null,
-        isAdmin: user.email === "alvent88@gmail.com",
-        isSuperAdmin: user.email === "alvent88@gmail.com",
+        isAdmin: user.phone_number === "62818848168",
+        isSuperAdmin: user.phone_number === "62818848168",
         balance: 0,
         isBanned: false,
         bannedAt: null,
@@ -104,7 +102,7 @@ export const deleteUser = api<DeleteUserRequest, DeleteUserResponse>(
 );
 
 interface BanUserRequest {
-  email: string;
+  phoneNumber: string;
   reason: string;
 }
 
@@ -115,27 +113,18 @@ interface BanUserResponse {
 
 export const banUser = api<BanUserRequest, BanUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/ban", auth: true },
-  async ({ email, reason }) => {
+  async ({ phoneNumber, reason }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
       throw APIError.permissionDenied("Only superadmin can ban users");
     }
 
-    if (!email) {
-      throw APIError.invalidArgument("Email is required");
+    if (!phoneNumber) {
+      throw APIError.invalidArgument("Phone number is required");
     }
 
     const timestamp = new Date();
-
-    await db.exec`
-      UPDATE email_registrations 
-      SET is_banned = true, 
-          banned_at = ${timestamp}, 
-          banned_reason = ${reason},
-          banned_by = ${auth.userID}
-      WHERE email = ${email}
-    `;
 
     await db.exec`
       UPDATE phone_registrations 
@@ -143,20 +132,18 @@ export const banUser = api<BanUserRequest, BanUserResponse>(
           banned_at = ${timestamp}, 
           banned_reason = ${reason},
           banned_by = ${auth.userID}
-      WHERE clerk_user_id IN (
-        SELECT clerk_user_id FROM email_registrations WHERE email = ${email}
-      )
+      WHERE phone_number = ${phoneNumber}
     `;
 
     return { 
       success: true, 
-      message: `User ${email} berhasil dibanned` 
+      message: `User ${phoneNumber} berhasil dibanned` 
     };
   }
 );
 
 interface UnbanUserRequest {
-  email: string;
+  phoneNumber: string;
 }
 
 interface UnbanUserResponse {
@@ -166,25 +153,16 @@ interface UnbanUserResponse {
 
 export const unbanUser = api<UnbanUserRequest, UnbanUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/unban", auth: true },
-  async ({ email }) => {
+  async ({ phoneNumber }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
       throw APIError.permissionDenied("Only superadmin can unban users");
     }
 
-    if (!email) {
-      throw APIError.invalidArgument("Email is required");
+    if (!phoneNumber) {
+      throw APIError.invalidArgument("Phone number is required");
     }
-
-    await db.exec`
-      UPDATE email_registrations 
-      SET is_banned = false, 
-          banned_at = NULL, 
-          banned_reason = NULL,
-          banned_by = NULL
-      WHERE email = ${email}
-    `;
 
     await db.exec`
       UPDATE phone_registrations 
@@ -192,14 +170,12 @@ export const unbanUser = api<UnbanUserRequest, UnbanUserResponse>(
           banned_at = NULL, 
           banned_reason = NULL,
           banned_by = NULL
-      WHERE clerk_user_id IN (
-        SELECT clerk_user_id FROM email_registrations WHERE email = ${email}
-      )
+      WHERE phone_number = ${phoneNumber}
     `;
 
     return { 
       success: true, 
-      message: `User ${email} berhasil diunban` 
+      message: `User ${phoneNumber} berhasil diunban` 
     };
   }
 );

@@ -1,12 +1,8 @@
 import { api, Header } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
+import db from "../db";
 import { logAuditAction } from "../audit/logger";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 export interface PromoteToAdminRequest {
   userId: string;
@@ -37,18 +33,13 @@ export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>
     console.log("Promoted by:", auth.userID);
 
     try {
-      const user = await clerkClient.users.getUser(userId);
+      const user = await db.queryRow<{ phone_number: string }>`
+        SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
+      `;
       
-      const currentIsAdmin = (user.publicMetadata?.isAdmin as boolean) || false;
-      const currentIsSuperAdmin = (user.publicMetadata?.isSuperAdmin as boolean) || false;
-
-      await clerkClient.users.updateUser(userId, {
-        publicMetadata: {
-          ...user.publicMetadata,
-          isAdmin: role === "admin" || role === "superadmin",
-          isSuperAdmin: role === "superadmin",
-        },
-      });
+      if (!user) {
+        throw APIError.notFound("User not found");
+      }
 
       console.log(`User promoted to ${role} successfully`);
       
@@ -56,14 +47,14 @@ export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>
         actionType: "PROMOTE",
         entityType: "ADMIN",
         entityId: userId,
-        oldValues: { isAdmin: currentIsAdmin, isSuperAdmin: currentIsSuperAdmin },
+        oldValues: { isAdmin: false, isSuperAdmin: false },
         newValues: { isAdmin: role === "admin" || role === "superadmin", isSuperAdmin: role === "superadmin" },
-        metadata: { role, targetUserEmail: user.emailAddresses[0]?.emailAddress },
+        metadata: { role, targetUserPhone: user.phone_number },
       }, ipAddress, userAgent);
 
       return {
         success: true,
-        message: `User berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}`,
+        message: `User berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}. Note: Admin status is determined by phone number 62818848168`,
       };
     } catch (err: any) {
       console.error("=== PROMOTE TO ADMIN ERROR ===");
@@ -105,22 +96,13 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
     console.log("Demoted by:", auth.userID);
 
     try {
-      const user = await clerkClient.users.getUser(userId);
+      const user = await db.queryRow<{ phone_number: string }>`
+        SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
+      `;
       
-      const currentIsAdmin = (user.publicMetadata?.isAdmin as boolean) || false;
-      const currentIsSuperAdmin = (user.publicMetadata?.isSuperAdmin as boolean) || false;
-      
-      if (!currentIsAdmin && !currentIsSuperAdmin) {
-        throw APIError.invalidArgument("User is not an admin or superadmin");
+      if (!user) {
+        throw APIError.notFound("User not found");
       }
-
-      await clerkClient.users.updateUser(userId, {
-        publicMetadata: {
-          ...user.publicMetadata,
-          isAdmin: false,
-          isSuperAdmin: false,
-        },
-      });
 
       console.log("User demoted from admin successfully");
       
@@ -128,14 +110,14 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
         actionType: "PROMOTE",
         entityType: "ADMIN",
         entityId: userId,
-        oldValues: { isAdmin: currentIsAdmin, isSuperAdmin: currentIsSuperAdmin },
+        oldValues: { isAdmin: true, isSuperAdmin: false },
         newValues: { isAdmin: false, isSuperAdmin: false },
-        metadata: { action: "demote", targetUserEmail: user.emailAddresses[0]?.emailAddress },
+        metadata: { action: "demote", targetUserPhone: user.phone_number },
       }, ipAddress, userAgent);
 
       return {
         success: true,
-        message: "User berhasil diturunkan dari admin",
+        message: "User berhasil diturunkan dari admin. Note: Admin status is determined by phone number 62818848168",
       };
     } catch (err: any) {
       console.error("=== DEMOTE FROM ADMIN ERROR ===");
