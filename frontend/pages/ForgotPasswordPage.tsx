@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Gamepad2, KeyRound, Calendar, Phone, Lock, ArrowLeft } from "lucide-react";
+import { Gamepad2, KeyRound, Mail, Phone, Lock, ArrowLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +10,18 @@ import backend from "~backend/client";
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [step, setStep] = useState<"verify" | "reset">("verify");
+  const [step, setStep] = useState<"input" | "verify-otp" | "reset">("input");
   const [loading, setLoading] = useState(false);
   const [resetToken, setResetToken] = useState("");
+  const [countdown, setCountdown] = useState(0);
   
-  const [verifyForm, setVerifyForm] = useState({
+  const [inputForm, setInputForm] = useState({
+    email: "",
     phoneNumber: "",
-    dateOfBirth: "",
+  });
+
+  const [otpForm, setOtpForm] = useState({
+    otp: "",
   });
 
   const [resetForm, setResetForm] = useState({
@@ -24,29 +29,69 @@ export default function ForgotPasswordPage() {
     confirmPassword: "",
   });
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await backend.auth.verifyForgotPassword({
-        phoneNumber: verifyForm.phoneNumber,
-        dateOfBirth: verifyForm.dateOfBirth,
+      const response = await backend.auth.sendForgotPasswordOTP({
+        email: inputForm.email,
+        phoneNumber: inputForm.phoneNumber,
+      });
+
+      toast({
+        title: "OTP Terkirim",
+        description: response.message,
+      });
+
+      setStep("verify-otp");
+      setCountdown(60);
+      
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error("Send OTP failed:", error);
+      toast({
+        title: "Gagal Mengirim OTP",
+        description: error.message || "Email atau nomor HP tidak sesuai",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await backend.auth.verifyForgotPasswordOTP({
+        email: inputForm.email,
+        phoneNumber: inputForm.phoneNumber,
+        otp: otpForm.otp,
       });
 
       if (response.verified) {
         setResetToken(response.resetToken);
         setStep("reset");
         toast({
-          title: "Verifikasi Berhasil",
+          title: "OTP Terverifikasi",
           description: "Silakan masukkan password baru Anda",
         });
       }
     } catch (error: any) {
-      console.error("Verification failed:", error);
+      console.error("Verify OTP failed:", error);
       toast({
         title: "Verifikasi Gagal",
-        description: error.message || "Nomor telepon atau tanggal lahir tidak sesuai",
+        description: error.message || "Kode OTP salah atau sudah kadaluarsa",
         variant: "destructive",
       });
     } finally {
@@ -103,6 +148,42 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  const handleResendOTP = async () => {
+    if (countdown > 0) return;
+    
+    setLoading(true);
+    try {
+      const response = await backend.auth.sendForgotPasswordOTP({
+        email: inputForm.email,
+        phoneNumber: inputForm.phoneNumber,
+      });
+
+      toast({
+        title: "OTP Terkirim",
+        description: response.message,
+      });
+
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Gagal Mengirim OTP",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
@@ -118,25 +199,27 @@ export default function ForgotPasswordPage() {
             Lupa Password
           </CardTitle>
           <CardDescription className="text-center text-slate-400">
-            {step === "verify" 
-              ? "Masukkan nomor telepon dan tanggal lahir Anda" 
+            {step === "input" 
+              ? "Masukkan email dan nomor HP Anda" 
+              : step === "verify-otp"
+              ? "Masukkan kode OTP yang dikirim via WhatsApp"
               : "Masukkan password baru Anda"}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {step === "verify" ? (
-            <form onSubmit={handleVerify} className="space-y-4">
+          {step === "input" && (
+            <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Nomor Telepon
+                  <Mail className="h-4 w-4" />
+                  Email
                 </label>
                 <Input
-                  type="tel"
-                  placeholder="08123456789"
-                  value={verifyForm.phoneNumber}
-                  onChange={(e) => setVerifyForm({ ...verifyForm, phoneNumber: e.target.value })}
+                  type="email"
+                  placeholder="contoh@email.com"
+                  value={inputForm.email}
+                  onChange={(e) => setInputForm({ ...inputForm, email: e.target.value })}
                   className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                   required
                 />
@@ -144,14 +227,15 @@ export default function ForgotPasswordPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Tanggal Lahir
+                  <Phone className="h-4 w-4" />
+                  Nomor HP
                 </label>
                 <Input
-                  type="date"
-                  value={verifyForm.dateOfBirth}
-                  onChange={(e) => setVerifyForm({ ...verifyForm, dateOfBirth: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white"
+                  type="tel"
+                  placeholder="08123456789"
+                  value={inputForm.phoneNumber}
+                  onChange={(e) => setInputForm({ ...inputForm, phoneNumber: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                   required
                 />
               </div>
@@ -161,10 +245,77 @@ export default function ForgotPasswordPage() {
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
               >
-                {loading ? "Memverifikasi..." : "Verifikasi"}
+                {loading ? "Mengirim OTP..." : "Kirim Kode OTP"}
               </Button>
             </form>
-          ) : (
+          )}
+
+          {step === "verify-otp" && (
+            <form onSubmit={handleVerifyOTP} className="space-y-4">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-slate-300">
+                    Kode OTP telah dikirim ke WhatsApp Anda di nomor{" "}
+                    <span className="font-semibold text-white">{inputForm.phoneNumber}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Kode OTP
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Masukkan 6 digit OTP"
+                  value={otpForm.otp}
+                  onChange={(e) => setOtpForm({ otp: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-center text-2xl tracking-widest"
+                  maxLength={6}
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || otpForm.otp.length !== 6}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+              >
+                {loading ? "Memverifikasi..." : "Verifikasi OTP"}
+              </Button>
+
+              <div className="text-center">
+                {countdown > 0 ? (
+                  <p className="text-sm text-slate-400">
+                    Kirim ulang OTP dalam {countdown} detik
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOTP}
+                    disabled={loading}
+                    className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+                  >
+                    Kirim Ulang OTP
+                  </button>
+                )}
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setStep("input")}
+                className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Ubah Email / No HP
+              </Button>
+            </form>
+          )}
+
+          {step === "reset" && (
             <form onSubmit={handleReset} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
@@ -206,23 +357,27 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
-          <div className="pt-4 border-t border-slate-700">
-            <Link to="/login">
-              <Button variant="ghost" className="w-full text-slate-400 hover:text-white hover:bg-slate-800">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Kembali ke Login
-              </Button>
-            </Link>
-          </div>
+          {step === "input" && (
+            <>
+              <div className="pt-4 border-t border-slate-700">
+                <Link to="/login">
+                  <Button variant="ghost" className="w-full text-slate-400 hover:text-white hover:bg-slate-800">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Kembali ke Login
+                  </Button>
+                </Link>
+              </div>
 
-          <div className="pt-2 text-center">
-            <p className="text-sm text-slate-400">
-              Belum punya akun?{" "}
-              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium">
-                Daftar Sekarang
-              </Link>
-            </p>
-          </div>
+              <div className="pt-2 text-center">
+                <p className="text-sm text-slate-400">
+                  Belum punya akun?{" "}
+                  <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium">
+                    Daftar Sekarang
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
