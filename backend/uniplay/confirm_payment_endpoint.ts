@@ -159,15 +159,24 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
 
         console.log("Transaction data loaded:", transactionData);
 
-        const { createClerkClient } = await import("@clerk/backend");
-        const { secret } = await import("encore.dev/config");
-        const clerkSecretKey = secret("ClerkSecretKey");
-        const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
+        const user = await db.queryRow<{
+          email: string;
+          phone_number: string | null;
+          full_name: string;
+        }>`
+          SELECT email, phone_number, full_name
+          FROM users
+          WHERE clerk_user_id = ${auth.userID}
+        `;
 
-        const user = await clerkClient.users.getUser(auth.userID);
-        const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
-        const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
-        const email = user.emailAddresses[0]?.emailAddress || "";
+        if (!user) {
+          console.error("User not found in database for userID:", auth.userID);
+          throw APIError.notFound("User not found");
+        }
+
+        const phoneNumber = user.phone_number || "";
+        const fullName = user.full_name || "Customer";
+        const email = user.email;
 
         console.log("User data - Phone:", phoneNumber, "Name:", fullName, "Email:", email);
 

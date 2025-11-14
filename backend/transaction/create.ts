@@ -2,13 +2,8 @@ import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { nanoid } from "nanoid";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
 import { transactionTopic } from "../notification/events";
 import { createOrder as createUniPlayOrder } from "../uniplay/client";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 interface CreateTransactionParams {
   productId: number;
@@ -103,10 +98,23 @@ export const create = api<CreateTransactionParams, CreateTransactionResponse>(
       console.log(`Transaction created with pending status, balance will be deducted after confirmation`);
     }
 
-    const user = await clerkClient.users.getUser(auth.userID);
-    const email = user.emailAddresses[0]?.emailAddress || "";
-    const phoneNumber = (user.publicMetadata?.phoneNumber as string) || "";
-    const fullName = (user.unsafeMetadata?.fullName as string) || user.firstName || "Customer";
+    const user = await db.queryRow<{ 
+      email: string; 
+      phone_number: string | null; 
+      full_name: string; 
+    }>`
+      SELECT email, phone_number, full_name
+      FROM users
+      WHERE clerk_user_id = ${auth.userID}
+    `;
+
+    if (!user) {
+      throw APIError.notFound("User not found in database");
+    }
+
+    const email = user.email;
+    const phoneNumber = user.phone_number || "";
+    const fullName = user.full_name || "Customer";
 
     console.log("=== CHECKING UNIPLAY CONFIG ===");
     let uniplayOrderId = "";
