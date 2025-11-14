@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import backend from "~backend/client";
+import backend from "@/lib/backend";
 import type { Product } from "~backend/product/list";
 import { Gamepad2, Search, Shield, Zap, Mail, MessageCircle, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import backend from "~backend/client";
+import backend from "./backend";
 
 export interface NotificationData {
   type: "transaction" | "message";
