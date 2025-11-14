@@ -7,7 +7,7 @@ interface AuthParams {
 
 export interface AuthData {
   userID: string;
-  email: string;
+  phoneNumber: string;
   fullName: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -34,12 +34,12 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
     throw APIError.unauthenticated("invalid token");
   }
 
-  const isSuperAdmin = decoded.email === "alvent88@gmail.com";
+  const isSuperAdmin = decoded.phoneNumber === "6282225058000";
   const isAdmin = isSuperAdmin;
 
   return {
     userID: decoded.userId,
-    email: decoded.email,
+    phoneNumber: decoded.phoneNumber,
     fullName: decoded.fullName,
     isAdmin: isAdmin,
     isSuperAdmin: isSuperAdmin,
@@ -48,18 +48,18 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
 
 export const gw = new Gateway({ authHandler: auth });
 
-function parseToken(token: string): { userId: string; email: string; fullName: string } | null {
+function parseToken(token: string): { userId: string; phoneNumber: string; fullName: string } | null {
   try {
     const payload = Buffer.from(token, "base64").toString("utf-8");
     const data = JSON.parse(payload);
     
-    if (!data.userId || !data.email) {
+    if (!data.userId || !data.phoneNumber) {
       return null;
     }
     
     return {
       userId: data.userId,
-      email: data.email,
+      phoneNumber: data.phoneNumber,
       fullName: data.fullName || "",
     };
   } catch {
@@ -67,7 +67,7 @@ function parseToken(token: string): { userId: string; email: string; fullName: s
   }
 }
 
-export function generateToken(userId: string, email: string, fullName: string): string {
-  const payload = JSON.stringify({ userId, email, fullName });
+export function generateToken(userId: string, phoneNumber: string, fullName: string): string {
+  const payload = JSON.stringify({ userId, phoneNumber, fullName });
   return Buffer.from(payload).toString("base64");
 }

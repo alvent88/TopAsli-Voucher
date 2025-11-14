@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Mail, Phone, Wallet, Calendar } from "lucide-react";
+import { ArrowLeft, User, Phone, Wallet, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBackend } from "@/lib/useBackend";
@@ -48,7 +48,6 @@ export default function ProfilePage() {
   };
 
   const fullName = userProfile?.fullName || "User";
-  const email = userProfile?.email || "-";
   const phoneNumber = userProfile?.phoneNumber || "-";
   const birthDate = userProfile?.birthDate || null;
 
@@ -111,16 +110,6 @@ export default function ProfilePage() {
                   </label>
                   <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base break-words">
                     {fullName}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs lg:text-sm font-medium text-slate-300 flex items-center gap-2">
-                    <Mail className="h-3 w-3 lg:h-4 lg:w-4" />
-                    Email
-                  </label>
-                  <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base break-all">
-                    {email}
                   </div>
                 </div>
 

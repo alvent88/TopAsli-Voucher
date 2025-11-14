@@ -13,7 +13,6 @@ export default function ContactPage() {
   const { toast } = useToast();
   const isSignedIn = sessionStorage.getItem("isLoggedIn") === "true";
   const navigate = useNavigate();
-  const userEmail = sessionStorage.getItem("userEmail") || "";
   const backend = useBackend();
   const [formData, setFormData] = useState({
     name: "",
@@ -120,32 +119,17 @@ export default function ContactPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-slate-300 text-sm font-medium mb-2 block">
-                        Nama Lengkap
-                      </label>
-                      <Input
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="bg-slate-800 border-slate-600 text-white"
-                        placeholder="Nama Anda"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-slate-300 text-sm font-medium mb-2 block">
-                        Email
-                      </label>
-                      <Input
-                        required
-                        type="email"
-                        value={userEmail}
-                        disabled
-                        className="bg-slate-700 border-slate-600 text-slate-300 cursor-not-allowed"
-                        placeholder="email@contoh.com"
-                      />
-                    </div>
+                  <div>
+                    <label className="text-slate-300 text-sm font-medium mb-2 block">
+                      Nama Lengkap
+                    </label>
+                    <Input
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="bg-slate-800 border-slate-600 text-white"
+                      placeholder="Nama Anda"
+                    />
                   </div>
                   <div>
                     <label className="text-slate-300 text-sm font-medium mb-2 block">

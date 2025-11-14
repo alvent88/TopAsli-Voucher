@@ -1,29 +1,22 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Gamepad2, KeyRound, Mail, Phone, Lock, ArrowLeft, Shield } from "lucide-react";
+import { Gamepad2, KeyRound, Phone, Lock, ArrowLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPhonePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [step, setStep] = useState<"input" | "verify-otp" | "reset">("input");
   const [loading, setLoading] = useState(false);
   const [resetToken, setResetToken] = useState("");
   const [countdown, setCountdown] = useState(0);
-  
-  const [inputForm, setInputForm] = useState({
-    email: "",
-    phoneNumber: "",
-  });
 
-  const [otpForm, setOtpForm] = useState({
-    otp: "",
-  });
-
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpForm, setOtpForm] = useState({ otp: "" });
   const [resetForm, setResetForm] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -34,9 +27,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await backend.auth.sendForgotPasswordOTP({
-        email: inputForm.email,
-        phoneNumber: inputForm.phoneNumber,
+      const response = await backend.auth.sendForgotPasswordPhoneOTP({
+        phoneNumber,
       });
 
       toast({
@@ -46,7 +38,7 @@ export default function ForgotPasswordPage() {
 
       setStep("verify-otp");
       setCountdown(60);
-      
+
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -60,7 +52,7 @@ export default function ForgotPasswordPage() {
       console.error("Send OTP failed:", error);
       toast({
         title: "Gagal Mengirim OTP",
-        description: error.message || "Email atau nomor HP tidak sesuai",
+        description: error.message || "Nomor HP tidak terdaftar",
         variant: "destructive",
       });
     } finally {
@@ -73,9 +65,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await backend.auth.verifyForgotPasswordOTP({
-        email: inputForm.email,
-        phoneNumber: inputForm.phoneNumber,
+      const response = await backend.auth.verifyForgotPasswordPhoneOTP({
+        phoneNumber,
         otp: otpForm.otp,
       });
 
@@ -111,19 +102,10 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    if (resetForm.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password minimal 6 karakter",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await backend.auth.resetPassword({
+      await backend.auth.resetPasswordPhone({
         resetToken,
         newPassword: resetForm.newPassword,
       });
@@ -150,12 +132,11 @@ export default function ForgotPasswordPage() {
 
   const handleResendOTP = async () => {
     if (countdown > 0) return;
-    
+
     setLoading(true);
     try {
-      const response = await backend.auth.sendForgotPasswordOTP({
-        email: inputForm.email,
-        phoneNumber: inputForm.phoneNumber,
+      const response = await backend.auth.sendForgotPasswordPhoneOTP({
+        phoneNumber,
       });
 
       toast({
@@ -199,8 +180,8 @@ export default function ForgotPasswordPage() {
             Lupa Password
           </CardTitle>
           <CardDescription className="text-center text-slate-400">
-            {step === "input" 
-              ? "Masukkan email dan nomor HP Anda" 
+            {step === "input"
+              ? "Masukkan nomor HP Anda"
               : step === "verify-otp"
               ? "Masukkan kode OTP yang dikirim via WhatsApp"
               : "Masukkan password baru Anda"}
@@ -212,29 +193,14 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="contoh@email.com"
-                  value={inputForm.email}
-                  onChange={(e) => setInputForm({ ...inputForm, email: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   Nomor HP
                 </label>
                 <Input
                   type="tel"
                   placeholder="08123456789"
-                  value={inputForm.phoneNumber}
-                  onChange={(e) => setInputForm({ ...inputForm, phoneNumber: e.target.value })}
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                   required
                 />
@@ -257,7 +223,7 @@ export default function ForgotPasswordPage() {
                   <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-slate-300">
                     Kode OTP telah dikirim ke WhatsApp Anda di nomor{" "}
-                    <span className="font-semibold text-white">{inputForm.phoneNumber}</span>
+                    <span className="font-semibold text-white">{phoneNumber}</span>
                   </div>
                 </div>
               </div>
@@ -310,7 +276,7 @@ export default function ForgotPasswordPage() {
                 className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Ubah Email / No HP
+                Ubah Nomor HP
               </Button>
             </form>
           )}
@@ -324,7 +290,7 @@ export default function ForgotPasswordPage() {
                 </label>
                 <Input
                   type="password"
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Password baru"
                   value={resetForm.newPassword}
                   onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
                   className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
@@ -381,8 +347,8 @@ export default function ForgotPasswordPage() {
         </CardContent>
       </Card>
 
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-6 left-6 flex items-center gap-3 text-white hover:opacity-80 transition-opacity z-20"
       >
         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">

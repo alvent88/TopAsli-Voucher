@@ -34,7 +34,6 @@ import { useBackend } from "@/lib/useBackend";
 interface Message {
   id: number;
   name: string;
-  email: string;
   phoneNumber: string | null;
   subject: string;
   message: string;
@@ -255,7 +254,6 @@ export default function AdminMessages() {
                             <User className="h-4 w-4 text-slate-500" />
                             {message.name}
                           </div>
-                          <div className="text-xs text-slate-500">{message.email}</div>
                         </TableCell>
                         <TableCell className="text-slate-400 text-sm">
                           {message.phoneNumber || "-"}
@@ -301,7 +299,6 @@ export default function AdminMessages() {
                 <div>
                   <label className="text-slate-400 text-xs font-medium">Dari</label>
                   <p className="text-white font-semibold">{selectedMessage.name}</p>
-                  <p className="text-slate-400 text-sm">{selectedMessage.email}</p>
                   {selectedMessage.phoneNumber && (
                     <p className="text-slate-400 text-sm">WhatsApp: {selectedMessage.phoneNumber}</p>
                   )}

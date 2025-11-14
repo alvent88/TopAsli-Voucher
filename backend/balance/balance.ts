@@ -54,7 +54,7 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
     try {
       console.log("=== REDEEM VOUCHER START ===");
       console.log("User ID:", auth.userID);
-      console.log("User email:", auth.email);
+      console.log("User phone:", auth.phoneNumber);
       console.log("Voucher code:", code);
 
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -143,7 +143,6 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       await db.exec`
         UPDATE vouchers
         SET claimed_by_user_id = ${auth.userID},
-            claimed_by_email = ${auth.email},
             claimed_at = NOW(),
             used_count = used_count + 1
         WHERE code = ${code}

@@ -6,7 +6,6 @@ import db from "../db";
 export interface Message {
   id: number;
   name: string;
-  email: string;
   phoneNumber: string | null;
   subject: string;
   message: string;
@@ -35,7 +34,7 @@ export const list = api<ListMessagesRequest, ListMessagesResponse>(
     }
 
     let query = `
-      SELECT id, name, email, phone_number, subject, message, is_read, created_at
+      SELECT id, name, phone_number, subject, message, is_read, created_at
       FROM messages
     `;
 
@@ -57,7 +56,6 @@ export const list = api<ListMessagesRequest, ListMessagesResponse>(
     const messages: Message[] = result.map((row) => ({
       id: row.id,
       name: row.name,
-      email: row.email,
       phoneNumber: row.phone_number,
       subject: row.subject,
       message: row.message,

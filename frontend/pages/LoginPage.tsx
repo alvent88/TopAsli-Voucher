@@ -1,83 +1,50 @@
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2, Lock } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Gamepad2, LogIn, Phone, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
-import { useBackend } from "@/lib/useBackend";
+import backend from "~backend/client";
 
-export default function LoginPage() {
+export default function LoginPhoneOnlyPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const backend = useBackend();
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    phoneNumber: "",
+    password: "",
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email.trim()) {
-      toast({
-        title: "Error",
-        description: "Masukkan email Anda",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!email.includes("@")) {
-      toast({
-        title: "Error",
-        description: "Format email tidak valid",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!password.trim()) {
-      toast({
-        title: "Error",
-        description: "Masukkan password Anda",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
+
     try {
-      console.log("=== LOGIN START ===");
-      console.log("Email:", email);
-      
-      const result = await backend.auth.loginEmail({
-        email,
-        password,
+      const response = await backend.auth.loginPhoneV2({
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
       });
-      
-      console.log("Login result:", result);
-      
-      sessionStorage.setItem("userId", result.userId);
-      sessionStorage.setItem("userEmail", result.email);
-      sessionStorage.setItem("userName", result.fullName);
-      sessionStorage.setItem("authToken", result.token);
+
       sessionStorage.setItem("isLoggedIn", "true");
+      sessionStorage.setItem("authToken", response.token);
+      sessionStorage.setItem("userId", response.userId);
+      sessionStorage.setItem("userPhone", response.phoneNumber);
+      sessionStorage.setItem("userName", response.fullName);
 
       toast({
-        title: "Login Berhasil! 🎉",
-        description: `Selamat datang kembali, ${result.fullName}!`,
+        title: "Login Berhasil!",
+        description: `Selamat datang, ${response.fullName}!`,
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      window.location.href = "/";
-    } catch (err: any) {
-      console.error("Login error:", err);
-      console.error("Error details:", JSON.stringify(err, null, 2));
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (error: any) {
+      console.error("Login failed:", error);
       toast({
         title: "Login Gagal",
-        description: err.message || "Email atau password salah",
+        description: error.message || "Nomor HP atau password salah",
         variant: "destructive",
       });
     } finally {
@@ -86,113 +53,103 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
-      <nav className="border-b border-slate-800 bg-[#0f1229]">
-        <div className="container mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="text-white hover:text-blue-400 hover:bg-slate-800"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Kembali
-          </Button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
 
-      <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Masuk</h1>
-            <p className="text-slate-400">Login ke akun Anda</p>
+      <Card className="w-full max-w-md bg-[#1a1f3a]/80 backdrop-blur-xl border-slate-700 shadow-2xl relative z-10">
+        <CardHeader className="space-y-1 pb-6">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <LogIn className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-bold text-center text-white">
+            Masuk
+          </CardTitle>
+          <CardDescription className="text-center text-slate-400">
+            Login dengan nomor HP dan password Anda
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Nomor HP
+              </label>
+              <Input
+                type="tel"
+                placeholder="08123456789"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Password
+              </label>
+              <Input
+                type="password"
+                placeholder="Masukkan password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                "Masuk"
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+            >
+              Lupa password?
+            </Link>
           </div>
 
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Login</CardTitle>
-              <CardDescription className="text-slate-400">
-                Masukkan email dan password Anda
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-300">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="contoh@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
+          <div className="pt-4 border-t border-slate-700 text-center">
+            <p className="text-sm text-slate-400">
+              Belum punya akun?{" "}
+              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium">
+                Daftar di sini
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-300">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Masukkan password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Memproses...
-                    </>
-                  ) : (
-                    "Masuk"
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-4 text-center">
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  className="text-sm text-blue-400 hover:text-blue-300 font-medium"
-                >
-                  Lupa password?
-                </button>
-              </div>
-
-              <div className="mt-6 text-center">
-                <p className="text-slate-400 text-sm">
-                  Belum punya akun?{" "}
-                  <button
-                    onClick={() => navigate("/register")}
-                    className="text-blue-400 hover:text-blue-300 font-semibold"
-                  >
-                    Daftar di sini
-                  </button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center gap-3 text-white hover:opacity-80 transition-opacity z-20"
+      >
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <Gamepad2 className="h-6 w-6 text-white" />
         </div>
-      </div>
+        <span className="text-xl font-bold">TopAsli</span>
+      </Link>
     </div>
   );
 }

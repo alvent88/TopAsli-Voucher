@@ -1,132 +1,146 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Loader2, User, Phone, Calendar, Lock } from "lucide-react";
+import { Gamepad2, UserPlus, Phone, User, Lock, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
-import { useBackend } from "@/lib/useBackend";
+import backend from "~backend/client";
 
-export default function RegisterPage() {
+export default function RegisterPhoneOnlyPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const backend = useBackend();
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [step, setStep] = useState<"input" | "verify-otp">("input");
   const [loading, setLoading] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    phoneNumber: "",
+    fullName: "",
+    password: "",
+    confirmPassword: "",
+    dateOfBirth: "",
+  });
+
+  const [otpForm, setOtpForm] = useState({
+    otp: "",
+  });
+
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email.trim()) {
-      toast({
-        title: "Peringatan",
-        description: "Email wajib diisi",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    if (!email.includes("@")) {
+    if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Error",
-        description: "Format email tidak valid",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!password.trim()) {
-      toast({
-        title: "Peringatan",
-        description: "Password wajib diisi",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Peringatan",
-        description: "Password minimal 6 karakter",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Password dan konfirmasi password tidak sama",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!fullName.trim()) {
-      toast({
-        title: "Peringatan",
-        description: "Nama lengkap wajib diisi",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!phoneNumber.trim()) {
-      toast({
-        title: "Peringatan",
-        description: "Nomor HP wajib diisi",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!birthDate.trim()) {
-      toast({
-        title: "Peringatan",
-        description: "Tanggal lahir wajib diisi",
+        description: "Password tidak cocok",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+
     try {
-      console.log("=== REGISTER START ===");
-      console.log("Email:", email);
-      console.log("Full name:", fullName);
-      console.log("Phone number:", phoneNumber);
-      console.log("Birth date:", birthDate);
-      
-      const result = await backend.auth.registerEmail({
-        email,
-        password,
-        fullName,
-        phoneNumber,
-        birthDate,
-      });
-      console.log("Registration result:", result);
-
-      toast({
-        title: "Registrasi Berhasil! 🎉",
-        description: "Selamat datang di TopAsli! Silakan login untuk melanjutkan.",
+      const response = await backend.auth.sendRegisterOTP({
+        phoneNumber: formData.phoneNumber,
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      window.location.href = "/login";
-    } catch (err: any) {
-      console.error("Save profile error:", err);
-      console.error("Error details:", JSON.stringify(err, null, 2));
       toast({
-        title: "Error",
-        description: err.message || "Gagal menyelesaikan registrasi",
+        title: "OTP Terkirim",
+        description: response.message,
+      });
+
+      setStep("verify-otp");
+      setCountdown(60);
+
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error("Send OTP failed:", error);
+      toast({
+        title: "Gagal Mengirim OTP",
+        description: error.message || "Terjadi kesalahan",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await backend.auth.verifyAndRegister({
+        phoneNumber: formData.phoneNumber,
+        otp: otpForm.otp,
+        fullName: formData.fullName,
+        password: formData.password,
+        dateOfBirth: formData.dateOfBirth,
+      });
+
+      sessionStorage.setItem("isLoggedIn", "true");
+      sessionStorage.setItem("authToken", response.token);
+      sessionStorage.setItem("userId", response.userId);
+      sessionStorage.setItem("userPhone", response.phoneNumber);
+      sessionStorage.setItem("userName", response.fullName);
+
+      toast({
+        title: "Registrasi Berhasil!",
+        description: "Selamat datang di TopAsli!",
+      });
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (error: any) {
+      console.error("Verify and register failed:", error);
+      toast({
+        title: "Verifikasi Gagal",
+        description: error.message || "Kode OTP salah atau sudah kadaluarsa",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return;
+
+    setLoading(true);
+    try {
+      const response = await backend.auth.sendRegisterOTP({
+        phoneNumber: formData.phoneNumber,
+      });
+
+      toast({
+        title: "OTP Terkirim",
+        description: response.message,
+      });
+
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Gagal Mengirim OTP",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -135,202 +149,197 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
-      <nav className="border-b border-slate-800 bg-[#0f1229]">
-        <div className="container mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="text-white hover:text-blue-400 hover:bg-slate-800"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Kembali
-          </Button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
 
-      <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[calc(100vh-80px)]">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Daftar Akun Baru</h1>
-            <p className="text-slate-400">Lengkapi data Anda untuk mendaftar</p>
+      <Card className="w-full max-w-md bg-[#1a1f3a]/80 backdrop-blur-xl border-slate-700 shadow-2xl relative z-10">
+        <CardHeader className="space-y-1 pb-6">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <UserPlus className="h-8 w-8 text-white" />
+            </div>
           </div>
+          <CardTitle className="text-3xl font-bold text-center text-white">
+            Daftar Akun
+          </CardTitle>
+          <CardDescription className="text-center text-slate-400">
+            {step === "input"
+              ? "Isi data diri Anda untuk mendaftar"
+              : "Masukkan kode OTP yang dikirim via WhatsApp"}
+          </CardDescription>
+        </CardHeader>
 
-          <Card className="bg-[#1a1f3a] border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">
-                Formulir Pendaftaran
-              </CardTitle>
-              <CardDescription className="text-slate-400">
-                Isi semua data dengan lengkap dan benar
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-300">
-                    Email *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="contoh@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-300">
-                    Password *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Minimal 6 karakter"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-slate-300">
-                    Konfirmasi Password *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Ulangi password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-slate-300">
-                    Nama Lengkap *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Masukkan nama lengkap"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber" className="text-slate-300">
-                    Nomor WhatsApp *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="phoneNumber"
-                      type="text"
-                      placeholder="081234567890"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate" className="text-slate-300">
-                    Tanggal Lahir *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="birthDate"
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className="bg-slate-800 border-slate-600 text-white pl-10"
-                      disabled={loading}
-                    />
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
-                    disabled={loading}
-                  />
-                  <label htmlFor="terms" className="text-xs text-slate-400">
-                    Saya telah membaca dan menyetujui{" "}
-                    <Link to="/terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">
-                      Syarat dan Ketentuan
-                    </Link>
-                    {" "}yang berlaku
-                  </label>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={loading || !email.trim() || !password.trim() || !confirmPassword.trim() || !fullName.trim() || !phoneNumber.trim() || !birthDate.trim() || !acceptedTerms}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Mendaftar...
-                    </>
-                  ) : (
-                    "Daftar Sekarang"
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-slate-400 text-sm">
-                  Sudah punya akun?{" "}
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="text-blue-400 hover:text-blue-300 font-semibold"
-                  >
-                    Masuk di sini
-                  </button>
-                </p>
+        <CardContent className="space-y-4">
+          {step === "input" ? (
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Nomor HP
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="08123456789"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
 
-          <div className="mt-6 p-4 rounded-lg bg-blue-600/10 border border-blue-700/30">
-            <p className="text-blue-400 text-xs leading-relaxed">
-              <strong>Catatan:</strong><br />
-              • Pastikan email yang Anda masukkan valid dan aktif<br />
-              • Nomor WhatsApp akan digunakan untuk notifikasi transaksi<br />
-              • Data Anda akan kami jaga kerahasiaannya
-            </p>
-          </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Nama Lengkap
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Nama Anda"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Tanggal Lahir
+                </label>
+                <Input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Password Anda"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Konfirmasi Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Ulangi password Anda"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+              >
+                {loading ? "Mengirim OTP..." : "Daftar"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyAndRegister} className="space-y-4">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-slate-300">
+                    Kode OTP telah dikirim ke WhatsApp Anda di nomor{" "}
+                    <span className="font-semibold text-white">{formData.phoneNumber}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Kode OTP
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Masukkan 6 digit OTP"
+                  value={otpForm.otp}
+                  onChange={(e) => setOtpForm({ otp: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-center text-2xl tracking-widest"
+                  maxLength={6}
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || otpForm.otp.length !== 6}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+              >
+                {loading ? "Memverifikasi..." : "Verifikasi & Daftar"}
+              </Button>
+
+              <div className="text-center">
+                {countdown > 0 ? (
+                  <p className="text-sm text-slate-400">
+                    Kirim ulang OTP dalam {countdown} detik
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOTP}
+                    disabled={loading}
+                    className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+                  >
+                    Kirim Ulang OTP
+                  </button>
+                )}
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setStep("input")}
+                className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                Ubah Data
+              </Button>
+            </form>
+          )}
+
+          {step === "input" && (
+            <div className="pt-4 border-t border-slate-700 text-center">
+              <p className="text-sm text-slate-400">
+                Sudah punya akun?{" "}
+                <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                  Login di sini
+                </Link>
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center gap-3 text-white hover:opacity-80 transition-opacity z-20"
+      >
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <Gamepad2 className="h-6 w-6 text-white" />
         </div>
-      </div>
+        <span className="text-xl font-bold">TopAsli</span>
+      </Link>
     </div>
   );
 }

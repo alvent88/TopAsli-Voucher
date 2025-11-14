@@ -18,7 +18,7 @@ export function AuthButton() {
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  const [userPhone, setUserPhone] = useState("");
   const [balance, setBalance] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -26,12 +26,12 @@ export function AuthButton() {
     const checkLoginStatus = () => {
       const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
       const name = sessionStorage.getItem("userName") || "";
-      const email = sessionStorage.getItem("userEmail") || "";
+      const phone = sessionStorage.getItem("userPhone") || "";
       
       setIsLoggedIn(loggedIn);
       setUserName(name);
-      setUserEmail(email);
-      setIsAdmin(email === "alvent88@gmail.com");
+      setUserPhone(phone);
+      setIsAdmin(phone === "6282225058000");
       
       if (loggedIn) {
         loadBalance();
@@ -71,11 +71,11 @@ export function AuthButton() {
     sessionStorage.removeItem("isLoggedIn");
     sessionStorage.removeItem("userId");
     sessionStorage.removeItem("userName");
-    sessionStorage.removeItem("userEmail");
+    sessionStorage.removeItem("userPhone");
     
     setIsLoggedIn(false);
     setUserName("");
-    setUserEmail("");
+    setUserPhone("");
     setBalance(null);
     
     navigate("/");
@@ -101,7 +101,7 @@ export function AuthButton() {
                 {userName || "User"}
               </p>
               <p className="text-xs text-slate-400">
-                {userEmail}
+                {userPhone}
               </p>
             </div>
           </DropdownMenuLabel>

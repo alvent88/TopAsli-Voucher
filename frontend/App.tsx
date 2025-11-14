@@ -12,9 +12,6 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import RedeemVoucherPage from "./pages/RedeemVoucherPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import LoginPhoneOnlyPage from "./pages/LoginPhoneOnlyPage";
-import RegisterPhoneOnlyPage from "./pages/RegisterPhoneOnlyPage";
-import ForgotPasswordPhonePage from "./pages/ForgotPasswordPhonePage";
 import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -39,20 +36,20 @@ import AdminValidationGames from "./pages/admin/AdminValidationGames";
 function BanChecker() {
   const backend = useBackend();
   const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
-  const userEmail = sessionStorage.getItem("userEmail");
+  const userPhone = sessionStorage.getItem("userPhone");
 
   useEffect(() => {
     const checkBanStatus = async () => {
-      if (!isLoggedIn || !userEmail) return;
+      if (!isLoggedIn || !userPhone) return;
 
-      const banCheckKey = `ban_checked_${userEmail}`;
+      const banCheckKey = `ban_checked_${userPhone}`;
       
       if (sessionStorage.getItem(banCheckKey)) {
         return;
       }
 
       try {
-        const checkResult = await backend.auth.checkUser({ identifier: userEmail });
+        const checkResult = await backend.auth.checkUser({ identifier: userPhone });
         
         if (!checkResult.exists) {
           console.warn("User not found in database");
@@ -70,7 +67,7 @@ function BanChecker() {
     const interval = setInterval(checkBanStatus, 10000);
 
     return () => clearInterval(interval);
-  }, [isLoggedIn, userEmail, backend]);
+  }, [isLoggedIn, userPhone, backend]);
 
   return null;
 }
@@ -79,7 +76,7 @@ function LoginTracker() {
   const backend = useBackend();
   const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
   const userId = sessionStorage.getItem("userId");
-  const userEmail = sessionStorage.getItem("userEmail");
+  const userPhone = sessionStorage.getItem("userPhone");
 
   useEffect(() => {
     const trackLogin = async () => {
@@ -109,9 +106,9 @@ function LoginTracker() {
         
         await backend.auth.trackLogin({
           userId: userId,
-          email: userEmail || undefined,
-          phoneNumber: undefined,
-          loginType: 'email',
+          email: undefined,
+          phoneNumber: userPhone || undefined,
+          loginType: 'phone',
           ipAddress: ipAddress,
           userAgent: userAgent,
         });
@@ -124,7 +121,7 @@ function LoginTracker() {
     };
 
     trackLogin();
-  }, [isLoggedIn, userId, userEmail, backend]);
+  }, [isLoggedIn, userId, userPhone, backend]);
 
   return null;
 }
@@ -142,9 +139,6 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/login-phone" element={<LoginPhoneOnlyPage />} />
-          <Route path="/register-phone" element={<RegisterPhoneOnlyPage />} />
-          <Route path="/forgot-password-phone" element={<ForgotPasswordPhonePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/redeem-voucher" element={<RedeemVoucherPage />} />
           <Route path="/transactions" element={<TransactionPage />} />
