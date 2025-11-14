@@ -12,6 +12,9 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import RedeemVoucherPage from "./pages/RedeemVoucherPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import LoginPhoneOnlyPage from "./pages/LoginPhoneOnlyPage";
+import RegisterPhoneOnlyPage from "./pages/RegisterPhoneOnlyPage";
+import ForgotPasswordPhonePage from "./pages/ForgotPasswordPhonePage";
 import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -139,6 +142,9 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/login-phone" element={<LoginPhoneOnlyPage />} />
+          <Route path="/register-phone" element={<RegisterPhoneOnlyPage />} />
+          <Route path="/forgot-password-phone" element={<ForgotPasswordPhonePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/redeem-voucher" element={<RedeemVoucherPage />} />
           <Route path="/transactions" element={<TransactionPage />} />
