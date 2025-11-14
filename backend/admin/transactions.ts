@@ -58,13 +58,15 @@ export const listTransactions = api<ListTransactionsParams, ListTransactionsResp
     const rows = await db.rawQueryAll<any>(query, ...params);
 
     let transactions = await Promise.all(rows.map(async (row) => {
-      let userEmail = null;
+      let userPhone = null;
       if (row.clerk_user_id) {
         try {
-          const user = await clerkClient.users.getUser(row.clerk_user_id);
-          userEmail = user.emailAddresses[0]?.emailAddress || null;
+          const user = await db.queryRow<{ phone_number: string }>`
+            SELECT phone_number FROM users WHERE clerk_user_id = ${row.clerk_user_id}
+          `;
+          userPhone = user?.phone_number || null;
         } catch (err) {
-          console.error(`Failed to get email for user ${row.clerk_user_id}:`, err);
+          console.error(`Failed to get phone for user ${row.clerk_user_id}:`, err);
         }
       }
 
@@ -84,14 +86,14 @@ export const listTransactions = api<ListTransactionsParams, ListTransactionsResp
         total: row.price,
         status: row.status,
         createdAt: row.created_at,
-        userEmail,
+        userPhone,
       };
     }));
 
     if (email) {
-      const emailLower = email.toLowerCase();
+      const phoneLower = email.toLowerCase();
       transactions = transactions.filter(t => 
-        t.userEmail && t.userEmail.toLowerCase().includes(emailLower)
+        t.userPhone && t.userPhone.toLowerCase().includes(phoneLower)
       );
     }
 

@@ -17,7 +17,7 @@ export interface Transaction {
   total: number;
   status: string;
   createdAt: Date;
-  userEmail?: string | null;
+  userPhone?: string | null;
   username?: string | null;
 }
 

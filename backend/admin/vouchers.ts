@@ -224,8 +224,8 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
     }
 
     try {
-      const voucher = await db.queryRow<{ code: string; amount: number; claimed_by_email: string | null }>` 
-        SELECT code, amount, claimed_by_email FROM vouchers WHERE code = ${code}
+      const voucher = await db.queryRow<{ code: string; amount: number }>` 
+        SELECT code, amount FROM vouchers WHERE code = ${code}
       `;
       
       await db.exec`DELETE FROM vouchers WHERE code = ${code}`;
@@ -234,7 +234,7 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
         actionType: "DELETE",
         entityType: "VOUCHER",
         entityId: code,
-        oldValues: voucher ? { code: voucher.code, amount: voucher.amount, claimedBy: voucher.claimed_by_email } : { code },
+        oldValues: voucher ? { code: voucher.code, amount: voucher.amount } : { code },
       }, ipAddress, userAgent);
       
       return { success: true };

@@ -1,16 +1,11 @@
 import { api } from "encore.dev/api";
 import db from "../db";
-import { createClerkClient } from "@clerk/backend";
-import { secret } from "encore.dev/config";
-
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 interface ExportTransactionsResponse {
   data: Array<{
     id: string;
     transactionDate: string;
-    userEmail: string;
+    userPhone: string;
     userId: string;
     gameId: string;
     username: string;
@@ -58,14 +53,16 @@ export const exportTransactions = api<{}, ExportTransactionsResponse>(
     console.log(`Found ${rows.length} transactions to export`);
 
     const data = await Promise.all(rows.map(async (row) => {
-      let userEmail = "N/A";
+      let userPhone = "N/A";
       
       if (row.clerk_user_id) {
         try {
-          const user = await clerkClient.users.getUser(row.clerk_user_id);
-          userEmail = user.emailAddresses[0]?.emailAddress || "N/A";
+          const user = await db.queryRow<{ phone_number: string }>`
+            SELECT phone_number FROM users WHERE clerk_user_id = ${row.clerk_user_id}
+          `;
+          userPhone = user?.phone_number || "N/A";
         } catch (err) {
-          console.error(`Failed to get email for user ${row.clerk_user_id}:`, err);
+          console.error(`Failed to get phone for user ${row.clerk_user_id}:`, err);
         }
       }
 
@@ -75,7 +72,7 @@ export const exportTransactions = api<{}, ExportTransactionsResponse>(
           dateStyle: 'medium',
           timeStyle: 'medium'
         }),
-        userEmail,
+        userPhone,
         userId: row.user_id,
         gameId: row.game_id || "N/A",
         username: row.username || "N/A",

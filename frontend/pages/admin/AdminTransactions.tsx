@@ -105,7 +105,7 @@ export default function AdminTransactions() {
 
     if (emailFilter) {
       filtered = filtered.filter((t) => 
-        t.userEmail?.toLowerCase().includes(emailFilter.toLowerCase())
+        t.userPhone?.toLowerCase().includes(emailFilter.toLowerCase())
       );
     }
 
@@ -178,7 +178,7 @@ export default function AdminTransactions() {
       const worksheet = XLSX.utils.json_to_sheet(data.map((row) => ({
         "ID Transaksi": row.id,
         "Tanggal": row.transactionDate,
-        "Email User": row.userEmail,
+        "Nomor HP User": row.userPhone,
         "User ID": row.userId,
         "Game ID": row.gameId,
         "Username": row.username,
@@ -547,7 +547,7 @@ export default function AdminTransactions() {
                         {transaction.id.substring(0, 8)}...
                       </TableCell>
                       <TableCell className="text-slate-300 text-xs max-w-[150px] truncate">
-                        {transaction.userEmail || "-"}
+                        {transaction.userPhone || "-"}
                       </TableCell>
                       <TableCell className="text-slate-300 text-xs md:text-sm">
                         {transaction.productName}

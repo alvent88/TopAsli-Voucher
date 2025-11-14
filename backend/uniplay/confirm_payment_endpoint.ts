@@ -160,11 +160,10 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
         console.log("Transaction data loaded:", transactionData);
 
         const user = await db.queryRow<{
-          email: string;
-          phone_number: string | null;
+          phone_number: string;
           full_name: string;
         }>`
-          SELECT email, phone_number, full_name
+          SELECT phone_number, full_name
           FROM users
           WHERE clerk_user_id = ${auth.userID}
         `;
@@ -174,11 +173,10 @@ export const confirmPaymentEndpoint = api<ConfirmPaymentRequest, ConfirmPaymentE
           throw APIError.notFound("User not found");
         }
 
-        const phoneNumber = user.phone_number || "";
+        const phoneNumber = user.phone_number;
         const fullName = user.full_name || "Customer";
-        const email = user.email;
 
-        console.log("User data - Phone:", phoneNumber, "Name:", fullName, "Email:", email);
+        console.log("User data - Phone:", phoneNumber, "Name:", fullName);
 
         // Send WhatsApp if phone number is available
         if (phoneNumber && transactionData) {

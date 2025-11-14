@@ -31,7 +31,7 @@ export function AuthButton() {
       setIsLoggedIn(loggedIn);
       setUserName(name);
       setUserPhone(phone);
-      setIsAdmin(phone === "6282225058000");
+      setIsAdmin(phone === "62818848168");
       
       if (loggedIn) {
         loadBalance();

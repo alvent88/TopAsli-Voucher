@@ -48,19 +48,7 @@ function BanChecker() {
         return;
       }
 
-      try {
-        const checkResult = await backend.auth.checkUser({ identifier: userPhone });
-        
-        if (!checkResult.exists) {
-          console.warn("User not found in database");
-        }
-      } catch (error: any) {
-        if (error.message?.includes("dibanned")) {
-          sessionStorage.setItem(banCheckKey, "true");
-          sessionStorage.clear();
-          window.location.href = "/";
-        }
-      }
+      // Skip ban check for now - checkUser API removed
     };
 
     checkBanStatus();

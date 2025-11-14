@@ -34,7 +34,7 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
     throw APIError.unauthenticated("invalid token");
   }
 
-  const isSuperAdmin = decoded.phoneNumber === "6282225058000";
+  const isSuperAdmin = decoded.phoneNumber === "62818848168";
   const isAdmin = isSuperAdmin;
 
   return {

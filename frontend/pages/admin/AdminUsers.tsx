@@ -315,6 +315,14 @@ export default function AdminUsers() {
 
     setEditing(true);
     try {
+      // TODO: Implement new editUser API for phone-only system
+      toast({
+        title: "Info",
+        description: "Edit user feature sedang dalam pengembangan",
+        variant: "destructive",
+      });
+      setEditDialogOpen(false);
+      /*
       await backend.admin.editUser({
         userId: userToEdit.id,
         fullName: editFullName || undefined,
@@ -328,6 +336,7 @@ export default function AdminUsers() {
         description: "Data pengguna berhasil diperbarui",
       });
       setEditDialogOpen(false);
+      */
       setUserToEdit(null);
       loadUsers();
     } catch (error: any) {
