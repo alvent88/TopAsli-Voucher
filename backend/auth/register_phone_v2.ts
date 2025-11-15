@@ -2,6 +2,9 @@ import { api } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import bcrypt from "bcryptjs";
+import { secret } from "encore.dev/config";
+
+const fonnteToken = secret("FonnteToken");
 import { generateToken } from "./custom_auth";
 import { randomUUID } from "crypto";
 
@@ -50,29 +53,11 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
       VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
     `;
 
-    const configRow = await db.queryRow<{ value: string }>`
-      SELECT value FROM admin_config WHERE key = 'dashboard_config'
-    `;
-
-    console.log("=== DEBUG FONNTE CONFIG ===");
-    console.log("Config row exists:", !!configRow);
+    const token = fonnteToken();
     
-    let fonnteToken = "";
-    if (configRow) {
-      console.log("Raw config value:", configRow.value);
-      const config = typeof configRow.value === 'string' 
-        ? JSON.parse(configRow.value) 
-        : configRow.value;
-      console.log("Parsed config:", JSON.stringify(config, null, 2));
-      console.log("WhatsApp config:", config.whatsapp);
-      fonnteToken = config.whatsapp?.fonnteToken || "";
-      console.log("Fonnte token found:", !!fonnteToken);
-      console.log("Token length:", fonnteToken.length);
-    }
-
-    if (!fonnteToken) {
+    if (!token || token === "") {
       throw APIError.failedPrecondition(
-        "WhatsApp API belum dikonfigurasi. Silakan hubungi administrator."
+        "Fonnte Token belum dikonfigurasi. Silakan isi FonnteToken di Settings."
       );
     }
 
@@ -86,7 +71,7 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {
-        'Authorization': fonnteToken,
+        'Authorization': token,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: formData.toString(),

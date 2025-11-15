@@ -2,6 +2,9 @@ import { api } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import bcrypt from "bcryptjs";
+import { secret } from "encore.dev/config";
+
+const fonnteToken = secret("FonnteToken");
 
 export interface SendForgotPasswordPhoneOTPRequest {
   phoneNumber: string;
@@ -53,19 +56,11 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
       VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
     `;
 
-    const configRow = await db.queryRow<{ value: string }>`
-      SELECT value FROM admin_config WHERE key = 'dashboard_config'
-    `;
+    const token = fonnteToken();
 
-    let fonnteToken = "";
-    if (configRow) {
-      const config = JSON.parse(configRow.value);
-      fonnteToken = config.whatsapp?.fonnteToken || "";
-    }
-
-    if (!fonnteToken) {
+    if (!token || token === "") {
       throw APIError.failedPrecondition(
-        "WhatsApp API belum dikonfigurasi. Silakan hubungi administrator."
+        "Fonnte Token belum dikonfigurasi. Silakan isi FonnteToken di Settings."
       );
     }
 
@@ -79,7 +74,7 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {
-        'Authorization': fonnteToken,
+        'Authorization': token,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: formData.toString(),

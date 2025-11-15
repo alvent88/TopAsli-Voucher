@@ -2,6 +2,9 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { secret } from "encore.dev/config";
+
+const fonnteToken = secret("FonnteToken");
 
 export interface SendWhatsAppRequest {
   target: string;
@@ -26,18 +29,10 @@ export const sendWhatsApp = api<SendWhatsAppRequest, SendWhatsAppResponse>(
       throw APIError.permissionDenied("Only admin can send WhatsApp messages");
     }
 
-    const configRow = await db.queryRow<{ value: string }>`
-      SELECT value FROM admin_config WHERE key = 'dashboard_config'
-    `;
-
-    let token = "";
-    if (configRow) {
-      const config = JSON.parse(configRow.value);
-      token = config.whatsapp?.fonnteToken || "";
-    }
+    const token = fonnteToken();
     
     if (!token || token === "") {
-      throw APIError.failedPrecondition("Fonnte Token belum dikonfigurasi di Admin Dashboard → WhatsApp API. Silakan isi Fonnte Token dan klik Simpan.");
+      throw APIError.failedPrecondition("Fonnte Token belum dikonfigurasi. Silakan isi FonnteToken di Settings.");
     }
 
     try {

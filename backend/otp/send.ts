@@ -7,6 +7,8 @@ import { secret } from "encore.dev/config";
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
+const fonnteToken = secret("FonnteToken");
+
 export interface SendOTPRequest {
   phoneNumber: string;
 }
@@ -68,30 +70,13 @@ export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
       
       console.log("OTP saved to database");
 
-      const configRow = await db.queryRow<{ value: string }>`
-        SELECT value FROM admin_config WHERE key = 'dashboard_config'
-      `;
-
-      console.log("Config row exists:", !!configRow);
-
-      let fonnteToken = "";
-      if (configRow) {
-        const config = JSON.parse(configRow.value);
-        console.log("Config data:", {
-          hasWhatsapp: !!config.whatsapp,
-          hasFonnteToken: !!config.whatsapp?.fonnteToken,
-          tokenLength: config.whatsapp?.fonnteToken?.length || 0
-        });
-        fonnteToken = config.whatsapp?.fonnteToken || "";
-      } else {
-        console.log("No config found in database");
-      }
-
-      if (!fonnteToken || fonnteToken === "") {
-        throw APIError.failedPrecondition("Fonnte Token belum dikonfigurasi di Admin Dashboard → WhatsApp API. Silakan login sebagai admin dan isi Fonnte Token, lalu klik Simpan.");
+      const token = fonnteToken();
+      
+      if (!token || token === "") {
+        throw APIError.failedPrecondition("Fonnte Token belum dikonfigurasi. Silakan isi FonnteToken di Settings.");
       }
       
-      console.log("Using Fonnte token (first 10 chars):", fonnteToken.substring(0, 10) + "...");
+      console.log("Using Fonnte token (first 10 chars):", token.substring(0, 10) + "...");
 
       const message = `🔐 *Kode OTP TopAsli*\n\nKode verifikasi Anda:\n*${otp}*\n\nKode berlaku selama 5 menit.\n\n⚠️ Jangan berikan kode ini kepada siapapun!`;
 
@@ -106,7 +91,7 @@ export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
       const response = await fetch('https://api.fonnte.com/send', {
         method: 'POST',
         headers: {
-          'Authorization': fonnteToken,
+          'Authorization': token,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: formData.toString(),
