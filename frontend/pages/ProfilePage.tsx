@@ -99,15 +99,6 @@ export default function ProfilePage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password harus minimal 6 karakter.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setChangingPassword(true);
     try {
       await backend.auth.changePassword({ newPassword, otp });
@@ -282,7 +273,7 @@ export default function ProfilePage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="bg-slate-800 border-slate-600 text-white"
-                    placeholder="Minimal 6 karakter"
+                    placeholder="Masukkan password baru"
                   />
                 </div>
                 <div className="space-y-2">

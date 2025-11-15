@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useBackend } from "@/lib/useBackend";
 import { useIdleLogout } from "@/lib/useIdleLogout";
-import { useSetupCheck } from "@/lib/useSetupCheck";
 import { Toaster } from "@/components/ui/toaster";
 import HomePage from "./pages/HomePage";
 import ProductPage from "./pages/ProductPage";
@@ -33,7 +32,6 @@ import AdminUniPlaySync from "./pages/admin/AdminUniPlaySync";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
-import InitialSetupPage from "./pages/InitialSetupPage";
 
 function BanChecker() {
   const backend = useBackend();
@@ -63,21 +61,11 @@ function BanChecker() {
 
 function AppInner() {
   useIdleLogout();
-  const { isChecking } = useSetupCheck();
-  
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
   
   return (
     <>
       <BanChecker />
       <Routes>
-          <Route path="/setup" element={<InitialSetupPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
