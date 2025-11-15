@@ -39,9 +39,18 @@ export const listUsers = api<void, ListUsersResponse>(
           u.phone_number, 
           u.birth_date, 
           u.created_at,
-          COALESCE(ub.balance, 0) as balance
+          COALESCE(ub.balance, 0) as balance,
+          lh.last_login
         FROM users u
         LEFT JOIN user_balance ub ON u.clerk_user_id = ub.user_id
+        LEFT JOIN (
+          SELECT 
+            user_id,
+            MAX(created_at) as last_login
+          FROM login_history
+          WHERE login_status = 'success'
+          GROUP BY user_id
+        ) lh ON u.clerk_user_id = lh.user_id
         ORDER BY u.created_at DESC
       `;
 
@@ -55,7 +64,7 @@ export const listUsers = api<void, ListUsersResponse>(
           fullName: user.full_name || null,
           birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
           createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
-          lastSignInAt: null,
+          lastSignInAt: user.last_login ? String(user.last_login) : null,
           isAdmin: user.phone_number === "818848168",
           isSuperAdmin: user.phone_number === "818848168",
           balance: Number(user.balance) || 0,
