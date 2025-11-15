@@ -21,12 +21,14 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
     if (formattedPhone.startsWith("0")) {
-      formattedPhone = "62" + formattedPhone.substring(1);
-    } else if (formattedPhone.startsWith("+")) {
       formattedPhone = formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith("62")) {
-      formattedPhone = "62" + formattedPhone;
+    } else if (formattedPhone.startsWith("62")) {
+      formattedPhone = formattedPhone.substring(2);
+    } else if (formattedPhone.startsWith("+62")) {
+      formattedPhone = formattedPhone.substring(3);
     }
+
+    const phoneWithPrefix = `62${formattedPhone}`;
 
     const user = await db.queryRow<{ 
       clerk_user_id: string;
@@ -48,7 +50,7 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
 
     await db.exec`
       INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-      VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE)
+      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
     `;
 
     const configRow = await db.queryRow<{ value: string }>`
@@ -70,7 +72,7 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     const message = `🔐 *Reset Password TopAsli*\n\nKode OTP untuk reset password:\n*${otp}*\n\nKode berlaku selama 5 menit.\n\n⚠️ Jangan berikan kode ini kepada siapapun!`;
 
     const formData = new URLSearchParams();
-    formData.append('target', formattedPhone);
+    formData.append('target', phoneWithPrefix);
     formData.append('message', message);
     formData.append('countryCode', '0');
 
@@ -118,12 +120,14 @@ export const verifyForgotPasswordPhoneOTP = api<VerifyForgotPasswordPhoneOTPRequ
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
     if (formattedPhone.startsWith("0")) {
-      formattedPhone = "62" + formattedPhone.substring(1);
-    } else if (formattedPhone.startsWith("+")) {
       formattedPhone = formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith("62")) {
-      formattedPhone = "62" + formattedPhone;
+    } else if (formattedPhone.startsWith("62")) {
+      formattedPhone = formattedPhone.substring(2);
+    } else if (formattedPhone.startsWith("+62")) {
+      formattedPhone = formattedPhone.substring(3);
     }
+
+    const phoneWithPrefix = `62${formattedPhone}`;
 
     const user = await db.queryRow<{ 
       clerk_user_id: string;
@@ -145,7 +149,7 @@ export const verifyForgotPasswordPhoneOTP = api<VerifyForgotPasswordPhoneOTPRequ
     }>`
       SELECT otp_code, created_at, verified
       FROM otp_codes
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -172,7 +176,7 @@ export const verifyForgotPasswordPhoneOTP = api<VerifyForgotPasswordPhoneOTPRequ
     await db.exec`
       UPDATE otp_codes
       SET verified = TRUE
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
       AND otp_code = ${otp}
       AND verified = FALSE
     `;
