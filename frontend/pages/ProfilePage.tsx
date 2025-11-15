@@ -207,7 +207,7 @@ export default function ProfilePage() {
                     Tanggal Lahir
                   </label>
                   <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base">
-                    {birthDate 
+                    {birthDate && typeof birthDate === 'string'
                       ? (() => {
                           const [year, month, day] = birthDate.split('-');
                           return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
