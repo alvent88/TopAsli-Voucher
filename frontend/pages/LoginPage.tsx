@@ -32,6 +32,35 @@ export default function LoginPhoneOnlyPage() {
       sessionStorage.setItem("userPhone", response.phoneNumber);
       sessionStorage.setItem("userName", response.fullName);
 
+      try {
+        let ipAddress = 'unknown';
+        try {
+          const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+            method: 'GET',
+            signal: AbortSignal.timeout(3000)
+          });
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip || 'unknown';
+        } catch (ipError) {
+          console.error("Failed to get IP address:", ipError);
+        }
+        
+        const userAgent = navigator.userAgent;
+        
+        await backend.auth.trackLogin({
+          userId: response.userId,
+          email: undefined,
+          phoneNumber: response.phoneNumber,
+          loginType: 'phone',
+          ipAddress: ipAddress,
+          userAgent: userAgent,
+        });
+
+        console.log("Login tracked successfully");
+      } catch (trackError) {
+        console.error("Failed to track login:", trackError);
+      }
+
       toast({
         title: "Login Berhasil!",
         description: `Selamat datang, ${response.fullName}!`,

@@ -48,7 +48,6 @@ function BanChecker() {
         return;
       }
 
-      // Skip ban check for now - checkUser API removed
     };
 
     checkBanStatus();
@@ -60,67 +59,12 @@ function BanChecker() {
   return null;
 }
 
-function LoginTracker() {
-  const backend = useBackend();
-  const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
-  const userId = sessionStorage.getItem("userId");
-  const userPhone = sessionStorage.getItem("userPhone");
-
-  useEffect(() => {
-    const trackLogin = async () => {
-      if (!isLoggedIn || !userId) return;
-
-      const loginTrackedKey = `login_tracked_${userId}`;
-      
-      if (sessionStorage.getItem(loginTrackedKey)) {
-        return;
-      }
-
-      try {
-        let ipAddress = 'unknown';
-        try {
-          const ipResponse = await fetch('https://api.ipify.org?format=json', { 
-            method: 'GET',
-            signal: AbortSignal.timeout(3000)
-          });
-          const ipData = await ipResponse.json();
-          ipAddress = ipData.ip || 'unknown';
-          console.log("Detected IP address:", ipAddress);
-        } catch (ipError) {
-          console.error("Failed to get IP address:", ipError);
-        }
-        
-        const userAgent = navigator.userAgent;
-        
-        await backend.auth.trackLogin({
-          userId: userId,
-          email: undefined,
-          phoneNumber: userPhone || undefined,
-          loginType: 'phone',
-          ipAddress: ipAddress,
-          userAgent: userAgent,
-        });
-
-        sessionStorage.setItem(loginTrackedKey, "true");
-        console.log("Login tracked successfully with IP:", ipAddress);
-      } catch (error) {
-        console.error("Failed to track login:", error);
-      }
-    };
-
-    trackLogin();
-  }, [isLoggedIn, userId, userPhone, backend]);
-
-  return null;
-}
-
 export default function App() {
   useIdleLogout();
   
   return (
     <>
       <BanChecker />
-      <LoginTracker />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
