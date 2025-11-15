@@ -61,7 +61,6 @@ export default function AdminUsers() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [editFullName, setEditFullName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
   const [editPhoneNumber, setEditPhoneNumber] = useState("");
   const [editBirthDate, setEditBirthDate] = useState("");
   const [editBalance, setEditBalance] = useState<number>(0);
@@ -286,10 +285,8 @@ export default function AdminUsers() {
   const handleEditClick = (user: User) => {
     setUserToEdit(user);
     setEditFullName(user.fullName || "");
-    setEditEmail("");
     setEditPhoneNumber(user.phoneNumber || "");
     
-    // Format birth date untuk input date HTML (YYYY-MM-DD)
     let formattedBirthDate = "";
     if (user.birthDate) {
       try {
@@ -310,18 +307,9 @@ export default function AdminUsers() {
 
     setEditing(true);
     try {
-      // TODO: Implement new editUser API for phone-only system
-      toast({
-        title: "Info",
-        description: "Edit user feature sedang dalam pengembangan",
-        variant: "destructive",
-      });
-      setEditDialogOpen(false);
-      /*
       await backend.admin.editUser({
         userId: userToEdit.id,
         fullName: editFullName || undefined,
-        email: editEmail || undefined,
         phoneNumber: editPhoneNumber || undefined,
         birthDate: editBirthDate || undefined,
         balance: editBalance,
@@ -331,7 +319,6 @@ export default function AdminUsers() {
         description: "Data pengguna berhasil diperbarui",
       });
       setEditDialogOpen(false);
-      */
       setUserToEdit(null);
       loadUsers();
     } catch (error: any) {
@@ -873,20 +860,6 @@ export default function AdminUsers() {
                 value={editFullName}
                 onChange={(e) => setEditFullName(e.target.value)}
                 placeholder="Masukkan nama lengkap"
-                className="bg-slate-800 border-slate-700 text-white"
-                disabled={editing}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email" className="text-sm font-medium text-slate-300">
-                Email
-              </Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-                placeholder="Masukkan email"
                 className="bg-slate-800 border-slate-700 text-white"
                 disabled={editing}
               />
