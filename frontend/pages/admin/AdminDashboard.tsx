@@ -49,10 +49,6 @@ export default function AdminDashboard() {
     pincode: "",
   });
   
-  const [gmailConfig, setGmailConfig] = useState({
-    uniplaySenderEmail: "",
-  });
-  
   const [syncingProducts, setSyncingProducts] = useState(false);
   const [syncingVouchers, setSyncingVouchers] = useState(false);
   const [syncingPackages, setSyncingPackages] = useState(false);
@@ -62,12 +58,6 @@ export default function AdminDashboard() {
   // UniPlay API Response states
   const [uniplayApiResponse, setUniplayApiResponse] = useState("");
   const [uniplayCurlCommand, setUniplayCurlCommand] = useState("");
-  
-  // Setup Gmail Watch states
-  const [settingUpGmailWatch, setSettingUpGmailWatch] = useState(false);
-  const [stoppingGmailWatch, setStoppingGmailWatch] = useState(false);
-  const [debuggingWebhook, setDebuggingWebhook] = useState(false);
-  const [gmailWatchResponse, setGmailWatchResponse] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -95,9 +85,6 @@ export default function AdminDashboard() {
       setWhatsappConfig(config.whatsapp);
       if (config.uniplay) {
         setUniplayConfig(config.uniplay);
-      }
-      if (config.gmail) {
-        setGmailConfig(config.gmail);
       }
     } catch (error) {
       console.error("Failed to load config:", error);
@@ -131,7 +118,9 @@ export default function AdminDashboard() {
             secretKey: "",
           },
           uniplay: uniplayConfig,
-          gmail: gmailConfig,
+          gmail: {
+            uniplaySenderEmail: "",
+          },
         },
       });
       
@@ -191,7 +180,9 @@ export default function AdminDashboard() {
             secretKey: "",
           },
           uniplay: uniplayConfig,
-          gmail: gmailConfig,
+          gmail: {
+            uniplaySenderEmail: "",
+          },
         },
       });
       
@@ -392,35 +383,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveGmailConfig = async () => {
-    try {
-      await backend.admin.saveConfig({
-        config: {
-          whatsapp: whatsappConfig,
-          topup: {
-            provider: "unipin",
-            apiKey: "",
-            merchantId: "",
-            secretKey: "",
-          },
-          uniplay: uniplayConfig,
-          gmail: gmailConfig,
-        },
-      });
-      
-      toast({
-        title: "Tersimpan ✅",
-        description: "Email pengirim UniPlay berhasil disimpan",
-      });
-    } catch (error: any) {
-      console.error("Failed to save gmail config:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menyimpan konfigurasi email",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   const handleCheckTime = async () => {
     try {
@@ -493,142 +456,11 @@ export default function AdminDashboard() {
   };
 
 
-  const handleSetupGmailWatch = async () => {
-    setSettingUpGmailWatch(true);
-    setGmailWatchResponse("");
-    
-    try {
-      toast({
-        title: "⚙️ Setting up Gmail Watch",
-        description: "Activating push notifications...",
-      });
-      
-      const result = await backend.gmail.setupGmailWatch();
-      
-      setGmailWatchResponse(JSON.stringify(result, null, 2));
-      
-      if (result.success) {
-        toast({
-          title: "✅ Gmail Watch Active!",
-          description: `Push notifications enabled until ${result.expirationDate ? new Date(result.expirationDate).toLocaleDateString() : 'unknown'}`,
-        });
-      } else {
-        toast({
-          title: "❌ Setup Failed",
-          description: result.message || "Failed to setup Gmail watch",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Setup Gmail watch error:", error);
-      setGmailWatchResponse(JSON.stringify({
-        error: error.message || "Unknown error",
-        details: error.toString(),
-      }, null, 2));
-      
-      toast({
-        title: "Error",
-        description: error.message || "Gagal setup Gmail watch",
-        variant: "destructive",
-      });
-    } finally {
-      setSettingUpGmailWatch(false);
-    }
-  };
-  
-  const handleStopGmailWatch = async () => {
-    setStoppingGmailWatch(true);
-    setGmailWatchResponse("");
-    
-    try {
-      toast({
-        title: "⚙️ Stopping Gmail Watch",
-        description: "Deactivating push notifications...",
-      });
-      
-      const result = await backend.gmail.stopGmailWatch();
-      
-      setGmailWatchResponse(JSON.stringify(result, null, 2));
-      
-      if (result.success) {
-        toast({
-          title: "✅ Gmail Watch Stopped!",
-          description: "Push notifications are now disabled",
-        });
-      } else {
-        toast({
-          title: "❌ Stop Failed",
-          description: result.message || "Failed to stop Gmail watch",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Stop Gmail watch error:", error);
-      setGmailWatchResponse(JSON.stringify({
-        error: error.message || "Unknown error",
-        details: error.toString(),
-      }, null, 2));
-      
-      toast({
-        title: "Error",
-        description: error.message || "Gagal stop Gmail watch",
-        variant: "destructive",
-      });
-    } finally {
-      setStoppingGmailWatch(false);
-    }
-  };
 
-  const handleDebugWebhook = async () => {
-    setDebuggingWebhook(true);
-    setGmailWatchResponse("");
-    
-    try {
-      toast({
-        title: "🔍 Debugging Webhook",
-        description: "Checking email configuration and latest message...",
-      });
-      
-      const result = await backend.gmail.debugWebhook();
-      
-      setGmailWatchResponse(JSON.stringify(result, null, 2));
-      
-      if (result.success) {
-        if (result.alreadyProcessed) {
-          toast({
-            title: "⚠️ Email Already Processed",
-            description: `Latest email from ${result.latestEmailFrom} was already processed. Try sending a new email.`,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "✅ Debug Complete",
-            description: `Found email from ${result.latestEmailFrom}. Check result below for details.`,
-          });
-        }
-      } else {
-        toast({
-          title: "❌ Debug Failed",
-          description: result.error || "Unknown error",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Debug webhook error:", error);
-      setGmailWatchResponse(JSON.stringify({
-        error: error.message || "Unknown error",
-        details: error.toString(),
-      }, null, 2));
-      
-      toast({
-        title: "Error",
-        description: error.message || "Gagal debug webhook",
-        variant: "destructive",
-      });
-    } finally {
-      setDebuggingWebhook(false);
-    }
-  };
+  
+
+
+
 
 
   const handleRunDiagnostic = async () => {
@@ -893,107 +725,6 @@ export default function AdminDashboard() {
             
             <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <strong className="text-slate-400">💡 Info:</strong> Gunakan Test Connection, DTU, Sync, atau Balance untuk melihat request dan response dari UniPlay API.
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Setup Gmail Watch */}
-        <Card className="bg-slate-900 border-slate-800">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <MessageSquare className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <CardTitle className="text-white">Setup Gmail Push Notifications</CardTitle>
-                <p className="text-sm text-slate-400 mt-1">Activate real-time email notifications</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="uniplay-sender-email" className="text-slate-300">
-                UniPlay Sender Email *
-              </Label>
-              <Input
-                id="uniplay-sender-email"
-                type="email"
-                value={gmailConfig.uniplaySenderEmail}
-                onChange={(e) => setGmailConfig({ ...gmailConfig, uniplaySenderEmail: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-                placeholder="e.g., noreply@uniplay.id"
-                disabled={!canEdit}
-              />
-              <p className="text-xs text-slate-500">
-                Email pengirim dari UniPlay yang akan kita ambil kode vouchernya
-              </p>
-            </div>
-
-            <Button
-              onClick={handleSaveGmailConfig}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-            >
-              💾 Simpan Email Konfigurasi
-            </Button>
-
-            <div className="text-sm text-slate-300 bg-blue-900/20 p-4 rounded-lg border border-blue-700">
-              <strong className="text-blue-400">ℹ️ Gmail Watch:</strong>
-              <p className="mt-2">Gmail Watch harus di-activate agar sistem bisa menerima notifikasi real-time ketika ada email baru masuk.</p>
-              <p className="mt-2"><strong>Expire:</strong> Watch akan expire setelah ~7 hari dan perlu di-renew.</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={handleSetupGmailWatch}
-                disabled={settingUpGmailWatch}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              >
-                {settingUpGmailWatch ? "Starting..." : "🔔 Activate Watch"}
-              </Button>
-              
-              <Button
-                onClick={handleStopGmailWatch}
-                disabled={stoppingGmailWatch}
-                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700"
-              >
-                {stoppingGmailWatch ? "Stopping..." : "⛔ Stop Watch"}
-              </Button>
-            </div>
-
-            <Button
-              onClick={handleDebugWebhook}
-              disabled={debuggingWebhook}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              {debuggingWebhook ? "Debugging..." : "🔍 Debug Webhook"}
-            </Button>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300">Setup Result</Label>
-              <Textarea
-                value={gmailWatchResponse}
-                readOnly
-                className="bg-slate-800 border-slate-700 text-blue-400 font-mono text-xs h-48 resize-none"
-                placeholder="Setup result akan muncul di sini..."
-              />
-            </div>
-
-            <div className="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-              <strong className="text-slate-400">💡 Requirements:</strong>
-              <ul className="mt-2 space-y-1 text-slate-400">
-                <li>• Set 3 Gmail secrets (GmailClientId, GmailClientSecret, GmailRefreshToken)</li>
-                <li>• Setup Pub/Sub di Google Cloud Console (ikuti panduan di atas)</li>
-                <li>• Klik button ini SETELAH Pub/Sub topic & subscription sudah dibuat</li>
-              </ul>
-            </div>
-            
-            <div className="text-xs text-yellow-600 bg-yellow-900/20 p-3 rounded-lg border border-yellow-700">
-              <strong className="text-yellow-500">⚠️ Important:</strong>
-              <ul className="mt-2 space-y-1 text-slate-400">
-                <li>• Watch akan expire setelah ~7 hari</li>
-                <li>• Perlu klik "Activate Gmail Watch" lagi untuk renew</li>
-                <li>• Webhook URL: <code className="text-yellow-400">https://gaming-top-up-platform-d3pg4ec82vjikj791feg.api.lp.dev/gmail/webhook</code></li>
-              </ul>
             </div>
           </CardContent>
         </Card>
