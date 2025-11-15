@@ -161,6 +161,11 @@ import {
     promoteToAdmin as api_admin_promote_admin_promoteToAdmin
 } from "~backend/admin/promote_admin";
 import { resetUserPassword as api_admin_reset_user_password_resetUserPassword } from "~backend/admin/reset_user_password";
+import {
+    deleteAlert as api_admin_security_alerts_deleteAlert,
+    listSecurityAlerts as api_admin_security_alerts_listSecurityAlerts,
+    updateAlertStatus as api_admin_security_alerts_updateAlertStatus
+} from "~backend/admin/security_alerts";
 import { syncAllUsers as api_admin_sync_users_syncAllUsers } from "~backend/admin/sync_users";
 import { testPassword as api_admin_test_password_testPassword } from "~backend/admin/test_password";
 import { toggleServerIdRequirement as api_admin_toggle_server_id_toggleServerIdRequirement } from "~backend/admin/toggle_server_id";
@@ -217,6 +222,7 @@ export namespace admin {
             this.createProduct = this.createProduct.bind(this)
             this.createVoucherBatch = this.createVoucherBatch.bind(this)
             this.dashboard = this.dashboard.bind(this)
+            this.deleteAlert = this.deleteAlert.bind(this)
             this.deleteAllProducts = this.deleteAllProducts.bind(this)
             this.deleteAllVouchers = this.deleteAllVouchers.bind(this)
             this.deletePackage = this.deletePackage.bind(this)
@@ -243,6 +249,7 @@ export namespace admin {
             this.listAllPackages = this.listAllPackages.bind(this)
             this.listAllProducts = this.listAllProducts.bind(this)
             this.listLoginHistory = this.listLoginHistory.bind(this)
+            this.listSecurityAlerts = this.listSecurityAlerts.bind(this)
             this.listTransactions = this.listTransactions.bind(this)
             this.listUsers = this.listUsers.bind(this)
             this.listVouchers = this.listVouchers.bind(this)
@@ -261,6 +268,7 @@ export namespace admin {
             this.toggleServerIdRequirement = this.toggleServerIdRequirement.bind(this)
             this.toggleSpecialItem = this.toggleSpecialItem.bind(this)
             this.unbanUser = this.unbanUser.bind(this)
+            this.updateAlertStatus = this.updateAlertStatus.bind(this)
             this.updatePackage = this.updatePackage.bind(this)
             this.updateProduct = this.updateProduct.bind(this)
             this.updateSuperadminPhone = this.updateSuperadminPhone.bind(this)
@@ -309,6 +317,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/dashboard`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_dashboard_dashboard>
+        }
+
+        public async deleteAlert(params: RequestType<typeof api_admin_security_alerts_deleteAlert>): Promise<ResponseType<typeof api_admin_security_alerts_deleteAlert>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/security-alerts/delete`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_security_alerts_deleteAlert>
         }
 
         public async deleteAllProducts(): Promise<ResponseType<typeof api_admin_delete_all_products_deleteAllProducts>> {
@@ -467,6 +481,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_login_history_listLoginHistory>
         }
 
+        public async listSecurityAlerts(params: RequestType<typeof api_admin_security_alerts_listSecurityAlerts>): Promise<ResponseType<typeof api_admin_security_alerts_listSecurityAlerts>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/security-alerts/list`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_security_alerts_listSecurityAlerts>
+        }
+
         public async listTransactions(params: RequestType<typeof api_admin_transactions_listTransactions>): Promise<ResponseType<typeof api_admin_transactions_listTransactions>> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
@@ -589,6 +609,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/unban`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_unbanUser>
+        }
+
+        public async updateAlertStatus(params: RequestType<typeof api_admin_security_alerts_updateAlertStatus>): Promise<ResponseType<typeof api_admin_security_alerts_updateAlertStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/security-alerts/update-status`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_security_alerts_updateAlertStatus>
         }
 
         public async updatePackage(params: RequestType<typeof api_admin_packages_crud_updatePackage>): Promise<ResponseType<typeof api_admin_packages_crud_updatePackage>> {
@@ -798,21 +824,49 @@ export namespace auth {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_forgot_password_phone_resetPasswordPhone>
         }
 
-        public async sendChangePasswordOTP(): Promise<ResponseType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>> {
+        public async sendChangePasswordOTP(params: RequestType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>): Promise<ResponseType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                "user-agent":      params.userAgent,
+                "x-forwarded-for": params.xForwardedFor,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/auth/send-change-password-otp`, {method: "POST", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/auth/send-change-password-otp`, {headers, method: "POST", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>
         }
 
         public async sendForgotPasswordPhoneOTP(params: RequestType<typeof api_auth_forgot_password_phone_sendForgotPasswordPhoneOTP>): Promise<ResponseType<typeof api_auth_forgot_password_phone_sendForgotPasswordPhoneOTP>> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                "user-agent":      params.userAgent,
+                "x-forwarded-for": params.xForwardedFor,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                phoneNumber: params.phoneNumber,
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/auth/forgot-password-phone/send-otp`, {method: "POST", body: JSON.stringify(params)})
+            const resp = await this.baseClient.callTypedAPI(`/auth/forgot-password-phone/send-otp`, {headers, method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_forgot_password_phone_sendForgotPasswordPhoneOTP>
         }
 
         public async sendRegisterOTP(params: RequestType<typeof api_auth_register_phone_v2_sendRegisterOTP>): Promise<ResponseType<typeof api_auth_register_phone_v2_sendRegisterOTP>> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                "user-agent":      params.userAgent,
+                "x-forwarded-for": params.xForwardedFor,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                phoneNumber: params.phoneNumber,
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/auth/register/send-otp`, {method: "POST", body: JSON.stringify(params)})
+            const resp = await this.baseClient.callTypedAPI(`/auth/register/send-otp`, {headers, method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_register_phone_v2_sendRegisterOTP>
         }
 
@@ -1067,8 +1121,19 @@ export namespace otp {
         }
 
         public async sendOTP(params: RequestType<typeof api_otp_send_sendOTP>): Promise<ResponseType<typeof api_otp_send_sendOTP>> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                "user-agent":      params.userAgent,
+                "x-forwarded-for": params.xForwardedFor,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                phoneNumber: params.phoneNumber,
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/otp/send`, {method: "POST", body: JSON.stringify(params)})
+            const resp = await this.baseClient.callTypedAPI(`/otp/send`, {headers, method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_otp_send_sendOTP>
         }
 
