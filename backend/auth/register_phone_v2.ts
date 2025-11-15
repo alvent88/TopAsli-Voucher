@@ -54,10 +54,20 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
       SELECT value FROM admin_config WHERE key = 'dashboard_config'
     `;
 
+    console.log("=== DEBUG FONNTE CONFIG ===");
+    console.log("Config row exists:", !!configRow);
+    
     let fonnteToken = "";
     if (configRow) {
-      const config = JSON.parse(configRow.value);
+      console.log("Raw config value:", configRow.value);
+      const config = typeof configRow.value === 'string' 
+        ? JSON.parse(configRow.value) 
+        : configRow.value;
+      console.log("Parsed config:", JSON.stringify(config, null, 2));
+      console.log("WhatsApp config:", config.whatsapp);
       fonnteToken = config.whatsapp?.fonnteToken || "";
+      console.log("Fonnte token found:", !!fonnteToken);
+      console.log("Token length:", fonnteToken.length);
     }
 
     if (!fonnteToken) {
