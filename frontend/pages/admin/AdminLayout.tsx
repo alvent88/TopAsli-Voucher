@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBackend } from "@/lib/useBackend";
-import NotificationBell from "@/components/NotificationBell";
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -134,10 +133,6 @@ export default function AdminLayout() {
             >
               <Menu className="h-6 w-6" />
             </Button>
-            <NotificationBell />
-          </div>
-          <div className="hidden lg:flex sticky top-0 z-30 bg-slate-900 border-b border-slate-800 p-4 justify-end">
-            <NotificationBell />
           </div>
           <div className="p-4 lg:p-8">
             <Outlet />
