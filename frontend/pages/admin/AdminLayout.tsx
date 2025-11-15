@@ -14,16 +14,17 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const checkAdminStatus = () => {
-      const userEmail = sessionStorage.getItem("userEmail");
+      const userPhone = sessionStorage.getItem("userPhone");
+      const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
       
-      if (!userEmail) {
+      if (!isLoggedIn || !userPhone) {
         setIsChecking(false);
         setIsAdmin(false);
         navigate("/404", { replace: true });
         return;
       }
 
-      const isAdminUser = userEmail === "alvent88@gmail.com";
+      const isAdminUser = userPhone === "0818848168" || userPhone === "62818848168";
       
       setIsAdmin(isAdminUser);
       setIsChecking(false);

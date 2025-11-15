@@ -133,6 +133,7 @@ import {
 import { dashboard as api_admin_dashboard_dashboard } from "~backend/admin/dashboard";
 import { deleteAllProducts as api_admin_delete_all_products_deleteAllProducts } from "~backend/admin/delete_all_products";
 import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone } from "~backend/admin/delete_user_by_phone";
+import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
 import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
 import {
     exportLoginHistory as api_admin_login_history_exportLoginHistory,
@@ -223,6 +224,7 @@ export namespace admin {
             this.deleteVoucher = this.deleteVoucher.bind(this)
             this.deleteWhatsAppCS = this.deleteWhatsAppCS.bind(this)
             this.demoteFromAdmin = this.demoteFromAdmin.bind(this)
+            this.editUser = this.editUser.bind(this)
             this.exportLoginHistory = this.exportLoginHistory.bind(this)
             this.exportTransactions = this.exportTransactions.bind(this)
             this.exportUsers = this.exportUsers.bind(this)
@@ -357,6 +359,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/demote`, {method: "POST", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_promote_admin_demoteFromAdmin>
+        }
+
+        public async editUser(params: RequestType<typeof api_admin_edit_user_editUser>): Promise<ResponseType<typeof api_admin_edit_user_editUser>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/edit-user`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_edit_user_editUser>
         }
 
         public async exportLoginHistory(params: RequestType<typeof api_admin_login_history_exportLoginHistory>): Promise<ResponseType<typeof api_admin_login_history_exportLoginHistory>> {
