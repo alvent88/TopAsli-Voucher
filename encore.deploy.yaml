@@ -1,0 +1,28 @@
+# Encore.ts AWS Deployment Configuration
+# Deploy ke ap-southeast-1 (Singapore)
+
+cloud:
+  provider: aws
+  region: ap-southeast-1
+
+infrastructure:
+  database:
+    # PostgreSQL di RDS
+    engine: postgres
+    version: "15"
+    instance_class: db.t4g.micro # Gunakan ARM Graviton untuk cost efficiency
+    
+  compute:
+    # Lambda functions untuk API endpoints
+    runtime: nodejs20.x
+    memory: 512
+    timeout: 30
+    
+  storage:
+    # S3 bucket untuk object storage
+    bucket_region: ap-southeast-1
+
+# Environment variables (optional)
+environment:
+  NODE_ENV: production
+  AWS_REGION: ap-southeast-1
