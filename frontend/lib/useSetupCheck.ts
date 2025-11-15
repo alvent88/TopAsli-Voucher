@@ -10,16 +10,28 @@ export function useSetupCheck() {
   useEffect(() => {
     const checkSetup = async () => {
       try {
-        // Add timestamp to prevent caching
-        const status = await backend.admin.checkSetupStatus();
+        const cachedSetupStatus = localStorage.getItem("setupComplete");
         
-        if (location.pathname === "/setup" && !status.needsSetup) {
-          navigate("/");
+        if (cachedSetupStatus === "true") {
+          if (location.pathname === "/setup") {
+            navigate("/");
+          }
+          setIsChecking(false);
           return;
         }
-
-        if (status.needsSetup && location.pathname !== "/setup") {
-          navigate("/setup");
+        
+        const status = await backend.admin.checkSetupStatus();
+        
+        if (!status.needsSetup) {
+          localStorage.setItem("setupComplete", "true");
+          if (location.pathname === "/setup") {
+            navigate("/");
+          }
+        } else {
+          localStorage.removeItem("setupComplete");
+          if (location.pathname !== "/setup") {
+            navigate("/setup");
+          }
         }
       } catch (error) {
         console.error("Error checking setup status:", error);

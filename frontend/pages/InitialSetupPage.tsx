@@ -77,7 +77,8 @@ export default function InitialSetupPage() {
         description: result.message,
       });
 
-      // Force reload to clear any cached setup status
+      localStorage.setItem("setupComplete", "true");
+      
       setTimeout(() => {
         window.location.href = "/login";
       }, 1000);
