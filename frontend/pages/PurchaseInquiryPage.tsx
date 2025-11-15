@@ -28,19 +28,40 @@ export default function PurchaseInquiryPage() {
   const [inquiryData, setInquiryData] = useState<any>(null);
   const [username, setUsername] = useState<string>("");
 
+  // Get params from URL
   const packageId = parseInt(searchParams.get("packageId") || "0");
   const userId = searchParams.get("userId") || "";
   const serverId = searchParams.get("serverId") || "";
   const preValidatedUsername = searchParams.get("username") || "";
+  
+  // Prevent navigation away without confirmation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (loading || confirming) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [loading, confirming]);
 
   useEffect(() => {
+    console.log("=== PURCHASE INQUIRY INIT ===");
+    console.log("packageId:", packageId);
+    console.log("userId:", userId);
+    console.log("serverId:", serverId);
+    console.log("preValidatedUsername:", preValidatedUsername);
+
     if (!packageId) {
+      console.error("Missing packageId, redirecting to home");
       toast({
         title: "Invalid Request",
         description: "Data tidak lengkap",
         variant: "destructive",
       });
-      navigate("/");
+      navigate("/", { replace: true });
       return;
     }
 
@@ -58,30 +79,37 @@ export default function PurchaseInquiryPage() {
         serverId: serverId || undefined,
       });
 
-      console.log("Inquiry response:", response);
+      console.log("✅ Inquiry response:", response);
 
       if (!response.success) {
+        console.error("❌ Inquiry failed:", response.message);
         throw new Error(response.message || "Inquiry failed");
       }
 
-      setInquiryData(response);
       // Use pre-validated username from ProductPage if available, otherwise use UniPlay inquiry username
       const finalUsername = preValidatedUsername || response.username || "-";
       setUsername(finalUsername);
       
+      console.log("Final username:", finalUsername);
+      
       // Update inquiryData to include the validated username
-      setInquiryData({
+      const updatedData = {
         ...response,
         username: finalUsername !== "-" ? finalUsername : response.username,
-      });
+      };
+      
+      console.log("Updated inquiry data:", updatedData);
+      setInquiryData(updatedData);
     } catch (error: any) {
       console.error("Inquiry failed:", error);
+      console.error("❌ Inquiry error details:", error);
       toast({
         title: "Inquiry Gagal",
         description: error.message || "Gagal melakukan inquiry ke UniPlay",
         variant: "destructive",
       });
-      navigate(-1);
+      // Use replace to avoid adding to history
+      navigate("/", { replace: true });
     } finally {
       setLoading(false);
     }
@@ -96,6 +124,14 @@ export default function PurchaseInquiryPage() {
       setConfirming(true);
       setShowConfirmDialog(false);
 
+      console.log("=== CREATING TRANSACTION ===");
+      console.log("ProductId:", inquiryData.productId);
+      console.log("PackageId:", packageId);
+      console.log("UserId:", userId);
+      console.log("ServerId:", serverId);
+      console.log("InquiryId:", inquiryData.inquiryId);
+      console.log("Username:", inquiryData.username);
+
       // Create transaction first
       const createResponse = await backend.transaction.create({
         productId: inquiryData.productId,
@@ -106,17 +142,19 @@ export default function PurchaseInquiryPage() {
         username: inquiryData.username || "",
       });
 
-      console.log("Transaction created:", createResponse);
+      console.log("✅ Transaction created:", createResponse);
 
+      console.log("=== CONFIRMING PAYMENT ===");
       // Confirm payment with UniPlay
       const confirmResponse = await backend.uniplay.confirmPaymentEndpoint({
         inquiryId: inquiryData.inquiryId,
         transactionId: createResponse.transactionId,
       });
 
-      console.log("Payment confirmed:", confirmResponse);
+      console.log("✅ Payment confirmed:", confirmResponse);
 
       if (!confirmResponse.success) {
+        console.error("❌ Payment confirmation failed:", confirmResponse.message);
         throw new Error(confirmResponse.message || "Payment confirmation failed");
       }
 
@@ -125,9 +163,14 @@ export default function PurchaseInquiryPage() {
         description: "Pembelian berhasil dikonfirmasi",
       });
 
-      navigate(`/transaction-success?id=${createResponse.transactionId}`);
+      console.log("=== NAVIGATING TO SUCCESS PAGE ===");
+      console.log("Transaction ID:", createResponse.transactionId);
+      
+      // Use replace to clear history and force reload
+      navigate(`/transaction-success?id=${createResponse.transactionId}`, { replace: true });
     } catch (error: any) {
-      console.error("Confirm failed:", error);
+      console.error("❌ Confirm failed:", error);
+      console.error("Error stack:", error.stack);
       toast({
         title: "Konfirmasi Gagal",
         description: error.message || "Gagal mengkonfirmasi pembelian",

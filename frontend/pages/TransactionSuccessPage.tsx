@@ -4,12 +4,14 @@ import { CheckCircle, Home, Receipt, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBackend } from "@/lib/useBackend";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TransactionSuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const backend = useBackend();
+  const { toast } = useToast();
   
   const stateData = location.state || {};
   const queryTransactionId = searchParams.get("id");
@@ -20,10 +22,17 @@ export default function TransactionSuccessPage() {
 
   useEffect(() => {
     const fetchTransaction = async () => {
+      console.log("=== TRANSACTION SUCCESS PAGE ===");
+      console.log("Query Transaction ID:", queryTransactionId);
+      console.log("State Data:", stateData);
+      
       if (queryTransactionId && !stateData.transactionId) {
         try {
+          console.log("Fetching transaction data from API...");
           setLoading(true);
           const transaction = await backend.transaction.get({ id: queryTransactionId });
+          
+          console.log("✅ Transaction fetched:", transaction);
           
           setTransactionData({
             transactionId: transaction.id,
@@ -35,15 +44,25 @@ export default function TransactionSuccessPage() {
             username: transaction.username,
           });
         } catch (error) {
-          console.error("Failed to fetch transaction:", error);
-          navigate("/");
+          console.error("❌ Failed to fetch transaction:", error);
+          toast({
+            title: "Error",
+            description: "Gagal memuat data transaksi",
+            variant: "destructive",
+          });
+          setTimeout(() => {
+            navigate("/", { replace: true });
+          }, 2000);
           return;
         } finally {
           setLoading(false);
         }
       } else if (!stateData.transactionId && !queryTransactionId) {
-        navigate("/");
+        console.error("No transaction data available, redirecting...");
+        navigate("/", { replace: true });
         return;
+      } else {
+        console.log("✅ Using state data:", stateData);
       }
     };
 

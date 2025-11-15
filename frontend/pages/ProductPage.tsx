@@ -219,6 +219,12 @@ export default function ProductPage() {
       }
     }
 
+    console.log("=== CHECKOUT INITIATED ===");
+    console.log("Package ID:", selectedPackage);
+    console.log("User ID:", userId);
+    console.log("Server ID:", gameId);
+    console.log("Validated Username:", validatedUsername);
+    
     // Redirect to purchase inquiry page
     const params = new URLSearchParams({
       packageId: selectedPackage.toString(),
@@ -235,9 +241,12 @@ export default function ProductPage() {
     // Pass validated username if available
     if (validatedUsername) {
       params.append("username", validatedUsername);
+      console.log("✅ Username included in params:", validatedUsername);
     }
 
-    navigate(`/purchase-inquiry?${params.toString()}`);
+    const url = `/purchase-inquiry?${params.toString()}`;
+    console.log("Navigating to:", url);
+    navigate(url);
   };
 
   const formatCurrency = (amount: number) => {
