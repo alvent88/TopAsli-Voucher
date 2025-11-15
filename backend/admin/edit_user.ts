@@ -28,50 +28,52 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
     const { userId, fullName, phoneNumber, birthDate, balance } = req;
 
     try {
-      const userResult = await db.query(
-        "SELECT id, phone, full_name, date_of_birth, balance FROM users WHERE id = $1",
-        [userId]
-      );
+      const userResult = await db.queryAll<any>`
+        SELECT id, phone, full_name, date_of_birth, balance 
+        FROM users 
+        WHERE id = ${userId}
+      `;
 
-      if (userResult.rows.length === 0) {
+      if (userResult.length === 0) {
         throw APIError.notFound("User tidak ditemukan");
       }
 
-      const oldUser = userResult.rows[0];
+      const oldUser = userResult[0];
 
       const updates: string[] = [];
-      const values: any[] = [];
-      let paramIndex = 1;
+      const setClauses: string[] = [];
 
       if (fullName !== undefined && fullName !== oldUser.full_name) {
-        updates.push(`full_name = $${paramIndex++}`);
-        values.push(fullName);
+        setClauses.push("full_name");
+        updates.push(fullName);
       }
 
-      if (phoneNumber !== undefined && phoneNumber !== oldUser.phone) {
-        let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
-        if (formattedPhone.startsWith("0")) {
-          formattedPhone = formattedPhone.substring(1);
-        }
-        if (formattedPhone.startsWith("62")) {
-          formattedPhone = formattedPhone.substring(2);
-        }
-        if (formattedPhone.startsWith("+62")) {
-          formattedPhone = formattedPhone.substring(3);
+      let formattedPhone = oldUser.phone;
+      if (phoneNumber !== undefined) {
+        let phone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
+        if (phone.startsWith("0")) {
+          phone = phone.substring(1);
+        } else if (phone.startsWith("62")) {
+          phone = phone.substring(2);
+        } else if (phone.startsWith("+62")) {
+          phone = phone.substring(3);
         }
         
-        updates.push(`phone = $${paramIndex++}`);
-        values.push(formattedPhone);
+        if (phone !== oldUser.phone) {
+          setClauses.push("phone");
+          updates.push(phone);
+          formattedPhone = phone;
+        }
       }
 
       if (birthDate !== undefined && birthDate !== oldUser.date_of_birth) {
-        updates.push(`date_of_birth = $${paramIndex++}`);
-        values.push(birthDate || null);
+        setClauses.push("date_of_birth");
+        updates.push(birthDate || null);
       }
 
       if (balance !== undefined && balance !== oldUser.balance) {
-        updates.push(`balance = $${paramIndex++}`);
-        values.push(balance);
+        setClauses.push("balance");
+        updates.push(balance);
       }
 
       if (updates.length === 0) {
@@ -81,10 +83,24 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         };
       }
 
-      values.push(userId);
-      const query = `UPDATE users SET ${updates.join(", ")} WHERE id = $${paramIndex}`;
-      
-      await db.query(query, values);
+      if (setClauses.includes("full_name") && setClauses.includes("phone") && setClauses.includes("date_of_birth") && setClauses.includes("balance")) {
+        await db.exec`
+          UPDATE users 
+          SET full_name = ${fullName}, 
+              phone = ${formattedPhone}, 
+              date_of_birth = ${birthDate || null}, 
+              balance = ${balance}
+          WHERE id = ${userId}
+        `;
+      } else if (setClauses.includes("full_name")) {
+        await db.exec`UPDATE users SET full_name = ${fullName} WHERE id = ${userId}`;
+      } else if (setClauses.includes("phone")) {
+        await db.exec`UPDATE users SET phone = ${formattedPhone} WHERE id = ${userId}`;
+      } else if (setClauses.includes("date_of_birth")) {
+        await db.exec`UPDATE users SET date_of_birth = ${birthDate || null} WHERE id = ${userId}`;
+      } else if (setClauses.includes("balance")) {
+        await db.exec`UPDATE users SET balance = ${balance} WHERE id = ${userId}`;
+      }
 
       return {
         success: true,
