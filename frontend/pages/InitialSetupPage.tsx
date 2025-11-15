@@ -35,8 +35,6 @@ export default function InitialSetupPage() {
     fullName: "",
     dateOfBirth: "",
     fonnteToken: "",
-    uniplayApiKey: "",
-    uniplayPincode: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,8 +66,6 @@ export default function InitialSetupPage() {
         fullName: formData.fullName,
         dateOfBirth: formData.dateOfBirth,
         fonnteToken: formData.fonnteToken,
-        uniplayApiKey: formData.uniplayApiKey || undefined,
-        uniplayPincode: formData.uniplayPincode || undefined,
       });
 
       toast({
@@ -108,7 +104,7 @@ export default function InitialSetupPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Initial Setup - Gaming Top Up Platform</CardTitle>
           <CardDescription>
-            Setup pertama kali untuk membuat akun superadmin dan konfigurasi API
+            Setup pertama kali untuk membuat akun superadmin dan konfigurasi Fonnte
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -176,7 +172,7 @@ export default function InitialSetupPage() {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">API Configuration (Required)</h3>
+              <h3 className="font-semibold mb-3">Konfigurasi Fonnte WhatsApp</h3>
               
               <div className="space-y-2">
                 <Label htmlFor="fonnteToken">Fonnte API Token *</Label>
@@ -191,32 +187,6 @@ export default function InitialSetupPage() {
                 <p className="text-xs text-muted-foreground">
                   Token API Fonnte untuk mengirim OTP WhatsApp. Wajib diisi!
                 </p>
-              </div>
-            </div>
-
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">Uniplay API (Optional - bisa diisi nanti)</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="uniplayApiKey">Uniplay API Key</Label>
-                <Input
-                  id="uniplayApiKey"
-                  type="text"
-                  placeholder="Kosongkan jika belum punya"
-                  value={formData.uniplayApiKey}
-                  onChange={(e) => setFormData({ ...formData, uniplayApiKey: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2 mt-3">
-                <Label htmlFor="uniplayPincode">Uniplay Pincode</Label>
-                <Input
-                  id="uniplayPincode"
-                  type="password"
-                  placeholder="Kosongkan jika belum punya"
-                  value={formData.uniplayPincode}
-                  onChange={(e) => setFormData({ ...formData, uniplayPincode: e.target.value })}
-                />
               </div>
             </div>
 

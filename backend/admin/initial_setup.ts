@@ -8,8 +8,6 @@ interface InitialSetupRequest {
   fullName: string;
   dateOfBirth: string;
   fonnteToken: string;
-  uniplayApiKey?: string;
-  uniplayPincode?: string;
 }
 
 interface InitialSetupResponse {
@@ -62,14 +60,6 @@ export const initialSetup = api(
       },
       setupComplete: true,
     };
-
-    if (req.uniplayApiKey) {
-      configUpdate.uniplay = {
-        apiKey: req.uniplayApiKey,
-        pincode: req.uniplayPincode || "",
-        baseUrl: "https://api-reseller.uniplay.id/v1",
-      };
-    }
 
     const currentConfig = await db.queryRow<{ value: string }>`
       SELECT value FROM admin_config WHERE key = 'dashboard_config'
