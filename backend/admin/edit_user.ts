@@ -19,12 +19,14 @@ export interface EditUserResponse {
 
 export const editUser = api<EditUserRequest, EditUserResponse>(
   { expose: true, method: "POST", path: "/admin/edit-user", auth: true },
-  async ({ userId, fullName, phoneNumber, birthDate, balance }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (req: EditUserRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const authData = getAuthData();
     
     if (!authData?.isSuperAdmin) {
       throw APIError.permissionDenied("Hanya superadmin yang dapat mengedit user");
     }
+
+    const { userId, fullName, phoneNumber, birthDate, balance } = req;
 
     try {
       const userResult = await db.query(
