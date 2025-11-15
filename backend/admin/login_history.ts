@@ -98,18 +98,21 @@ export const listLoginHistory = api(
       ...queryParams
     );
 
-    const entries: LoginHistoryEntry[] = rows.map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      email: row.email,
-      phoneNumber: row.phone_number,
-      loginType: row.login_type,
-      ipAddress: row.ip_address,
-      userAgent: row.user_agent,
-      loginStatus: row.login_status,
-      failureReason: row.failure_reason,
-      createdAt: row.created_at,
-    }));
+    const entries: LoginHistoryEntry[] = rows.map((row: any) => {
+      const phoneWithPrefix = row.phone_number ? `62${row.phone_number}` : null;
+      return {
+        id: row.id,
+        userId: row.user_id,
+        email: null,
+        phoneNumber: phoneWithPrefix,
+        loginType: row.login_type,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        loginStatus: row.login_status,
+        failureReason: row.failure_reason,
+        createdAt: row.created_at,
+      };
+    });
 
     return { entries, total };
   }
@@ -160,16 +163,19 @@ export const getUsersByIP = api(
       req.ipAddress
     );
 
-    const users: UserIPInfo[] = rows.map((row: any) => ({
-      userId: row.user_id,
-      email: row.email,
-      phoneNumber: row.phone_number,
-      loginCount: parseInt(row.login_count),
-      successCount: parseInt(row.success_count),
-      failedCount: parseInt(row.failed_count),
-      lastLogin: row.last_login,
-      firstLogin: row.first_login,
-    }));
+    const users: UserIPInfo[] = rows.map((row: any) => {
+      const phoneWithPrefix = row.phone_number ? `62${row.phone_number}` : null;
+      return {
+        userId: row.user_id,
+        email: null,
+        phoneNumber: phoneWithPrefix,
+        loginCount: parseInt(row.login_count),
+        successCount: parseInt(row.success_count),
+        failedCount: parseInt(row.failed_count),
+        lastLogin: row.last_login,
+        firstLogin: row.first_login,
+      };
+    });
 
     await logAuditAction({
       actionType: "EXPORT",
@@ -264,7 +270,6 @@ export const exportLoginHistory = api(
     const headers = [
       "ID",
       "User ID",
-      "Email",
       "Phone Number",
       "Login Type",
       "IP Address",
@@ -274,18 +279,20 @@ export const exportLoginHistory = api(
       "Timestamp",
     ];
 
-    const dataRows = rows.map((row: any) => [
-      row.id.toString(),
-      row.user_id || "-",
-      row.email || "-",
-      row.phone_number || "-",
-      row.login_type,
-      row.ip_address || "-",
-      row.user_agent || "-",
-      row.login_status,
-      row.failure_reason || "-",
-      new Date(row.created_at).toISOString(),
-    ]);
+    const dataRows = rows.map((row: any) => {
+      const phoneWithPrefix = row.phone_number ? `62${row.phone_number}` : "-";
+      return [
+        row.id.toString(),
+        row.user_id || "-",
+        phoneWithPrefix,
+        row.login_type,
+        row.ip_address || "-",
+        row.user_agent || "-",
+        row.login_status,
+        row.failure_reason || "-",
+        new Date(row.created_at).toISOString(),
+      ];
+    });
 
     const workbook = XLSX.utils.book_new();
     const worksheetData = [headers, ...dataRows];
@@ -293,7 +300,6 @@ export const exportLoginHistory = api(
 
     const colWidths = [
       { wch: 10 },
-      { wch: 30 },
       { wch: 30 },
       { wch: 20 },
       { wch: 15 },

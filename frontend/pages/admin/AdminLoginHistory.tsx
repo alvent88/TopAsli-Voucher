@@ -202,7 +202,7 @@ export default function AdminLoginHistory() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>User ID</TableHead>
-                        <TableHead>Email/Phone</TableHead>
+                        <TableHead>Phone</TableHead>
                         <TableHead>Total Logins</TableHead>
                         <TableHead>Success</TableHead>
                         <TableHead>Failed</TableHead>
@@ -215,7 +215,7 @@ export default function AdminLoginHistory() {
                         <TableRow key={user.userId}>
                           <TableCell className="font-mono text-xs">{user.userId}</TableCell>
                           <TableCell>
-                            {user.email || user.phoneNumber || "-"}
+                            {user.phoneNumber || "-"}
                           </TableCell>
                           <TableCell>{user.loginCount}</TableCell>
                           <TableCell>
@@ -315,7 +315,7 @@ export default function AdminLoginHistory() {
                     <TableRow>
                       <TableHead>Timestamp</TableHead>
                       <TableHead>User ID</TableHead>
-                      <TableHead>Email/Phone</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>IP Address</TableHead>
                       <TableHead>Status</TableHead>
@@ -332,7 +332,7 @@ export default function AdminLoginHistory() {
                           {entry.userId}
                         </TableCell>
                         <TableCell>
-                          {entry.email || entry.phoneNumber || "-"}
+                          {entry.phoneNumber || "-"}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary">{entry.loginType}</Badge>
