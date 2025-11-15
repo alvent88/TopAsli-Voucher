@@ -3,17 +3,24 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { secret } from "encore.dev/config";
+import { Header } from "encore.dev/api";
+import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "../otp/rate_limiter";
 
 const fonnteToken = secret("FonnteToken");
+
+export interface SendChangePasswordOTPRequest {
+  xForwardedFor?: Header<"x-forwarded-for">;
+  userAgent?: Header<"user-agent">;
+}
 
 export interface SendChangePasswordOTPResponse {
   success: boolean;
   message: string;
 }
 
-export const sendChangePasswordOTP = api<void, SendChangePasswordOTPResponse>(
+export const sendChangePasswordOTP = api<SendChangePasswordOTPRequest, SendChangePasswordOTPResponse>(
   { expose: true, method: "POST", path: "/auth/send-change-password-otp", auth: true },
-  async () => {
+  async ({ xForwardedFor, userAgent }) => {
     const auth = getAuthData();
     
     if (!auth || !auth.userID) {
@@ -22,6 +29,11 @@ export const sendChangePasswordOTP = api<void, SendChangePasswordOTPResponse>(
 
     console.log("=== SEND CHANGE PASSWORD OTP START ===");
     console.log("User ID:", auth.userID);
+
+    const ipAddress = xForwardedFor || null;
+    const userAgentStr = userAgent || null;
+    console.log("IP Address:", ipAddress);
+    console.log("User Agent:", userAgentStr);
 
     try {
       const user = await db.queryRow<{ phone_number: string | null }>`
@@ -43,6 +55,11 @@ export const sendChangePasswordOTP = api<void, SendChangePasswordOTPResponse>(
 
       console.log("Formatted phone:", formattedPhone);
 
+      await checkPhoneRateLimit(formattedPhone);
+      if (ipAddress) {
+        await checkIPRateLimit(ipAddress);
+      }
+
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const timestamp = Math.floor(Date.now() / 1000);
       
@@ -50,9 +67,11 @@ export const sendChangePasswordOTP = api<void, SendChangePasswordOTPResponse>(
       console.log("Timestamp:", timestamp);
 
       await db.exec`
-        INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-        VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE)
+        INSERT INTO otp_codes (phone_number, otp_code, created_at, verified, ip_address, user_agent)
+        VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE, ${ipAddress}, ${userAgentStr})
       `;
+
+      await recordOTPRequest(formattedPhone, ipAddress, userAgentStr);
       
       console.log("OTP saved to database");
 
@@ -90,6 +109,7 @@ export const sendChangePasswordOTP = api<void, SendChangePasswordOTPResponse>(
       const responseData = data as any;
       if (!response.ok || responseData.status === false) {
         console.error("Fonnte error reason:", responseData.reason);
+        await logSuspiciousActivity(formattedPhone, ipAddress, `Fonnte send failed: ${responseData.reason}`);
         throw APIError.internal(responseData.reason || "Gagal mengirim OTP via WhatsApp. Periksa Fonnte Token.");
       }
 

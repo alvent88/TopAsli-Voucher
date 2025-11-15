@@ -64,7 +64,7 @@ export default function ProfilePage() {
   const handleSendOTP = async () => {
     setSendingOtp(true);
     try {
-      await backend.auth.sendChangePasswordOTP();
+      await backend.auth.sendChangePasswordOTP({});
       setOtpSent(true);
       toast({
         title: "OTP Terkirim!",

@@ -3,6 +3,8 @@ import { APIError } from "encore.dev/api";
 import db from "../db";
 import bcrypt from "bcryptjs";
 import { secret } from "encore.dev/config";
+import { Header } from "encore.dev/api";
+import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "../otp/rate_limiter";
 
 const fonnteToken = secret("FonnteToken");
 import { generateToken } from "./custom_auth";
@@ -10,6 +12,8 @@ import { randomUUID } from "crypto";
 
 export interface SendRegisterOTPRequest {
   phoneNumber: string;
+  xForwardedFor?: Header<"x-forwarded-for">;
+  userAgent?: Header<"user-agent">;
 }
 
 export interface SendRegisterOTPResponse {
@@ -19,9 +23,14 @@ export interface SendRegisterOTPResponse {
 
 export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPResponse>(
   { expose: true, method: "POST", path: "/auth/register/send-otp", auth: false },
-  async ({ phoneNumber }) => {
+  async ({ phoneNumber, xForwardedFor, userAgent }) => {
     console.log("=== SEND REGISTER OTP ===");
     console.log("Phone:", phoneNumber);
+
+    const ipAddress = xForwardedFor || null;
+    const userAgentStr = userAgent || null;
+    console.log("IP Address:", ipAddress);
+    console.log("User Agent:", userAgentStr);
 
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
@@ -34,6 +43,11 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     }
 
     const phoneWithPrefix = `62${formattedPhone}`;
+
+    await checkPhoneRateLimit(phoneWithPrefix);
+    if (ipAddress) {
+      await checkIPRateLimit(ipAddress);
+    }
 
     const existingUser = await db.queryRow<{ phone_number: string }>`
       SELECT phone_number FROM users WHERE phone_number = ${formattedPhone}
@@ -49,9 +63,11 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     const timestamp = Math.floor(Date.now() / 1000);
 
     await db.exec`
-      INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
+      INSERT INTO otp_codes (phone_number, otp_code, created_at, verified, ip_address, user_agent)
+      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE, ${ipAddress}, ${userAgentStr})
     `;
+
+    await recordOTPRequest(phoneWithPrefix, ipAddress, userAgentStr);
 
     const token = fonnteToken();
     
@@ -81,6 +97,7 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     const responseData = data as any;
 
     if (!response.ok || responseData.status === false) {
+      await logSuspiciousActivity(phoneWithPrefix, ipAddress, `Fonnte send failed: ${responseData.reason}`);
       throw APIError.internal(
         responseData.reason || "Gagal mengirim OTP via WhatsApp"
       );

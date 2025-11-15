@@ -3,11 +3,15 @@ import { APIError } from "encore.dev/api";
 import db from "../db";
 import bcrypt from "bcryptjs";
 import { secret } from "encore.dev/config";
+import { Header } from "encore.dev/api";
+import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "../otp/rate_limiter";
 
 const fonnteToken = secret("FonnteToken");
 
 export interface SendForgotPasswordPhoneOTPRequest {
   phoneNumber: string;
+  xForwardedFor?: Header<"x-forwarded-for">;
+  userAgent?: Header<"user-agent">;
 }
 
 export interface SendForgotPasswordPhoneOTPResponse {
@@ -17,9 +21,14 @@ export interface SendForgotPasswordPhoneOTPResponse {
 
 export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest, SendForgotPasswordPhoneOTPResponse>(
   { expose: true, method: "POST", path: "/auth/forgot-password-phone/send-otp", auth: false },
-  async ({ phoneNumber }) => {
+  async ({ phoneNumber, xForwardedFor, userAgent }) => {
     console.log("=== FORGOT PASSWORD PHONE: SEND OTP ===");
     console.log("Phone:", phoneNumber);
+
+    const ipAddress = xForwardedFor || null;
+    const userAgentStr = userAgent || null;
+    console.log("IP Address:", ipAddress);
+    console.log("User Agent:", userAgentStr);
 
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
@@ -32,6 +41,11 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     }
 
     const phoneWithPrefix = `62${formattedPhone}`;
+
+    await checkPhoneRateLimit(phoneWithPrefix);
+    if (ipAddress) {
+      await checkIPRateLimit(ipAddress);
+    }
 
     const user = await db.queryRow<{ 
       clerk_user_id: string;
@@ -52,9 +66,11 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     console.log("Generated OTP:", otp);
 
     await db.exec`
-      INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
+      INSERT INTO otp_codes (phone_number, otp_code, created_at, verified, ip_address, user_agent)
+      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE, ${ipAddress}, ${userAgentStr})
     `;
+
+    await recordOTPRequest(phoneWithPrefix, ipAddress, userAgentStr);
 
     const token = fonnteToken();
 
@@ -85,6 +101,7 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
 
     const responseData = data as any;
     if (!response.ok || responseData.status === false) {
+      await logSuspiciousActivity(phoneWithPrefix, ipAddress, `Fonnte send failed: ${responseData.reason}`);
       throw APIError.internal(
         responseData.reason || "Gagal mengirim OTP via WhatsApp"
       );

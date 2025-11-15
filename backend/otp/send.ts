@@ -3,6 +3,8 @@ import { APIError } from "encore.dev/api";
 import db from "../db";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
+import { Header } from "encore.dev/api";
+import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "./rate_limiter";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -11,6 +13,8 @@ const fonnteToken = secret("FonnteToken");
 
 export interface SendOTPRequest {
   phoneNumber: string;
+  xForwardedFor?: Header<"x-forwarded-for">;
+  userAgent?: Header<"user-agent">;
 }
 
 export interface SendOTPResponse {
@@ -20,10 +24,15 @@ export interface SendOTPResponse {
 
 export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
   { expose: true, method: "POST", path: "/otp/send" },
-  async ({ phoneNumber }) => {
+  async ({ phoneNumber, xForwardedFor, userAgent }) => {
     try {
       console.log("=== SEND OTP START ===");
       console.log("Raw phone number:", phoneNumber);
+
+      const ipAddress = xForwardedFor || null;
+      const userAgentStr = userAgent || null;
+      console.log("IP Address:", ipAddress);
+      console.log("User Agent:", userAgentStr);
       
       let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
       
@@ -36,6 +45,11 @@ export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
       }
 
       console.log("Formatted phone:", formattedPhone);
+
+      await checkPhoneRateLimit(formattedPhone);
+      if (ipAddress) {
+        await checkIPRateLimit(ipAddress);
+      }
 
       // Check if phone number already exists in Clerk
       try {
@@ -64,9 +78,11 @@ export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
       console.log("Timestamp:", timestamp);
 
       await db.exec`
-        INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-        VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE)
+        INSERT INTO otp_codes (phone_number, otp_code, created_at, verified, ip_address, user_agent)
+        VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE, ${ipAddress}, ${userAgentStr})
       `;
+
+      await recordOTPRequest(formattedPhone, ipAddress, userAgentStr);
       
       console.log("OTP saved to database");
 
@@ -106,6 +122,7 @@ export const sendOTP = api<SendOTPRequest, SendOTPResponse>(
       const responseData = data as any;
       if (!response.ok || responseData.status === false) {
         console.error("Fonnte error reason:", responseData.reason);
+        await logSuspiciousActivity(formattedPhone, ipAddress, `Fonnte send failed: ${responseData.reason}`);
         throw APIError.internal(responseData.reason || "Gagal mengirim OTP via WhatsApp. Periksa Fonnte Token.");
       }
 
