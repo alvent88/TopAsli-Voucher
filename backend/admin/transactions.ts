@@ -64,7 +64,7 @@ export const listTransactions = api<ListTransactionsParams, ListTransactionsResp
           const user = await db.queryRow<{ phone_number: string }>`
             SELECT phone_number FROM users WHERE clerk_user_id = ${row.clerk_user_id}
           `;
-          userPhone = user?.phone_number || null;
+          userPhone = user?.phone_number ? `62${user.phone_number}` : null;
         } catch (err) {
           console.error(`Failed to get phone for user ${row.clerk_user_id}:`, err);
         }

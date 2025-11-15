@@ -527,7 +527,7 @@ export default function AdminTransactions() {
                 <TableHeader>
                   <TableRow className="border-slate-800 hover:bg-slate-800/50">
                     <TableHead className="text-slate-400 text-xs md:text-sm">ID</TableHead>
-                    <TableHead className="text-slate-400 text-xs md:text-sm">Email</TableHead>
+                    <TableHead className="text-slate-400 text-xs md:text-sm">Nomor HP</TableHead>
                     <TableHead className="text-slate-400 text-xs md:text-sm">Produk</TableHead>
                     <TableHead className="text-slate-400 text-xs md:text-sm">Paket</TableHead>
                     <TableHead className="text-slate-400 text-xs md:text-sm hidden lg:table-cell">User ID</TableHead>
