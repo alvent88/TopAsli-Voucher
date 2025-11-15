@@ -66,9 +66,18 @@ export const initialSetup = api(
       };
     }
 
+    const currentConfig = await db.queryRow<{ value: any }>`
+      SELECT value FROM admin_config WHERE key = 'dashboard_config'
+    `;
+    
+    const mergedConfig = {
+      ...(currentConfig?.value || {}),
+      ...configUpdate,
+    };
+    
     await db.exec`
       UPDATE admin_config 
-      SET value = value::jsonb || ${JSON.stringify(configUpdate)}::jsonb
+      SET value = ${JSON.stringify(mergedConfig)}::jsonb
       WHERE key = 'dashboard_config'
     `;
     
