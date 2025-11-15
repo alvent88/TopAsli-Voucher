@@ -25,7 +25,7 @@ export const getUserProfile = api<void, UserProfile>(
       phone_number: string;
       birth_date: string;
     }>`
-      SELECT clerk_user_id, full_name, phone_number, birth_date::text as birth_date 
+      SELECT clerk_user_id, full_name, phone_number, TO_CHAR(birth_date, 'YYYY-MM-DD') as birth_date 
       FROM users 
       WHERE clerk_user_id = ${auth.userID}
     `;
@@ -34,7 +34,7 @@ export const getUserProfile = api<void, UserProfile>(
       throw APIError.notFound("User not found");
     }
 
-    const birthDateStr = user.birth_date ? user.birth_date.split('T')[0] : null;
+    const birthDateStr = user.birth_date || null;
     
     return {
       clerkUserId: auth.userID,

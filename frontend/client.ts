@@ -160,7 +160,9 @@ import {
     demoteFromAdmin as api_admin_promote_admin_demoteFromAdmin,
     promoteToAdmin as api_admin_promote_admin_promoteToAdmin
 } from "~backend/admin/promote_admin";
+import { resetUserPassword as api_admin_reset_user_password_resetUserPassword } from "~backend/admin/reset_user_password";
 import { syncAllUsers as api_admin_sync_users_syncAllUsers } from "~backend/admin/sync_users";
+import { testPassword as api_admin_test_password_testPassword } from "~backend/admin/test_password";
 import { toggleServerIdRequirement as api_admin_toggle_server_id_toggleServerIdRequirement } from "~backend/admin/toggle_server_id";
 import { toggleSpecialItem as api_admin_toggle_special_item_toggleSpecialItem } from "~backend/admin/toggle_special_item";
 import {
@@ -246,11 +248,13 @@ export namespace admin {
             this.listVouchers = this.listVouchers.bind(this)
             this.listWhatsAppCS = this.listWhatsAppCS.bind(this)
             this.promoteToAdmin = this.promoteToAdmin.bind(this)
+            this.resetUserPassword = this.resetUserPassword.bind(this)
             this.saveConfig = this.saveConfig.bind(this)
             this.saveGlobalDiscount = this.saveGlobalDiscount.bind(this)
             this.setAdmin = this.setAdmin.bind(this)
             this.setDefaultPassword = this.setDefaultPassword.bind(this)
             this.syncAllUsers = this.syncAllUsers.bind(this)
+            this.testPassword = this.testPassword.bind(this)
             this.toggleFeatured = this.toggleFeatured.bind(this)
             this.togglePackage = this.togglePackage.bind(this)
             this.toggleProduct = this.toggleProduct.bind(this)
@@ -511,6 +515,12 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_promote_admin_promoteToAdmin>
         }
 
+        public async resetUserPassword(params: RequestType<typeof api_admin_reset_user_password_resetUserPassword>): Promise<ResponseType<typeof api_admin_reset_user_password_resetUserPassword>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/reset-user-password`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_reset_user_password_resetUserPassword>
+        }
+
         public async saveConfig(params: RequestType<typeof api_admin_config_saveConfig>): Promise<ResponseType<typeof api_admin_config_saveConfig>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/config/save`, {method: "POST", body: JSON.stringify(params)})
@@ -537,6 +547,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/sync-all-users`, {method: "POST", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_sync_users_syncAllUsers>
+        }
+
+        public async testPassword(params: RequestType<typeof api_admin_test_password_testPassword>): Promise<ResponseType<typeof api_admin_test_password_testPassword>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/test-password`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_test_password_testPassword>
         }
 
         public async toggleFeatured(params: RequestType<typeof api_admin_toggle_visibility_toggleFeatured>): Promise<ResponseType<typeof api_admin_toggle_visibility_toggleFeatured>> {
