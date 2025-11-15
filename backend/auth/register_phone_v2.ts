@@ -179,11 +179,13 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = randomUUID();
 
+    console.log("Date of birth received:", dateOfBirth);
+
     await db.exec`
       INSERT INTO users (
         clerk_user_id, phone_number, full_name, password_hash, date_of_birth, created_at, updated_at
       ) VALUES (
-        ${userId}, ${formattedPhone}, ${fullName}, ${passwordHash}, ${dateOfBirth}, NOW(), NOW()
+        ${userId}, ${formattedPhone}, ${fullName}, ${passwordHash}, ${dateOfBirth}::date, NOW(), NOW()
       )
     `;
 

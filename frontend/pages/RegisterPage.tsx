@@ -93,6 +93,35 @@ export default function RegisterPhoneOnlyPage() {
       sessionStorage.setItem("userPhone", response.phoneNumber);
       sessionStorage.setItem("userName", response.fullName);
 
+      try {
+        let ipAddress = 'unknown';
+        try {
+          const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+            method: 'GET',
+            signal: AbortSignal.timeout(3000)
+          });
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip || 'unknown';
+        } catch (ipError) {
+          console.error("Failed to get IP address:", ipError);
+        }
+        
+        const userAgent = navigator.userAgent;
+        
+        await backend.auth.trackLogin({
+          userId: response.userId,
+          email: undefined,
+          phoneNumber: response.phoneNumber,
+          loginType: 'phone_register',
+          ipAddress: ipAddress,
+          userAgent: userAgent,
+        });
+
+        console.log("Registration login tracked successfully");
+      } catch (trackError) {
+        console.error("Failed to track registration login:", trackError);
+      }
+
       toast({
         title: "Registrasi Berhasil!",
         description: "Selamat datang di TopAsli!",
