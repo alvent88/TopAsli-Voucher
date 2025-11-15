@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield, CheckCircle } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Receipt, LogOut, Users, MessageSquare, Gift, Menu, X, MessageCircle, Home, RefreshCw, FileText, Shield, CheckCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBackend } from "@/lib/useBackend";
 
@@ -60,6 +60,7 @@ export default function AdminLayout() {
     { path: "/admin/validation-games", icon: CheckCircle, label: "Validasi User ID" },
     { path: "/admin/login-history", icon: Shield, label: "Login History" },
     { path: "/admin/audit-logs", icon: FileText, label: "Audit Logs" },
+    { path: "/admin/security-alerts", icon: AlertTriangle, label: "Security Alerts" },
   ];
 
   return (

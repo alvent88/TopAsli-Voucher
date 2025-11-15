@@ -32,6 +32,7 @@ import AdminUniPlaySync from "./pages/admin/AdminUniPlaySync";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
+import AdminSecurityAlerts from "./pages/admin/AdminSecurityAlerts";
 
 function BanChecker() {
   const backend = useBackend();
@@ -98,6 +99,7 @@ function AppInner() {
             <Route path="validation-games" element={<AdminValidationGames />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
             <Route path="login-history" element={<AdminLoginHistory />} />
+            <Route path="security-alerts" element={<AdminSecurityAlerts />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { secret } from "encore.dev/config";
 import { Header } from "encore.dev/api";
 import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "../otp/rate_limiter";
+import { checkAndLogBruteForceOTP, checkAndLogMultipleIPActivity } from "../otp/security_logger";
 
 const fonnteToken = secret("FonnteToken");
 import { generateToken } from "./custom_auth";
@@ -48,6 +49,8 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     if (ipAddress) {
       await checkIPRateLimit(ipAddress);
     }
+
+    await checkAndLogMultipleIPActivity(phoneWithPrefix, ipAddress);
 
     const existingUser = await db.queryRow<{ phone_number: string }>`
       SELECT phone_number FROM users WHERE phone_number = ${formattedPhone}
@@ -182,6 +185,7 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
     }
 
     if (otpRow.otp_code !== otp) {
+      await checkAndLogBruteForceOTP(phoneWithPrefix, null);
       throw APIError.invalidArgument("Kode OTP salah. Silakan coba lagi.");
     }
 

@@ -5,6 +5,7 @@ import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import { Header } from "encore.dev/api";
 import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "./rate_limiter";
+import { checkAndLogBruteForceOTP, checkAndLogMultipleIPActivity } from "./security_logger";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -194,6 +195,7 @@ export const verifyOTP = api<VerifyOTPRequest, VerifyOTPResponse>(
       }
 
       if (row.otp_code !== otp) {
+        await checkAndLogBruteForceOTP(formattedPhone, null);
         throw APIError.invalidArgument("Kode OTP salah. Silakan coba lagi.");
       }
 

@@ -1,5 +1,6 @@
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logRateLimitExceeded, logFonnteAPIFailure } from "./security_logger";
 
 const MAX_OTP_PER_PHONE_15MIN = 10;
 const MAX_OTP_PER_IP_15MIN = 20;
@@ -33,6 +34,7 @@ export async function checkPhoneRateLimit(phoneNumber: string): Promise<RateLimi
 
   const lastRequestAge = (now.getTime() - new Date(limitRow.last_request_at).getTime()) / 1000;
   if (lastRequestAge < COOLDOWN_SECONDS) {
+    await logRateLimitExceeded(phoneNumber, null, "phone", limitRow.request_count, MAX_OTP_PER_PHONE_15MIN);
     throw APIError.resourceExhausted(
       `Silakan tunggu ${Math.ceil(COOLDOWN_SECONDS - lastRequestAge)} detik sebelum meminta OTP lagi`
     );
@@ -46,6 +48,7 @@ export async function checkPhoneRateLimit(phoneNumber: string): Promise<RateLimi
     const resetAt = new Date(new Date(limitRow.window_start).getTime() + WINDOW_MINUTES * 60 * 1000);
     const minutesUntilReset = Math.ceil((resetAt.getTime() - now.getTime()) / 60000);
     
+    await logRateLimitExceeded(phoneNumber, null, "phone", limitRow.request_count, MAX_OTP_PER_PHONE_15MIN);
     throw APIError.resourceExhausted(
       `Batas maksimal OTP tercapai (${MAX_OTP_PER_PHONE_15MIN} kali per 15 menit). Silakan coba lagi dalam ${minutesUntilReset} menit`
     );
@@ -84,6 +87,7 @@ export async function checkIPRateLimit(ipAddress: string): Promise<RateLimitChec
     const resetAt = new Date(new Date(limitRow.window_start).getTime() + WINDOW_MINUTES * 60 * 1000);
     const minutesUntilReset = Math.ceil((resetAt.getTime() - now.getTime()) / 60000);
     
+    await logRateLimitExceeded("", ipAddress, "ip", limitRow.request_count, MAX_OTP_PER_IP_15MIN);
     throw APIError.resourceExhausted(
       `Terlalu banyak permintaan OTP dari IP ini. Silakan coba lagi dalam ${minutesUntilReset} menit`
     );
@@ -141,11 +145,14 @@ export async function recordOTPRequest(
 export async function logSuspiciousActivity(
   phoneNumber: string,
   ipAddress: string | null,
-  reason: string
+  reason: string,
+  userAgent: string | null = null
 ): Promise<void> {
   console.warn(`[SECURITY ALERT] Suspicious OTP activity detected`);
   console.warn(`  Phone: ${phoneNumber}`);
   console.warn(`  IP: ${ipAddress || 'N/A'}`);
   console.warn(`  Reason: ${reason}`);
   console.warn(`  Timestamp: ${new Date().toISOString()}`);
+  
+  await logFonnteAPIFailure(phoneNumber, ipAddress, reason, userAgent);
 }

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { secret } from "encore.dev/config";
 import { Header } from "encore.dev/api";
 import { checkPhoneRateLimit, checkIPRateLimit, recordOTPRequest, logSuspiciousActivity } from "../otp/rate_limiter";
+import { checkAndLogBruteForceOTP, checkAndLogMultipleIPActivity } from "../otp/security_logger";
 
 const fonnteToken = secret("FonnteToken");
 
@@ -46,6 +47,8 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     if (ipAddress) {
       await checkIPRateLimit(ipAddress);
     }
+
+    await checkAndLogMultipleIPActivity(phoneWithPrefix, ipAddress);
 
     const user = await db.queryRow<{ 
       clerk_user_id: string;
@@ -182,6 +185,7 @@ export const verifyForgotPasswordPhoneOTP = api<VerifyForgotPasswordPhoneOTPRequ
     }
 
     if (otpRow.otp_code !== otp) {
+      await checkAndLogBruteForceOTP(phoneWithPrefix, null);
       throw APIError.invalidArgument("Kode OTP salah");
     }
 
