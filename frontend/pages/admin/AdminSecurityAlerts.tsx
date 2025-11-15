@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ interface Stats {
 
 export default function AdminSecurityAlerts() {
   const navigate = useNavigate();
+  const backend = useBackend();
   const { toast } = useToast();
   
   const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
