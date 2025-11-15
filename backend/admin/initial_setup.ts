@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 interface InitialSetupRequest {
   adminPhone: string;
   adminPassword: string;
+  fullName: string;
+  dateOfBirth: string;
   fonnteToken: string;
   uniplayApiKey?: string;
   uniplayPincode?: string;
@@ -37,17 +39,20 @@ export const initialSetup = api(
     const passwordHash = await bcrypt.hash(req.adminPassword, 10);
     
     await db.exec`
-      INSERT INTO users (clerk_user_id, phone_number, full_name, password_hash, created_at, updated_at)
+      INSERT INTO users (clerk_user_id, phone_number, full_name, date_of_birth, password_hash, created_at, updated_at)
       VALUES (
         'superadmin_' || ${req.adminPhone},
         ${req.adminPhone},
-        'Super Admin',
+        ${req.fullName},
+        ${req.dateOfBirth},
         ${passwordHash},
         NOW(),
         NOW()
       )
       ON CONFLICT (clerk_user_id) DO UPDATE
-      SET password_hash = ${passwordHash}
+      SET password_hash = ${passwordHash},
+          full_name = ${req.fullName},
+          date_of_birth = ${req.dateOfBirth}
     `;
 
     const configUpdate: any = {

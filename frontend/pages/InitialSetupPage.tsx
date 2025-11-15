@@ -32,6 +32,8 @@ export default function InitialSetupPage() {
     adminPhone: "",
     adminPassword: "",
     confirmPassword: "",
+    fullName: "",
+    dateOfBirth: "",
     fonnteToken: "",
     uniplayApiKey: "",
     uniplayPincode: "",
@@ -63,6 +65,8 @@ export default function InitialSetupPage() {
       const result = await backend.admin.initialSetup({
         adminPhone: formData.adminPhone,
         adminPassword: formData.adminPassword,
+        fullName: formData.fullName,
+        dateOfBirth: formData.dateOfBirth,
         fonnteToken: formData.fonnteToken,
         uniplayApiKey: formData.uniplayApiKey || undefined,
         uniplayPincode: formData.uniplayPincode || undefined,
@@ -121,6 +125,29 @@ export default function InitialSetupPage() {
               <p className="text-xs text-muted-foreground">
                 Nomor ini akan menjadi superadmin dan untuk menerima OTP WhatsApp
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Nama Lengkap</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Nama lengkap admin"
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dateOfBirth">Tanggal Lahir</Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                required
+              />
             </div>
 
             <div className="space-y-2">
