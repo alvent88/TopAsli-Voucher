@@ -136,6 +136,10 @@ import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone }
 import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
 import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
 import {
+    checkSetupStatus as api_admin_initial_setup_checkSetupStatus,
+    initialSetup as api_admin_initial_setup_initialSetup
+} from "~backend/admin/initial_setup";
+import {
     exportLoginHistory as api_admin_login_history_exportLoginHistory,
     getUsersByIP as api_admin_login_history_getUsersByIP,
     listLoginHistory as api_admin_login_history_listLoginHistory
@@ -211,6 +215,7 @@ export namespace admin {
             this.activateAllCS = this.activateAllCS.bind(this)
             this.addWhatsAppCS = this.addWhatsAppCS.bind(this)
             this.banUser = this.banUser.bind(this)
+            this.checkSetupStatus = this.checkSetupStatus.bind(this)
             this.createPackage = this.createPackage.bind(this)
             this.createProduct = this.createProduct.bind(this)
             this.createVoucherBatch = this.createVoucherBatch.bind(this)
@@ -238,6 +243,7 @@ export namespace admin {
             this.getUsersByIP = this.getUsersByIP.bind(this)
             this.importUsers = this.importUsers.bind(this)
             this.importVouchers = this.importVouchers.bind(this)
+            this.initialSetup = this.initialSetup.bind(this)
             this.listAllPackages = this.listAllPackages.bind(this)
             this.listAllProducts = this.listAllProducts.bind(this)
             this.listLoginHistory = this.listLoginHistory.bind(this)
@@ -281,6 +287,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/ban`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_banUser>
+        }
+
+        public async checkSetupStatus(): Promise<ResponseType<typeof api_admin_initial_setup_checkSetupStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/setup-status`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_initial_setup_checkSetupStatus>
         }
 
         public async createPackage(params: RequestType<typeof api_admin_packages_crud_createPackage>): Promise<ResponseType<typeof api_admin_packages_crud_createPackage>> {
@@ -443,6 +455,12 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/import`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_export_importVouchers>
+        }
+
+        public async initialSetup(params: RequestType<typeof api_admin_initial_setup_initialSetup>): Promise<ResponseType<typeof api_admin_initial_setup_initialSetup>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/admin/initial-setup`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_initial_setup_initialSetup>
         }
 
         public async listAllPackages(): Promise<ResponseType<typeof api_admin_packages_listAllPackages>> {
