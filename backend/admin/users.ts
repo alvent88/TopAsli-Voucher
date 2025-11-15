@@ -33,9 +33,16 @@ export const listUsers = api<void, ListUsersResponse>(
 
     try {
       const dbUsers = await db.queryAll<any>`
-        SELECT clerk_user_id, full_name, phone_number, birth_date, created_at
-        FROM users
-        ORDER BY created_at DESC
+        SELECT 
+          u.clerk_user_id, 
+          u.full_name, 
+          u.phone_number, 
+          u.birth_date, 
+          u.created_at,
+          COALESCE(ub.balance, 0) as balance
+        FROM users u
+        LEFT JOIN user_balance ub ON u.clerk_user_id = ub.user_id
+        ORDER BY u.created_at DESC
       `;
 
       const users = dbUsers.map((user: any) => {
@@ -51,7 +58,7 @@ export const listUsers = api<void, ListUsersResponse>(
           lastSignInAt: null,
           isAdmin: user.phone_number === "818848168",
           isSuperAdmin: user.phone_number === "818848168",
-          balance: 0,
+          balance: Number(user.balance) || 0,
           isBanned: false,
           bannedAt: null,
           bannedReason: null,
