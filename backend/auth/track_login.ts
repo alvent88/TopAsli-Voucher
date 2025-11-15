@@ -32,13 +32,26 @@ export const trackLogin = api<TrackLoginRequest, TrackLoginResponse>(
       const finalIpAddress = clientIpAddress || serverIpAddress || 'unknown';
       const finalUserAgent = clientUserAgent || serverUserAgent || 'unknown';
 
+      let normalizedPhone = phoneNumber;
+      if (phoneNumber) {
+        let phone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
+        if (phone.startsWith("0")) {
+          phone = phone.substring(1);
+        } else if (phone.startsWith("62")) {
+          phone = phone.substring(2);
+        } else if (phone.startsWith("+62")) {
+          phone = phone.substring(3);
+        }
+        normalizedPhone = phone;
+      }
+
       await db.exec`
         INSERT INTO login_history (
           user_id, email, phone_number, login_type, ip_address, user_agent, login_status
         ) VALUES (
           ${userId}, 
           ${email || null}, 
-          ${phoneNumber || null}, 
+          ${normalizedPhone || null}, 
           ${loginType}, 
           ${finalIpAddress}, 
           ${finalUserAgent}, 
