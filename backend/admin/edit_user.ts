@@ -29,7 +29,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
     try {
       const userResult = await db.queryAll<any>`
-        SELECT clerk_user_id, phone_number, full_name, birth_date, balance 
+        SELECT clerk_user_id, phone_number, full_name, birth_date 
         FROM users 
         WHERE clerk_user_id = ${userId}
       `;
@@ -70,21 +70,30 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         }
       }
 
-      if (balance !== undefined && balance !== oldUser.balance) {
-        updates.push(`balance = ${balance}`);
+      if (updates.length > 0) {
+        updateQuery += updates.join(", ");
+        updateQuery += ` WHERE clerk_user_id = '${userId}'`;
+        await db.exec(updateQuery as any);
       }
 
-      if (updates.length === 0) {
-        return {
-          success: true,
-          message: "Tidak ada perubahan data",
-        };
+      if (balance !== undefined) {
+        const balanceResult = await db.queryAll<any>`
+          SELECT balance FROM user_balance WHERE user_id = ${userId}
+        `;
+
+        if (balanceResult.length === 0) {
+          await db.exec`
+            INSERT INTO user_balance (user_id, balance, created_at, updated_at)
+            VALUES (${userId}, ${balance}, NOW(), NOW())
+          `;
+        } else if (balance !== balanceResult[0].balance) {
+          await db.exec`
+            UPDATE user_balance 
+            SET balance = ${balance}, updated_at = NOW() 
+            WHERE user_id = ${userId}
+          `;
+        }
       }
-
-      updateQuery += updates.join(", ");
-      updateQuery += ` WHERE clerk_user_id = '${userId}'`;
-
-      await db.exec(updateQuery as any);
 
       return {
         success: true,
