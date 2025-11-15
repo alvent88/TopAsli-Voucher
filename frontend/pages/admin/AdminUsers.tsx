@@ -558,7 +558,17 @@ export default function AdminUsers() {
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-slate-500" />
                             <span className="text-xs">
-                              {new Date(user.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {(() => {
+                                const bd: any = user.birthDate;
+                                const dateStr = typeof bd === 'string' 
+                                  ? bd 
+                                  : bd instanceof Date 
+                                    ? bd.toISOString().split('T')[0]
+                                    : null;
+                                if (!dateStr) return '-';
+                                const [year, month, day] = dateStr.split('-');
+                                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                              })()}
                             </span>
                           </div>
                         ) : (

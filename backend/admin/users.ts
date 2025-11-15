@@ -37,7 +37,7 @@ export const listUsers = api<void, ListUsersResponse>(
           u.clerk_user_id, 
           u.full_name, 
           u.phone_number, 
-          u.birth_date, 
+          TO_CHAR(u.date_of_birth, 'YYYY-MM-DD') as birth_date, 
           u.created_at,
           COALESCE(ub.balance, 0) as balance,
           lh.last_login
@@ -62,7 +62,7 @@ export const listUsers = api<void, ListUsersResponse>(
           firstName: null,
           lastName: null,
           fullName: user.full_name || null,
-          birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
+          birthDate: user.birth_date || null,
           createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
           lastSignInAt: user.last_login ? String(user.last_login) : null,
           isAdmin: user.phone_number === "818848168",
