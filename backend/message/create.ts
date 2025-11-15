@@ -26,7 +26,20 @@ export const create = api<CreateMessageRequest, CreateMessageResponse>(
         SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
       `;
       
-      phoneNumber = user?.phone_number || null;
+      let rawPhone = user?.phone_number || null;
+      if (rawPhone) {
+        if (!rawPhone.startsWith('62')) {
+          if (rawPhone.startsWith('0')) {
+            phoneNumber = '62' + rawPhone.substring(1);
+          } else if (rawPhone.startsWith('+62')) {
+            phoneNumber = rawPhone.substring(1);
+          } else {
+            phoneNumber = '62' + rawPhone;
+          }
+        } else {
+          phoneNumber = rawPhone;
+        }
+      }
       console.log("Phone number from database:", phoneNumber);
     } catch (err) {
       console.error("Failed to fetch phone number:", err);

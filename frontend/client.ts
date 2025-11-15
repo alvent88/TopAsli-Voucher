@@ -136,10 +136,6 @@ import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone }
 import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
 import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
 import {
-    checkSetupStatus as api_admin_initial_setup_checkSetupStatus,
-    initialSetup as api_admin_initial_setup_initialSetup
-} from "~backend/admin/initial_setup";
-import {
     exportLoginHistory as api_admin_login_history_exportLoginHistory,
     getUsersByIP as api_admin_login_history_getUsersByIP,
     listLoginHistory as api_admin_login_history_listLoginHistory
@@ -215,7 +211,6 @@ export namespace admin {
             this.activateAllCS = this.activateAllCS.bind(this)
             this.addWhatsAppCS = this.addWhatsAppCS.bind(this)
             this.banUser = this.banUser.bind(this)
-            this.checkSetupStatus = this.checkSetupStatus.bind(this)
             this.createPackage = this.createPackage.bind(this)
             this.createProduct = this.createProduct.bind(this)
             this.createVoucherBatch = this.createVoucherBatch.bind(this)
@@ -243,7 +238,6 @@ export namespace admin {
             this.getUsersByIP = this.getUsersByIP.bind(this)
             this.importUsers = this.importUsers.bind(this)
             this.importVouchers = this.importVouchers.bind(this)
-            this.initialSetup = this.initialSetup.bind(this)
             this.listAllPackages = this.listAllPackages.bind(this)
             this.listAllProducts = this.listAllProducts.bind(this)
             this.listLoginHistory = this.listLoginHistory.bind(this)
@@ -287,12 +281,6 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/ban`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_banUser>
-        }
-
-        public async checkSetupStatus(): Promise<ResponseType<typeof api_admin_initial_setup_checkSetupStatus>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/setup-status`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_initial_setup_checkSetupStatus>
         }
 
         public async createPackage(params: RequestType<typeof api_admin_packages_crud_createPackage>): Promise<ResponseType<typeof api_admin_packages_crud_createPackage>> {
@@ -455,12 +443,6 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/import`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_export_importVouchers>
-        }
-
-        public async initialSetup(params: RequestType<typeof api_admin_initial_setup_initialSetup>): Promise<ResponseType<typeof api_admin_initial_setup_initialSetup>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/initial-setup`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_initial_setup_initialSetup>
         }
 
         public async listAllPackages(): Promise<ResponseType<typeof api_admin_packages_listAllPackages>> {
@@ -700,6 +682,7 @@ export namespace audit {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { changePassword as api_auth_change_password_changePassword } from "~backend/auth/change_password";
 import { completeEmailRegistration as api_auth_complete_email_registration_completeEmailRegistration } from "~backend/auth/complete_email_registration";
 import { completeProfile as api_auth_complete_profile_completeProfile } from "~backend/auth/complete_profile";
 import { ensureUserExists as api_auth_ensure_user_exists_ensureUserExists } from "~backend/auth/ensure_user_exists";
@@ -716,6 +699,7 @@ import {
     sendRegisterOTP as api_auth_register_phone_v2_sendRegisterOTP,
     verifyAndRegister as api_auth_register_phone_v2_verifyAndRegister
 } from "~backend/auth/register_phone_v2";
+import { sendChangePasswordOTP as api_auth_send_change_password_otp_sendChangePasswordOTP } from "~backend/auth/send_change_password_otp";
 import { trackLogin as api_auth_track_login_trackLogin } from "~backend/auth/track_login";
 import { updateProfile as api_auth_update_profile_updateProfile } from "~backend/auth/update_profile";
 
@@ -726,6 +710,7 @@ export namespace auth {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.changePassword = this.changePassword.bind(this)
             this.completeEmailRegistration = this.completeEmailRegistration.bind(this)
             this.completeProfile = this.completeProfile.bind(this)
             this.ensureUserExists = this.ensureUserExists.bind(this)
@@ -734,12 +719,19 @@ export namespace auth {
             this.loginPhoneV2 = this.loginPhoneV2.bind(this)
             this.registerPhone = this.registerPhone.bind(this)
             this.resetPasswordPhone = this.resetPasswordPhone.bind(this)
+            this.sendChangePasswordOTP = this.sendChangePasswordOTP.bind(this)
             this.sendForgotPasswordPhoneOTP = this.sendForgotPasswordPhoneOTP.bind(this)
             this.sendRegisterOTP = this.sendRegisterOTP.bind(this)
             this.trackLogin = this.trackLogin.bind(this)
             this.updateProfile = this.updateProfile.bind(this)
             this.verifyAndRegister = this.verifyAndRegister.bind(this)
             this.verifyForgotPasswordPhoneOTP = this.verifyForgotPasswordPhoneOTP.bind(this)
+        }
+
+        public async changePassword(params: RequestType<typeof api_auth_change_password_changePassword>): Promise<ResponseType<typeof api_auth_change_password_changePassword>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/change-password`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_change_password_changePassword>
         }
 
         public async completeEmailRegistration(params: RequestType<typeof api_auth_complete_email_registration_completeEmailRegistration>): Promise<ResponseType<typeof api_auth_complete_email_registration_completeEmailRegistration>> {
@@ -788,6 +780,12 @@ export namespace auth {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/auth/reset-password-phone`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_forgot_password_phone_resetPasswordPhone>
+        }
+
+        public async sendChangePasswordOTP(): Promise<ResponseType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/send-change-password-otp`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_send_change_password_otp_sendChangePasswordOTP>
         }
 
         public async sendForgotPasswordPhoneOTP(params: RequestType<typeof api_auth_forgot_password_phone_sendForgotPasswordPhoneOTP>): Promise<ResponseType<typeof api_auth_forgot_password_phone_sendForgotPasswordPhoneOTP>> {

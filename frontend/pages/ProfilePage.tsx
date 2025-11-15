@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Phone, Wallet, Calendar } from "lucide-react";
+import { ArrowLeft, User, Phone, Wallet, Calendar, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import { useBackend } from "@/lib/useBackend";
 import { useEffect, useState } from "react";
 
@@ -11,6 +15,14 @@ export default function ProfilePage() {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadBalance();
@@ -45,6 +57,79 @@ export default function ProfilePage() {
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const handleSendOTP = async () => {
+    setSendingOtp(true);
+    try {
+      await backend.auth.sendChangePasswordOTP();
+      setOtpSent(true);
+      toast({
+        title: "OTP Terkirim!",
+        description: "Kode OTP telah dikirim ke WhatsApp Anda.",
+      });
+    } catch (error: any) {
+      console.error("Failed to send OTP:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengirim OTP. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword || !otp) {
+      toast({
+        title: "Error",
+        description: "Semua field harus diisi.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Password baru dan konfirmasi password tidak sama.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password harus minimal 6 karakter.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await backend.auth.changePassword({ newPassword, otp });
+      toast({
+        title: "Sukses!",
+        description: "Password berhasil diubah.",
+      });
+      setShowChangePasswordDialog(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setOtp("");
+      setOtpSent(false);
+    } catch (error: any) {
+      console.error("Failed to change password:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mengubah password. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const fullName = userProfile?.fullName || "User";
@@ -153,9 +238,101 @@ export default function ProfilePage() {
                 Riwayat Transaksi
               </Button>
             </div>
+
+            <Button
+              onClick={() => setShowChangePasswordDialog(true)}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-11 lg:h-12 text-sm lg:text-base"
+            >
+              <Key className="mr-2 h-4 w-4" />
+              Ganti Password
+            </Button>
           </div>
         </div>
       </div>
+
+      <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
+        <DialogContent className="bg-[#1a1f3a] border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">Ganti Password</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Masukkan password baru Anda dan verifikasi dengan kode OTP
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {!otpSent ? (
+              <>
+                <p className="text-sm text-slate-300">
+                  Klik tombol di bawah untuk mengirim kode OTP ke WhatsApp Anda
+                </p>
+                <Button
+                  onClick={handleSendOTP}
+                  disabled={sendingOtp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {sendingOtp ? "Mengirim OTP..." : "Kirim Kode OTP"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-slate-300">Password Baru</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="bg-slate-800 border-slate-600 text-white"
+                    placeholder="Minimal 6 karakter"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-slate-300">Konfirmasi Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="bg-slate-800 border-slate-600 text-white"
+                    placeholder="Ketik ulang password baru"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="otp" className="text-slate-300">Kode OTP</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="bg-slate-800 border-slate-600 text-white"
+                    placeholder="Masukkan 6 digit kode OTP"
+                    maxLength={6}
+                  />
+                  <p className="text-xs text-slate-400">
+                    Kode OTP telah dikirim ke WhatsApp Anda dan berlaku 5 menit
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleSendOTP}
+                    disabled={sendingOtp}
+                    variant="outline"
+                    className="flex-1 bg-slate-800 border-slate-600 text-white hover:bg-slate-700"
+                  >
+                    {sendingOtp ? "Mengirim..." : "Kirim Ulang OTP"}
+                  </Button>
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={changingPassword}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                  >
+                    {changingPassword ? "Mengubah..." : "Ubah Password"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
