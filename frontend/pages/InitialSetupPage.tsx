@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import backend from "~backend/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,23 @@ export default function InitialSetupPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const status = await backend.admin.checkSetupStatus();
+        if (!status.needsSetup) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkStatus();
+  }, [navigate]);
   const [formData, setFormData] = useState({
     adminPhone: "",
     adminPassword: "",
@@ -56,7 +73,7 @@ export default function InitialSetupPage() {
         description: result.message,
       });
 
-      setTimeout(() => navigate("/login"), 2000);
+      navigate("/login");
     } catch (error: any) {
       console.error(error);
       toast({
@@ -68,6 +85,14 @@ export default function InitialSetupPage() {
       setLoading(false);
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center">
+        <p className="text-white">Memeriksa status setup...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center p-4">

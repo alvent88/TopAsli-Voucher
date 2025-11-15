@@ -9,15 +9,15 @@ export function useSetupCheck() {
 
   useEffect(() => {
     const checkSetup = async () => {
-      if (location.pathname === "/setup") {
-        setIsChecking(false);
-        return;
-      }
-
       try {
         const status = await backend.admin.checkSetupStatus();
         
-        if (status.needsSetup) {
+        if (location.pathname === "/setup" && !status.needsSetup) {
+          navigate("/");
+          return;
+        }
+
+        if (status.needsSetup && location.pathname !== "/setup") {
           navigate("/setup");
         }
       } catch (error) {
