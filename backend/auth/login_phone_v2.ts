@@ -26,11 +26,11 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
     if (formattedPhone.startsWith("0")) {
-      formattedPhone = "62" + formattedPhone.substring(1);
-    } else if (formattedPhone.startsWith("+")) {
       formattedPhone = formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith("62")) {
-      formattedPhone = "62" + formattedPhone;
+    } else if (formattedPhone.startsWith("62")) {
+      formattedPhone = formattedPhone.substring(2);
+    } else if (formattedPhone.startsWith("+62")) {
+      formattedPhone = formattedPhone.substring(3);
     }
 
     const user = await db.queryRow<{ 
@@ -77,13 +77,14 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
 
     console.log("=== LOGIN PHONE V2 SUCCESS ===");
 
-    const token = generateToken(user.clerk_user_id, user.phone_number, user.full_name);
+    const phoneWithPrefix = `62${user.phone_number}`;
+    const token = generateToken(user.clerk_user_id, phoneWithPrefix, user.full_name);
 
     return {
       success: true,
       message: "Login berhasil!",
       userId: user.clerk_user_id,
-      phoneNumber: user.phone_number,
+      phoneNumber: phoneWithPrefix,
       fullName: user.full_name,
       token,
     };

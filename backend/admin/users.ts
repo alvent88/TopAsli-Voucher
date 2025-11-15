@@ -38,22 +38,25 @@ export const listUsers = api<void, ListUsersResponse>(
         ORDER BY created_at DESC
       `;
 
-      const users = dbUsers.map((user: any) => ({
-        id: user.clerk_user_id || "",
-        phoneNumber: user.phone_number || null,
-        firstName: null,
-        lastName: null,
-        fullName: user.full_name || null,
-        birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
-        createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
-        lastSignInAt: null,
-        isAdmin: user.phone_number === "62818848168",
-        isSuperAdmin: user.phone_number === "62818848168",
-        balance: 0,
-        isBanned: false,
-        bannedAt: null,
-        bannedReason: null,
-      }));
+      const users = dbUsers.map((user: any) => {
+        const phoneWithPrefix = user.phone_number ? `62${user.phone_number}` : null;
+        return {
+          id: user.clerk_user_id || "",
+          phoneNumber: phoneWithPrefix,
+          firstName: null,
+          lastName: null,
+          fullName: user.full_name || null,
+          birthDate: user.birth_date ? String(user.birth_date).substring(0, 10) : null,
+          createdAt: user.created_at ? String(user.created_at) : new Date().toISOString(),
+          lastSignInAt: null,
+          isAdmin: user.phone_number === "818848168",
+          isSuperAdmin: user.phone_number === "818848168",
+          balance: 0,
+          isBanned: false,
+          bannedAt: null,
+          bannedReason: null,
+        };
+      });
 
       return { users };
     } catch (err: any) {

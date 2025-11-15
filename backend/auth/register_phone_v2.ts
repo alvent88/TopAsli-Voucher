@@ -23,12 +23,14 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
     if (formattedPhone.startsWith("0")) {
-      formattedPhone = "62" + formattedPhone.substring(1);
-    } else if (formattedPhone.startsWith("+")) {
       formattedPhone = formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith("62")) {
-      formattedPhone = "62" + formattedPhone;
+    } else if (formattedPhone.startsWith("62")) {
+      formattedPhone = formattedPhone.substring(2);
+    } else if (formattedPhone.startsWith("+62")) {
+      formattedPhone = formattedPhone.substring(3);
     }
+
+    const phoneWithPrefix = `62${formattedPhone}`;
 
     const existingUser = await db.queryRow<{ phone_number: string }>`
       SELECT phone_number FROM users WHERE phone_number = ${formattedPhone}
@@ -45,7 +47,7 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
 
     await db.exec`
       INSERT INTO otp_codes (phone_number, otp_code, created_at, verified)
-      VALUES (${formattedPhone}, ${otp}, ${timestamp}, FALSE)
+      VALUES (${phoneWithPrefix}, ${otp}, ${timestamp}, FALSE)
     `;
 
     const configRow = await db.queryRow<{ value: string }>`
@@ -67,7 +69,7 @@ export const sendRegisterOTP = api<SendRegisterOTPRequest, SendRegisterOTPRespon
     const message = `🎉 *Selamat Datang di TopAsli!*\n\nKode OTP untuk registrasi:\n*${otp}*\n\nKode berlaku selama 5 menit.\n\n⚠️ Jangan berikan kode ini kepada siapapun!`;
 
     const formData = new URLSearchParams();
-    formData.append('target', formattedPhone);
+    formData.append('target', phoneWithPrefix);
     formData.append('message', message);
     formData.append('countryCode', '0');
 
@@ -123,12 +125,14 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
     let formattedPhone = phoneNumber.replace(/\s/g, "").replace(/-/g, "");
     
     if (formattedPhone.startsWith("0")) {
-      formattedPhone = "62" + formattedPhone.substring(1);
-    } else if (formattedPhone.startsWith("+")) {
       formattedPhone = formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith("62")) {
-      formattedPhone = "62" + formattedPhone;
+    } else if (formattedPhone.startsWith("62")) {
+      formattedPhone = formattedPhone.substring(2);
+    } else if (formattedPhone.startsWith("+62")) {
+      formattedPhone = formattedPhone.substring(3);
     }
+
+    const phoneWithPrefix = `62${formattedPhone}`;
 
     const existingUser = await db.queryRow<{ phone_number: string }>`
       SELECT phone_number FROM users WHERE phone_number = ${formattedPhone}
@@ -145,7 +149,7 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
     }>`
       SELECT otp_code, created_at, verified
       FROM otp_codes
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -172,7 +176,7 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
     await db.exec`
       UPDATE otp_codes
       SET verified = TRUE
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
       AND otp_code = ${otp}
       AND verified = FALSE
     `;
@@ -196,13 +200,13 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
 
     console.log("User created successfully:", userId);
 
-    const token = generateToken(userId, formattedPhone, fullName);
+    const token = generateToken(userId, phoneWithPrefix, fullName);
 
     return {
       success: true,
       message: "Registrasi berhasil!",
       userId,
-      phoneNumber: formattedPhone,
+      phoneNumber: phoneWithPrefix,
       fullName,
       token,
     };
