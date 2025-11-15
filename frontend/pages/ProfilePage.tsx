@@ -48,7 +48,9 @@ export default function ProfilePage() {
   };
 
   const fullName = userProfile?.fullName || "User";
-  const phoneNumber = userProfile?.phoneNumber || "-";
+  const phoneNumber = userProfile?.phoneNumber 
+    ? (userProfile.phoneNumber.startsWith('62') ? userProfile.phoneNumber : `62${userProfile.phoneNumber}`)
+    : "-";
   const birthDate = userProfile?.birthDate || null;
 
   return (
