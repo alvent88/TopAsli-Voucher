@@ -45,6 +45,8 @@ export default function ProfilePage() {
     try {
       const profile = await backend.auth.getUserProfile();
       console.log("Loaded profile from backend:", profile);
+      console.log("Birth date from profile:", profile.birthDate);
+      console.log("Birth date type:", typeof profile.birthDate);
       setUserProfile(profile);
     } catch (error) {
       console.error("Failed to load user profile:", error);
@@ -127,7 +129,13 @@ export default function ProfilePage() {
   const phoneNumber = userProfile?.phoneNumber 
     ? (userProfile.phoneNumber.startsWith('62') ? userProfile.phoneNumber : `62${userProfile.phoneNumber}`)
     : "-";
-  const birthDate = userProfile?.birthDate || null;
+  const birthDate = userProfile?.birthDate 
+    ? (typeof userProfile.birthDate === 'string' 
+        ? userProfile.birthDate 
+        : userProfile.birthDate instanceof Date 
+          ? userProfile.birthDate.toISOString().split('T')[0]
+          : null)
+    : null;
 
   return (
     <div className="min-h-screen bg-[#0a0e27]">
