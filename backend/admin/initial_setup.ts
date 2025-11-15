@@ -25,7 +25,7 @@ export const initialSetup = api(
   { expose: true, method: "POST", path: "/admin/initial-setup", auth: false },
   async (req: InitialSetupRequest): Promise<InitialSetupResponse> => {
     const setupKey = await db.queryRow<{ value: string }>`
-      SELECT value->>'setupComplete' as value
+      SELECT (value::jsonb)->>'setupComplete' as value
       FROM admin_config
       WHERE key = 'dashboard_config'
     `;
