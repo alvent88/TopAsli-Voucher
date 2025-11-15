@@ -1,8 +1,7 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
-import { logAuditAction } from "../audit/logger";
 
 export interface EditUserRequest {
   userId: string;
@@ -19,7 +18,7 @@ export interface EditUserResponse {
 
 export const editUser = api<EditUserRequest, EditUserResponse>(
   { expose: true, method: "POST", path: "/admin/edit-user", auth: true },
-  async (req: EditUserRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (req: EditUserRequest) => {
     const authData = getAuthData();
     
     if (!authData?.isSuperAdmin) {
@@ -39,12 +38,6 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       }
 
       const oldUser = userResult.rows[0];
-      const oldValues: any = {
-        fullName: oldUser.full_name,
-        phoneNumber: oldUser.phone,
-        birthDate: oldUser.date_of_birth,
-        balance: oldUser.balance,
-      };
 
       const updates: string[] = [];
       const values: any[] = [];
@@ -92,24 +85,6 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
       const query = `UPDATE users SET ${updates.join(", ")} WHERE id = $${paramIndex}`;
       
       await db.query(query, values);
-
-      const newValues: any = {};
-      if (fullName !== undefined) newValues.fullName = fullName;
-      if (phoneNumber !== undefined) newValues.phoneNumber = phoneNumber;
-      if (birthDate !== undefined) newValues.birthDate = birthDate;
-      if (balance !== undefined) newValues.balance = balance;
-
-      await logAuditAction({
-        actionType: "UPDATE",
-        entityType: "USER",
-        entityId: userId,
-        oldValues: oldValues,
-        newValues: newValues,
-        metadata: { 
-          targetUserId: userId,
-          updatedBy: authData.userID 
-        },
-      }, ipAddress, userAgent);
 
       return {
         success: true,
