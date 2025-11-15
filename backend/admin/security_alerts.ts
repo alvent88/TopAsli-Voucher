@@ -45,15 +45,7 @@ export const listSecurityAlerts = api<ListSecurityAlertsRequest, ListSecurityAle
   { expose: true, method: "POST", path: "/admin/security-alerts/list", auth: true },
   async ({ status, severity, alertType, limit = 50, offset = 0 }) => {
     const auth = getAuthData();
-    if (!auth || !auth.userID) {
-      throw APIError.unauthenticated("Unauthorized");
-    }
-
-    const user = await db.queryRow<{ role: string }>`
-      SELECT role FROM users WHERE clerk_user_id = ${auth.userID}
-    `;
-
-    if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
+    if (!auth || !auth.isAdmin) {
       throw APIError.permissionDenied("Admin access required");
     }
 
@@ -204,19 +196,15 @@ export const updateAlertStatus = api<UpdateAlertStatusRequest, UpdateAlertStatus
   { expose: true, method: "POST", path: "/admin/security-alerts/update-status", auth: true },
   async ({ alertId, status, resolutionNotes }) => {
     const auth = getAuthData();
-    if (!auth || !auth.userID) {
-      throw APIError.unauthenticated("Unauthorized");
-    }
-
-    const user = await db.queryRow<{ role: string; full_name: string }>`
-      SELECT role, full_name FROM users WHERE clerk_user_id = ${auth.userID}
-    `;
-
-    if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
+    if (!auth || !auth.isAdmin) {
       throw APIError.permissionDenied("Admin access required");
     }
 
-    const resolvedBy = user.full_name || auth.userID;
+    const user = await db.queryRow<{ full_name: string }>`
+      SELECT full_name FROM users WHERE clerk_user_id = ${auth.userID}
+    `;
+
+    const resolvedBy = user?.full_name || auth.fullName || auth.userID;
     const resolvedAt = status === "resolved" || status === "false_positive" ? new Date() : null;
 
     await db.exec`
@@ -246,15 +234,7 @@ export const deleteAlert = api<DeleteAlertRequest, DeleteAlertResponse>(
   { expose: true, method: "POST", path: "/admin/security-alerts/delete", auth: true },
   async ({ alertId }) => {
     const auth = getAuthData();
-    if (!auth || !auth.userID) {
-      throw APIError.unauthenticated("Unauthorized");
-    }
-
-    const user = await db.queryRow<{ role: string }>`
-      SELECT role FROM users WHERE clerk_user_id = ${auth.userID}
-    `;
-
-    if (!user || user.role !== "superadmin") {
+    if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Superadmin access required");
     }
 
