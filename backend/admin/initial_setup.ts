@@ -66,12 +66,23 @@ export const initialSetup = api(
       };
     }
 
-    const currentConfig = await db.queryRow<{ value: any }>`
+    const currentConfig = await db.queryRow<{ value: string }>`
       SELECT value FROM admin_config WHERE key = 'dashboard_config'
     `;
     
+    let existingConfig = {};
+    if (currentConfig?.value) {
+      try {
+        existingConfig = typeof currentConfig.value === 'string'
+          ? JSON.parse(currentConfig.value)
+          : currentConfig.value;
+      } catch (error) {
+        console.error('Error parsing existing config:', error);
+      }
+    }
+    
     const mergedConfig = {
-      ...(currentConfig?.value || {}),
+      ...existingConfig,
       ...configUpdate,
     };
     
@@ -92,13 +103,23 @@ export const initialSetup = api(
 export const checkSetupStatus = api(
   { expose: true, method: "GET", path: "/admin/setup-status", auth: false },
   async (): Promise<SetupStatusResponse> => {
-    const config = await db.queryRow<{ value: any }>`
+    const config = await db.queryRow<{ value: string }>`
       SELECT value
       FROM admin_config
       WHERE key = 'dashboard_config'
     `;
 
-    const setupComplete = config?.value?.setupComplete || false;
+    let setupComplete = false;
+    if (config?.value) {
+      try {
+        const parsedValue = typeof config.value === 'string' 
+          ? JSON.parse(config.value) 
+          : config.value;
+        setupComplete = parsedValue?.setupComplete || false;
+      } catch (error) {
+        console.error('Error parsing config value:', error);
+      }
+    }
     
     return {
       setupComplete,
