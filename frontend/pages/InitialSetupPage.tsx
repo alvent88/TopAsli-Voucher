@@ -73,7 +73,10 @@ export default function InitialSetupPage() {
         description: result.message,
       });
 
-      navigate("/login");
+      // Force reload to clear any cached setup status
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1000);
     } catch (error: any) {
       console.error(error);
       toast({

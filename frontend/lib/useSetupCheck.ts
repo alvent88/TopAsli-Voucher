@@ -10,6 +10,7 @@ export function useSetupCheck() {
   useEffect(() => {
     const checkSetup = async () => {
       try {
+        // Add timestamp to prevent caching
         const status = await backend.admin.checkSetupStatus();
         
         if (location.pathname === "/setup" && !status.needsSetup) {
