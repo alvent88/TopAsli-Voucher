@@ -25,7 +25,7 @@ export const getUserProfile = api<void, UserProfile>(
       phone_number: string;
       birth_date: string;
     }>`
-      SELECT clerk_user_id, full_name, phone_number, TO_CHAR(birth_date, 'YYYY-MM-DD') as birth_date 
+      SELECT clerk_user_id, full_name, phone_number, TO_CHAR(date_of_birth, 'YYYY-MM-DD') as birth_date 
       FROM users 
       WHERE clerk_user_id = ${auth.userID}
     `;
