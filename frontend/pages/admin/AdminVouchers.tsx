@@ -36,7 +36,7 @@ interface Voucher {
   createdBy: string;
   createdAt: string;
   expiresAt: string | null;
-  claimedByEmail: string | null;
+  claimedByPhone: string | null;
   claimedAt: string | null;
 }
 
@@ -462,11 +462,11 @@ export default function AdminVouchers() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Cari Kode / Email</Label>
+              <Label className="text-slate-300">Cari Kode / No. HP</Label>
               <div className="relative">
                 <Input
                   type="text"
-                  placeholder="Cari kode voucher atau email user..."
+                  placeholder="Cari kode voucher atau nomor HP user..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-slate-800 border-slate-600 text-white pl-10"
@@ -561,7 +561,7 @@ export default function AdminVouchers() {
                         {formatCurrency(voucher.amount)}
                       </TableCell>
                       <TableCell>
-                        {voucher.claimedByEmail ? (
+                        {voucher.claimedByPhone ? (
                           <Badge className="bg-green-600 hover:bg-green-700 text-xs">
                             <CheckCircle2 className="mr-1 h-3 w-3" />
                             <span className="hidden sm:inline">Diklaim</span>
@@ -574,8 +574,8 @@ export default function AdminVouchers() {
                         )}
                       </TableCell>
                       <TableCell className="text-slate-300 text-xs lg:text-sm hidden md:table-cell">
-                        {voucher.claimedByEmail ? (
-                          <span className="text-blue-400 truncate block max-w-[150px]">{voucher.claimedByEmail}</span>
+                        {voucher.claimedByPhone ? (
+                          <span className="text-blue-400 truncate block max-w-[150px]">{voucher.claimedByPhone}</span>
                         ) : (
                           <span className="text-slate-500">-</span>
                         )}

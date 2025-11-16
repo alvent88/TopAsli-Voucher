@@ -77,9 +77,9 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
         amount: number;
         is_active: boolean;
         claimed_by_user_id: string | null;
-        claimed_by_email: string | null;
+        claimed_by_phone: string | null;
       }>`
-        SELECT code, amount, is_active, claimed_by_user_id, claimed_by_email
+        SELECT code, amount, is_active, claimed_by_user_id, claimed_by_phone
         FROM vouchers
         WHERE code = ${code}
       `;
@@ -143,6 +143,7 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       await db.exec`
         UPDATE vouchers
         SET claimed_by_user_id = ${auth.userID},
+            claimed_by_phone = ${auth.phoneNumber},
             claimed_at = NOW(),
             used_count = used_count + 1
         WHERE code = ${code}

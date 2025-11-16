@@ -13,7 +13,7 @@ export interface Voucher {
   createdBy: string;
   createdAt: string;
   expiresAt: string | null;
-  claimedByEmail: string | null;
+  claimedByPhone: string | null;
   claimedAt: string | null;
 }
 
@@ -48,7 +48,7 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
       let paramIndex = 1;
 
       if (search) {
-        whereConditions.push(`(code ILIKE $${paramIndex} OR claimed_by_email ILIKE $${paramIndex})`);
+        whereConditions.push(`(code ILIKE $${paramIndex} OR claimed_by_phone ILIKE $${paramIndex})`);
         params.push(`%${search}%`);
         paramIndex++;
       }
@@ -73,7 +73,7 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
           expires_at, 
           claimed_at,
           claimed_by_user_id,
-          claimed_by_email
+          claimed_by_phone
         FROM vouchers
         ${whereClause}
         ORDER BY created_at DESC
@@ -90,7 +90,7 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
         createdBy: row.created_by,
         createdAt: row.created_at,
         expiresAt: row.expires_at,
-        claimedByEmail: row.claimed_by_email,
+        claimedByPhone: row.claimed_by_phone,
         claimedAt: row.claimed_at,
       }));
 

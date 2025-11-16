@@ -27,7 +27,7 @@ export const exportVouchers = api<void, ExportVouchersResponse>(
           created_by,
           created_at,
           expires_at,
-          claimed_by_email,
+          claimed_by_phone,
           claimed_by_user_id,
           claimed_at
         FROM vouchers
@@ -43,7 +43,7 @@ export const exportVouchers = api<void, ExportVouchersResponse>(
         "Created By",
         "Created At",
         "Expires At",
-        "Claimed By Email",
+        "Claimed By Phone",
         "Claimed By User ID",
         "Claimed At",
       ];
@@ -57,7 +57,7 @@ export const exportVouchers = api<void, ExportVouchersResponse>(
         row.created_by,
         new Date(row.created_at).toISOString(),
         row.expires_at ? new Date(row.expires_at).toISOString() : "",
-        row.claimed_by_email || "",
+        row.claimed_by_phone || "",
         row.claimed_by_user_id || "",
         row.claimed_at ? new Date(row.claimed_at).toISOString() : "",
       ]);
@@ -115,7 +115,7 @@ export const importVouchers = api<ImportVouchersRequest, ImportVouchersResponse>
         "Created By",
         "Created At",
         "Expires At",
-        "Claimed By Email",
+        "Claimed By Phone",
         "Claimed By User ID",
         "Claimed At",
       ];
@@ -148,7 +148,7 @@ export const importVouchers = api<ImportVouchersRequest, ImportVouchersResponse>
             createdBy,
             createdAt,
             expiresAt,
-            claimedByEmail,
+            claimedByPhone,
             claimedByUserId,
             claimedAt,
           ] = values;
@@ -172,7 +172,7 @@ export const importVouchers = api<ImportVouchersRequest, ImportVouchersResponse>
               created_by,
               created_at,
               expires_at,
-              claimed_by_email,
+              claimed_by_phone,
               claimed_by_user_id,
               claimed_at
             ) VALUES (
@@ -184,7 +184,7 @@ export const importVouchers = api<ImportVouchersRequest, ImportVouchersResponse>
               ${createdBy},
               ${createdAt || new Date().toISOString()},
               ${expiresAt || null},
-              ${claimedByEmail || null},
+              ${claimedByPhone || null},
               ${claimedByUserId || null},
               ${claimedAt || null}
             )
