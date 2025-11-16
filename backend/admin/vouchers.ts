@@ -73,7 +73,11 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
           expires_at, 
           claimed_at,
           claimed_by_user_id,
-          claimed_by_phone
+          CASE 
+            WHEN claimed_by_phone IS NOT NULL THEN claimed_by_phone
+            WHEN claimed_by_user_id IS NOT NULL THEN 'User: ' || claimed_by_user_id
+            ELSE NULL
+          END as claimed_by_phone
         FROM vouchers
         ${whereClause}
         ORDER BY created_at DESC
