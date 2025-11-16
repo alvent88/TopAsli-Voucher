@@ -48,7 +48,7 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
       let paramIndex = 1;
 
       if (search) {
-        whereConditions.push(`(v.code ILIKE $${paramIndex} OR v.claimed_by_email ILIKE $${paramIndex} OR u.phone ILIKE $${paramIndex})`);
+        whereConditions.push(`(v.code ILIKE $${paramIndex} OR COALESCE(v.claimed_by_email, u.phone) ILIKE $${paramIndex})`);
         params.push(`%${search}%`);
         paramIndex++;
       }
