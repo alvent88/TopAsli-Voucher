@@ -48,36 +48,35 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
       let paramIndex = 1;
 
       if (search) {
-        whereConditions.push(`(v.code ILIKE $${paramIndex} OR COALESCE(v.claimed_by_email, u.phone) ILIKE $${paramIndex})`);
+        whereConditions.push(`(code ILIKE $${paramIndex} OR claimed_by_email ILIKE $${paramIndex})`);
         params.push(`%${search}%`);
         paramIndex++;
       }
 
       if (status === "claimed") {
-        whereConditions.push("v.claimed_by_user_id IS NOT NULL");
+        whereConditions.push("claimed_by_user_id IS NOT NULL");
       } else if (status === "unclaimed") {
-        whereConditions.push("v.claimed_by_user_id IS NULL");
+        whereConditions.push("claimed_by_user_id IS NULL");
       }
 
       const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
       const query = `
         SELECT 
-          v.code, 
-          v.amount, 
-          v.is_active, 
-          v.max_uses, 
-          v.used_count, 
-          v.created_by, 
-          v.created_at, 
-          v.expires_at, 
-          v.claimed_at,
-          v.claimed_by_user_id,
-          COALESCE(v.claimed_by_email, u.phone) as claimed_by_email
-        FROM vouchers v
-        LEFT JOIN users u ON v.claimed_by_user_id = u.id
+          code, 
+          amount, 
+          is_active, 
+          max_uses, 
+          used_count, 
+          created_by, 
+          created_at, 
+          expires_at, 
+          claimed_at,
+          claimed_by_user_id,
+          claimed_by_email
+        FROM vouchers
         ${whereClause}
-        ORDER BY v.created_at DESC
+        ORDER BY created_at DESC
       `;
 
       const rows = await db.rawQueryAll<any>(query, ...params);
