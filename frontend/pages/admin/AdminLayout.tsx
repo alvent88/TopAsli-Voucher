@@ -8,7 +8,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -82,11 +82,8 @@ export default function AdminLayout() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setSidebarOpen(false);
-              }}
+              className="lg:hidden text-white"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <X className="h-6 w-6" />
             </Button>
@@ -96,7 +93,10 @@ export default function AdminLayout() {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
-                <Link key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)}>
+                <Link key={item.path} to={item.path} onClick={() => {
+                  setMobileMenuOpen(false);
+                  setSidebarOpen(false);
+                }}>
                   <Button
                     variant="ghost"
                     className={`w-full justify-start ${
@@ -113,7 +113,10 @@ export default function AdminLayout() {
             })}
           </nav>
           <div className="absolute bottom-0 w-64 p-3 border-t border-slate-800">
-            <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/" onClick={() => {
+              setMobileMenuOpen(false);
+              setSidebarOpen(false);
+            }}>
               <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800">
                 <Home className="mr-3 h-4 w-4 lg:h-5 lg:w-5" />
                 <span className="text-sm lg:text-base">Halaman Utama</span>
@@ -130,7 +133,7 @@ export default function AdminLayout() {
         )}
 
         <main className="flex-1 overflow-y-auto w-full">
-          <div className={`sticky top-0 z-30 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between ${sidebarOpen ? 'lg:hidden' : ''}`}>
+          <div className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
             <Button
               variant="ghost"
               size="icon"
