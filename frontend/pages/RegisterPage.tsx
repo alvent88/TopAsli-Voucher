@@ -178,20 +178,18 @@ export default function RegisterPhoneOnlyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0F1B2B] via-[#1a2332] to-[#0F1B2B] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
-
-      <Card className="w-full max-w-md bg-[#1a1f3a]/80 backdrop-blur-xl border-slate-700 shadow-2xl relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg relative z-10">
         <CardHeader className="space-y-1 pb-6">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-md">
               <UserPlus className="h-8 w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center text-white">
+          <CardTitle className="text-3xl font-bold text-center text-gray-900">
             Daftar Akun
           </CardTitle>
-          <CardDescription className="text-center text-slate-400">
+          <CardDescription className="text-center text-gray-600">
             {step === "input"
               ? "Isi data diri Anda untuk mendaftar"
               : "Masukkan kode OTP yang dikirim via WhatsApp"}
@@ -202,7 +200,7 @@ export default function RegisterPhoneOnlyPage() {
           {step === "input" ? (
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   Nomor WhatsApp
                 </label>
@@ -211,13 +209,13 @@ export default function RegisterPhoneOnlyPage() {
                   placeholder="08123456789"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Nama Lengkap
                 </label>
@@ -226,13 +224,13 @@ export default function RegisterPhoneOnlyPage() {
                   placeholder="Nama Anda"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Tanggal Lahir
                 </label>
@@ -240,13 +238,13 @@ export default function RegisterPhoneOnlyPage() {
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Lock className="h-4 w-4" />
                   Password
                 </label>
@@ -255,13 +253,13 @@ export default function RegisterPhoneOnlyPage() {
                   placeholder="Password Anda"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Lock className="h-4 w-4" />
                   Konfirmasi Password
                 </label>
@@ -270,7 +268,7 @@ export default function RegisterPhoneOnlyPage() {
                   placeholder="Ulangi password Anda"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -278,25 +276,25 @@ export default function RegisterPhoneOnlyPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold h-11"
+                className="w-full bg-primary hover:bg-blue-600 text-white font-semibold h-11"
               >
                 {loading ? "Mengirim OTP..." : "Daftar"}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleVerifyAndRegister} className="space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-slate-300">
+                  <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-gray-700">
                     Kode OTP telah dikirim ke WhatsApp Anda di nomor{" "}
-                    <span className="font-semibold text-white">{formData.phoneNumber}</span>
+                    <span className="font-semibold text-gray-900">{formData.phoneNumber}</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   Kode OTP
                 </label>
@@ -305,7 +303,7 @@ export default function RegisterPhoneOnlyPage() {
                   placeholder="Masukkan 6 digit OTP"
                   value={otpForm.otp}
                   onChange={(e) => setOtpForm({ otp: e.target.value.replace(/\D/g, "").slice(0, 6) })}
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-center text-2xl tracking-widest"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 text-center text-2xl tracking-widest"
                   maxLength={6}
                   required
                 />
@@ -314,14 +312,14 @@ export default function RegisterPhoneOnlyPage() {
               <Button
                 type="submit"
                 disabled={loading || otpForm.otp.length !== 6}
-                className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold h-11"
+                className="w-full bg-primary hover:bg-blue-600 text-white font-semibold h-11"
               >
                 {loading ? "Memverifikasi..." : "Verifikasi & Daftar"}
               </Button>
 
               <div className="text-center">
                 {countdown > 0 ? (
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-gray-600">
                     Kirim ulang OTP dalam {countdown} detik
                   </p>
                 ) : (
@@ -329,7 +327,7 @@ export default function RegisterPhoneOnlyPage() {
                     type="button"
                     onClick={handleResendOTP}
                     disabled={loading}
-                    className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+                    className="text-sm text-primary hover:text-blue-600 font-medium"
                   >
                     Kirim Ulang OTP
                   </button>
@@ -340,7 +338,7 @@ export default function RegisterPhoneOnlyPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => setStep("input")}
-                className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
+                className="w-full text-gray-700 hover:text-gray-900 hover:bg-gray-100"
               >
                 Ubah Data
               </Button>
@@ -348,10 +346,10 @@ export default function RegisterPhoneOnlyPage() {
           )}
 
           {step === "input" && (
-            <div className="pt-4 border-t border-slate-700 text-center">
-              <p className="text-sm text-slate-400">
+            <div className="pt-4 border-t border-gray-200 text-center">
+              <p className="text-sm text-gray-600">
                 Sudah punya akun?{" "}
-                <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link to="/login" className="text-primary hover:text-blue-600 font-medium">
                   Login di sini
                 </Link>
               </p>
@@ -362,7 +360,7 @@ export default function RegisterPhoneOnlyPage() {
 
       <Link
         to="/"
-        className="absolute top-6 left-6 flex items-center gap-3 text-white hover:opacity-80 transition-opacity z-20"
+        className="absolute top-6 left-6 flex items-center gap-3 text-gray-900 hover:opacity-80 transition-opacity z-20"
       >
         <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
         <span className="text-xl font-bold">TopAsli</span>
