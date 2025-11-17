@@ -23,7 +23,7 @@ export interface PPOBProduct {
 export interface PPOBResponse {
   status: string;
   message: string;
-  list_ppob?: PPOBProduct[];
+  list_voucher?: PPOBProduct[];
 }
 
 export interface SyncPPOBResponse {
@@ -181,7 +181,7 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
         };
       }
 
-      const ppobProducts = ppobData.list_ppob || [];
+      const ppobProducts = ppobData.list_voucher || [];
       console.log(`📦 Received ${ppobProducts.length} PPOB products from UniPlay`);
       
       let productsSynced = 0;
