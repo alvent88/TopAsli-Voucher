@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload } from "lucide-react";
+import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,6 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +83,8 @@ export default function AdminUsers() {
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadUsers();
@@ -178,7 +187,15 @@ export default function AdminUsers() {
       <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
-  const sortedUsers = [...users].sort((a, b) => {
+  const filteredUsers = users.filter((user) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const fullName = (user.fullName || user.firstName || "").toLowerCase();
+    const phone = (user.phoneNumber || "").toLowerCase();
+    return fullName.includes(query) || phone.includes(query);
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
     let aVal: any;
     let bVal: any;
 
@@ -459,6 +476,18 @@ export default function AdminUsers() {
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader>
           <CardTitle className="text-white">Daftar Pengguna</CardTitle>
+          <div className="mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Cari berdasarkan nama atau nomor HP..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -620,106 +649,105 @@ export default function AdminUsers() {
                       <TableCell className="text-slate-300 text-xs">
                         {user.lastSignInAt ? formatDate(user.lastSignInAt) : "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         {canEdit ? (
-                            <div className="flex flex-col gap-1">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleViewTransactions(user)}
-                                className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-600/50 w-full"
+                                className="h-8 w-8 p-0 border-slate-600 hover:bg-slate-800"
                               >
-                                <History className="h-3 w-3 mr-1" />
-                                <span className="text-xs">Riwayat</span>
+                                <MoreVertical className="h-4 w-4 text-slate-400" />
                               </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-white w-48">
+                              <DropdownMenuItem
+                                onClick={() => handleViewTransactions(user)}
+                                className="hover:bg-purple-600/20 cursor-pointer"
+                              >
+                                <History className="mr-2 h-4 w-4 text-purple-400" />
+                                Riwayat Transaksi
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuItem
+                                onClick={() => handleEditClick(user)}
+                                className="hover:bg-blue-600/20 cursor-pointer"
+                              >
+                                <Edit className="mr-2 h-4 w-4 text-blue-400" />
+                                Edit Data
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator className="bg-slate-800" />
 
                               {user.isBanned ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
+                                <DropdownMenuItem
                                   onClick={() => handleUnbanUser(user)}
-                                  className="bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-600/50 w-full"
+                                  className="hover:bg-green-600/20 cursor-pointer"
                                 >
-                                  <Unlock className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">Unban</span>
-                                </Button>
+                                  <Unlock className="mr-2 h-4 w-4 text-green-400" />
+                                  Unban User
+                                </DropdownMenuItem>
                               ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
+                                <DropdownMenuItem
                                   onClick={() => handleBanUser(user)}
-                                  className="bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-600/50 w-full"
+                                  className="hover:bg-orange-600/20 cursor-pointer"
                                 >
-                                  <Ban className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">Ban</span>
-                                </Button>
+                                  <Ban className="mr-2 h-4 w-4 text-orange-400" />
+                                  Ban User
+                                </DropdownMenuItem>
                               )}
-                              
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditClick(user)}
-                                className="bg-slate-600/20 hover:bg-slate-600/30 text-slate-300 border border-slate-600/50 w-full"
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                <span className="text-xs">Edit</span>
-                              </Button>
+
+                              <DropdownMenuSeparator className="bg-slate-800" />
 
                               {user.isSuperAdmin ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
+                                <DropdownMenuItem
                                   onClick={() => handleDemoteFromAdmin(user)}
-                                  className="bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border border-orange-600/50 w-full"
+                                  className="hover:bg-orange-600/20 cursor-pointer"
                                 >
-                                  <ShieldOff className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">Turunkan SA</span>
-                                </Button>
+                                  <ShieldOff className="mr-2 h-4 w-4 text-orange-400" />
+                                  Turunkan dari SA
+                                </DropdownMenuItem>
                               ) : user.isAdmin ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
+                                <DropdownMenuItem
                                   onClick={() => handleDemoteFromAdmin(user)}
-                                  className="bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border border-orange-600/50 w-full"
+                                  className="hover:bg-orange-600/20 cursor-pointer"
                                 >
-                                  <ShieldOff className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">Turunkan</span>
-                                </Button>
+                                  <ShieldOff className="mr-2 h-4 w-4 text-orange-400" />
+                                  Turunkan dari Admin
+                                </DropdownMenuItem>
                               ) : (
                                 <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
+                                  <DropdownMenuItem
                                     onClick={() => handlePromoteToAdmin(user, "admin")}
-                                    className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-600/50 w-full"
+                                    className="hover:bg-blue-600/20 cursor-pointer"
                                   >
-                                    <Shield className="h-3 w-3 mr-1" />
-                                    <span className="text-xs">Admin</span>
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
+                                    <Shield className="mr-2 h-4 w-4 text-blue-400" />
+                                    Jadikan Admin
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
                                     onClick={() => handlePromoteToAdmin(user, "superadmin")}
-                                    className="bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 border border-yellow-600/50 w-full"
+                                    className="hover:bg-yellow-600/20 cursor-pointer"
                                   >
-                                    <Crown className="h-3 w-3 mr-1" />
-                                    <span className="text-xs">Superadmin</span>
-                                  </Button>
+                                    <Crown className="mr-2 h-4 w-4 text-yellow-400" />
+                                    Jadikan Superadmin
+                                  </DropdownMenuItem>
                                 </>
                               )}
 
-                              <Button
-                                variant="destructive"
-                                size="sm"
+                              <DropdownMenuSeparator className="bg-slate-800" />
+
+                              <DropdownMenuItem
                                 onClick={() => handleDeleteClick(user)}
-                                className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/50 w-full"
+                                className="hover:bg-red-600/20 cursor-pointer text-red-400"
                               >
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                <span className="text-xs">Hapus</span>
-                              </Button>
-                            </div>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus User
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         ) : (
-                          <Badge className="bg-slate-600 text-xs w-full">View Only</Badge>
+                          <Badge className="bg-slate-600 text-xs">View Only</Badge>
                         )}
                       </TableCell>
                     </TableRow>
