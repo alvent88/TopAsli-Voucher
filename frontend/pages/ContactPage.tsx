@@ -167,20 +167,20 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-gradient-to-br from-[#E0B872]/20 to-[#F5D99B]/20 border-[#E0B872]/40">
+            <Card className="bg-gradient-to-br from-[#E0B872]/90 to-[#F5D99B]/90 border-[#E0B872]/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Mail className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#0F1B2B] to-[#1C2E44] rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-6 w-6 text-[#E0B872]" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Email</h3>
-                    <p className="text-slate-200 text-sm mb-2">
+                    <h3 className="text-[#0F1B2B] font-semibold mb-1">Email</h3>
+                    <p className="text-slate-700 text-sm mb-2">
                       Kirim email untuk pertanyaan detail
                     </p>
                     <a
                       href="mailto:cvtopasli@gmail.com"
-                      className="text-[#E0B872] hover:text-[#F5D99B] text-sm font-medium"
+                      className="text-[#1C2E44] hover:text-[#0F1B2B] text-sm font-medium"
                     >
                       cvtopasli@gmail.com
                     </a>
@@ -189,41 +189,41 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500/40">
+            <Card className="bg-gradient-to-br from-green-400/90 to-emerald-400/90 border-green-500/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#0F1B2B] to-[#1C2E44] rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MessageCircle className="h-6 w-6 text-green-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">WhatsApp</h3>
-                    <p className="text-slate-200 text-sm mb-2">Chat langsung dengan tim kami</p>
+                    <h3 className="text-[#0F1B2B] font-semibold mb-1">WhatsApp</h3>
+                    <p className="text-slate-700 text-sm mb-2">Chat langsung dengan tim kami</p>
                     <a
                       href="https://api.whatsapp.com/send/?phone=6282225058000&text=Halo%20kak,%20saya%20mau%20tanya&type=phone_number&app_absent=0"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       <MessageCircle className="h-4 w-4" />
                       Chat Sekarang
                     </a>
-                    <p className="text-slate-200 text-xs mt-2">+62 822-2505-8000</p>
+                    <p className="text-slate-700 text-xs mt-2">+62 822-2505-8000</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/40">
+            <Card className="bg-gradient-to-br from-purple-400/90 to-pink-400/90 border-purple-500/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Clock className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#0F1B2B] to-[#1C2E44] rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-6 w-6 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold mb-1">Jam Operasional</h3>
-                    <p className="text-slate-200 text-sm">Senin - Minggu</p>
-                    <p className="text-white font-semibold">24 Jam / 7 Hari</p>
-                    <p className="text-slate-200 text-xs mt-2">Kami selalu siap membantu Anda</p>
+                    <h3 className="text-[#0F1B2B] font-semibold mb-1">Jam Operasional</h3>
+                    <p className="text-slate-700 text-sm">Senin - Minggu</p>
+                    <p className="text-[#0F1B2B] font-semibold">24 Jam / 7 Hari</p>
+                    <p className="text-slate-700 text-xs mt-2">Kami selalu siap membantu Anda</p>
                   </div>
                 </div>
               </CardContent>
