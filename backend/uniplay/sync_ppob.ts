@@ -112,7 +112,7 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
       const ppobSignatureArray = Array.from(new Uint8Array(ppobSignatureBuffer));
       const ppobSignature = ppobSignatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const ppobResponse = await fetch(`${config.uniplay.baseUrl}/inquiry-PPOB`, {
+      const ppobResponse = await fetch(`${config.uniplay.baseUrl}/inquiry-ppob`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,10 +124,10 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
 
       const ppobResponseText = await ppobResponse.text();
 
-      const curlCommand = `curl --location '${config.uniplay.baseUrl}/inquiry-PPOB' \\
+      const curlCommand = `curl --location 'https://api-reseller.uniplay.id/v1/inquiry-ppob' \\
 --header 'UPL-ACCESS-TOKEN: FROM-GET-ACCESS-TOKEN' \\
 --header 'UPL-SIGNATURE: GENERATED SIGNATURE' \\
---data '${ppobJsonString}'`;
+--data '{"api_key":"YOUR API KEY","timestamp":"YYYY-MM-DD hh:mm:ss"}'`;
 
       return {
         success: ppobResponse.ok,
