@@ -67,9 +67,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-lg flex items-center justify-center">
-                <Gamepad2 className="h-6 w-6 text-[#0F1B2B]" />
-              </div>
+              <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
               <span className="text-2xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">TopAsli</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
@@ -314,9 +312,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-lg flex items-center justify-center">
-                  <Gamepad2 className="h-6 w-6 text-[#0F1B2B]" />
-                </div>
+                <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
                 <span className="text-xl font-bold text-white">TopAsli</span>
               </div>
               <p className="text-slate-400 text-sm">
