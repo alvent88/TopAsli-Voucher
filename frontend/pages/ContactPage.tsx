@@ -167,7 +167,7 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-gradient-to-br from-[#E0B872]/10 to-[#F5D99B]/10 border-[#E0B872]/30">
+            <Card className="bg-gradient-to-br from-[#E0B872]/20 to-[#F5D99B]/20 border-[#E0B872]/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-xl flex items-center justify-center flex-shrink-0">
@@ -175,7 +175,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Email</h3>
-                    <p className="text-slate-400 text-sm mb-2">
+                    <p className="text-slate-200 text-sm mb-2">
                       Kirim email untuk pertanyaan detail
                     </p>
                     <a
@@ -189,7 +189,7 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-600/10 to-emerald-600/10 border-slate-700">
+            <Card className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -197,7 +197,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">WhatsApp</h3>
-                    <p className="text-slate-400 text-sm mb-2">Chat langsung dengan tim kami</p>
+                    <p className="text-slate-200 text-sm mb-2">Chat langsung dengan tim kami</p>
                     <a
                       href="https://api.whatsapp.com/send/?phone=6282225058000&text=Halo%20kak,%20saya%20mau%20tanya&type=phone_number&app_absent=0"
                       target="_blank"
@@ -207,13 +207,13 @@ export default function ContactPage() {
                       <MessageCircle className="h-4 w-4" />
                       Chat Sekarang
                     </a>
-                    <p className="text-slate-400 text-xs mt-2">+62 822-2505-8000</p>
+                    <p className="text-slate-200 text-xs mt-2">+62 822-2505-8000</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border-slate-700">
+            <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500/40">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -221,9 +221,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold mb-1">Jam Operasional</h3>
-                    <p className="text-slate-400 text-sm">Senin - Minggu</p>
+                    <p className="text-slate-200 text-sm">Senin - Minggu</p>
                     <p className="text-white font-semibold">24 Jam / 7 Hari</p>
-                    <p className="text-slate-400 text-xs mt-2">Kami selalu siap membantu Anda</p>
+                    <p className="text-slate-200 text-xs mt-2">Kami selalu siap membantu Anda</p>
                   </div>
                 </div>
               </CardContent>
