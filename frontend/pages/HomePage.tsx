@@ -16,6 +16,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showAllGames, setShowAllGames] = useState(false);
   const [showAllVouchers, setShowAllVouchers] = useState(false);
+  const [showAllPPOB, setShowAllPPOB] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -48,16 +49,27 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
-  const gameProducts = filteredProducts.filter(p => p.category?.toLowerCase() !== 'voucher');
-  const voucherProducts = filteredProducts.filter(p => p.category?.toLowerCase() === 'voucher');
+  const gameProducts = filteredProducts.filter(p => 
+    !p.category?.toLowerCase().includes('voucher') && 
+    !p.category?.toLowerCase().includes('ppob')
+  );
+  const voucherProducts = filteredProducts.filter(p => 
+    p.category?.toLowerCase().includes('voucher') && 
+    !p.category?.toLowerCase().includes('ppob')
+  );
+  const ppobProducts = filteredProducts.filter(p => 
+    p.category?.toLowerCase().includes('ppob')
+  );
 
   const ITEMS_PER_ROW = 6;
   const INITIAL_ROWS = 3;
   const initialGameCount = ITEMS_PER_ROW * INITIAL_ROWS;
   const initialVoucherCount = ITEMS_PER_ROW * INITIAL_ROWS;
+  const initialPPOBCount = ITEMS_PER_ROW * INITIAL_ROWS;
 
   const displayedGameProducts = showAllGames ? gameProducts : gameProducts.slice(0, initialGameCount);
   const displayedVoucherProducts = showAllVouchers ? voucherProducts : voucherProducts.slice(0, initialVoucherCount);
+  const displayedPPOBProducts = showAllPPOB ? ppobProducts : ppobProducts.slice(0, initialPPOBCount);
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
@@ -212,6 +224,62 @@ export default function HomePage() {
                     >
                       {showAllGames ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lainnya'}
                       <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${showAllGames ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {ppobProducts.length > 0 && (
+              <div className="mb-12 md:mb-16">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
+                  <svg className="h-6 w-6 md:h-8 md:w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-primary">
+                    PPOB
+                  </span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                  {displayedPPOBProducts.map((product) => (
+                    <Link key={product.id} to={`/product/${product.slug}`}>
+                      <Card className="group relative bg-white border-gray-200 hover:border-primary transition-all duration-300 cursor-pointer h-full overflow-hidden hover:shadow-lg">
+                        <CardContent className="p-0 relative z-10">
+                          <div className="relative aspect-square overflow-hidden">
+                            {product.iconUrl ? (
+                              <img
+                                src={product.iconUrl}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                <svg className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-transparent to-primary/0 group-hover:from-primary/10 group-hover:to-primary/5 transition-all duration-300" />
+                          </div>
+                          <div className="p-2 md:p-3 bg-white">
+                            <h3 className="font-semibold text-gray-900 text-xs md:text-sm group-hover:text-primary transition-colors line-clamp-2">
+                              {product.name}
+                            </h3>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+                {ppobProducts.length > initialPPOBCount && (
+                  <div className="flex justify-center mt-8">
+                    <Button
+                      onClick={() => setShowAllPPOB(!showAllPPOB)}
+                      className="bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                    >
+                      {showAllPPOB ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lainnya'}
+                      <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${showAllPPOB ? 'rotate-180' : ''}`} />
                     </Button>
                   </div>
                 )}
