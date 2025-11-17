@@ -8,6 +8,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isChecking, setIsChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -70,7 +71,8 @@ export default function AdminLayout() {
           fixed lg:static inset-y-0 left-0 z-50
           w-64 border-r border-slate-800 bg-slate-900
           transform transition-transform duration-300 ease-in-out
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
+          ${sidebarOpen ? 'lg:translate-x-0' : 'lg:-translate-x-full'}
         `}>
           <div className="p-4 lg:p-6 flex items-center justify-between">
             <div>
@@ -80,8 +82,11 @@ export default function AdminLayout() {
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-white"
-              onClick={() => setMobileMenuOpen(false)}
+              className="text-white"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setSidebarOpen(false);
+              }}
             >
               <X className="h-6 w-6" />
             </Button>
@@ -125,15 +130,20 @@ export default function AdminLayout() {
         )}
 
         <main className="flex-1 overflow-y-auto w-full">
-          <div className="lg:hidden sticky top-0 z-30 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
+          <div className={`sticky top-0 z-30 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between ${sidebarOpen ? 'lg:hidden' : ''}`}>
             <Button
               variant="ghost"
               size="icon"
               className="text-white"
-              onClick={() => setMobileMenuOpen(true)}
+              onClick={() => {
+                setMobileMenuOpen(true);
+                setSidebarOpen(true);
+              }}
             >
               <Menu className="h-6 w-6" />
             </Button>
+            <h2 className="text-white font-semibold">Admin Panel</h2>
+            <div className="w-10"></div>
           </div>
           <div className="p-4 lg:p-8">
             <Outlet />
