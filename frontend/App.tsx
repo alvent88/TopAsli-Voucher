@@ -111,7 +111,14 @@ function AppInner() {
 
 export default function App() {
   return (
-    <div className="dark" style={{ backgroundColor: '#0F1B2B', minHeight: '100vh' }}>
+    <div className="dark" style={{ 
+      backgroundColor: '#0F1B2B', 
+      minHeight: '100vh',
+      '--color-card': '#1C2E44',
+      '--color-accent': '#E0B872',
+      '--color-primary': '#E0B872',
+      '--color-primary-foreground': '#0F1B2B',
+    } as React.CSSProperties}>
       <BrowserRouter>
         <AppInner />
       </BrowserRouter>
