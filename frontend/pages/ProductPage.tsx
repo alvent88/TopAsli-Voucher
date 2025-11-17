@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useBackend } from "@/lib/useBackend";
 import type { Product } from "~backend/product/list";
 import type { Package } from "~backend/pkg/list";
-import { ArrowLeft, Gamepad2, Flame, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Flame, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -301,9 +301,7 @@ export default function ProductPage() {
                       className="h-12 w-12 md:h-16 md:w-16 rounded-lg object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-12 w-12 md:h-16 md:w-16 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Gamepad2 className="h-6 w-6 md:h-8 md:w-8 text-purple-400" />
-                    </div>
+                    <img src="/logo.png" alt="TopAsli" className="h-12 w-12 md:h-16 md:w-16 rounded-lg object-cover flex-shrink-0" />
                   )}
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-white text-base md:text-lg break-words">{product.name}</CardTitle>

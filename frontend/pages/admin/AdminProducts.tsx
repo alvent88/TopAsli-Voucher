@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
 import type { Product } from "~backend/product/list";
-import { RefreshCw, Gamepad2, Plus, Pencil, Trash2, Upload, X, Search } from "lucide-react";
+import { RefreshCw, Plus, Pencil, Trash2, Upload, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -428,9 +428,7 @@ export default function AdminProducts() {
                             className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="h-10 w-10 md:h-12 md:w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                            <Gamepad2 className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
-                          </div>
+                          <img src="/logo.png" alt="TopAsli" className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover" />
                         )}
                       </TableCell>
                       <TableCell className="text-white font-medium text-xs md:text-sm max-w-[150px] truncate">
@@ -768,9 +766,7 @@ export default function AdminProducts() {
                     className="h-12 w-12 rounded-lg object-cover"
                   />
                 ) : (
-                  <div className="h-12 w-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                    <Gamepad2 className="h-6 w-6 text-purple-400" />
-                  </div>
+                  <img src="/logo.png" alt="TopAsli" className="h-12 w-12 rounded-lg object-cover" />
                 )}
                 <div>
                   <p className="text-white font-medium">{selectedProduct.name}</p>

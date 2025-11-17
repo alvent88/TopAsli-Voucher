@@ -1,4 +1,3 @@
-import { Gamepad2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthButton } from "@/components/AuthButton";
 
@@ -9,9 +8,7 @@ export default function TermsPage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Gamepad2 className="h-6 w-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 TopAsli
               </span>
@@ -176,9 +173,7 @@ export default function TermsPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Gamepad2 className="h-6 w-6 text-white" />
-                </div>
+                <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
                 <span className="text-xl font-bold text-white">TopAsli</span>
               </div>
               <p className="text-slate-400 text-sm">

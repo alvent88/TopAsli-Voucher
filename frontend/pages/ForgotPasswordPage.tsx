@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Gamepad2, KeyRound, Phone, Lock, ArrowLeft, Shield } from "lucide-react";
+import { KeyRound, Phone, Lock, ArrowLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -351,9 +351,7 @@ export default function ForgotPasswordPhonePage() {
         to="/"
         className="absolute top-6 left-6 flex items-center gap-3 text-white hover:opacity-80 transition-opacity z-20"
       >
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-          <Gamepad2 className="h-6 w-6 text-white" />
-        </div>
+        <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
         <span className="text-xl font-bold">TopAsli</span>
       </Link>
     </div>
