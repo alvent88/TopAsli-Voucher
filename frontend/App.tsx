@@ -111,8 +111,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppInner />
-    </BrowserRouter>
+    <div className="dark" style={{ backgroundColor: '#0F1B2B', minHeight: '100vh' }}>
+      <BrowserRouter>
+        <AppInner />
+      </BrowserRouter>
+    </div>
   );
 }
