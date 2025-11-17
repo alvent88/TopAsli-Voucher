@@ -65,18 +65,18 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
-      <nav className="border-b border-slate-800 bg-[#0f1229] sticky top-0 z-50 shadow-lg">
+    <div className="min-h-screen bg-[#0F1B2B]">
+      <nav className="border-b border-slate-800 bg-[#1C2E44] sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">
                 TopAsli
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-300 hover:text-white transition-colors">
+              <Link to="/" className="text-slate-300 hover:text-[#E0B872] transition-colors">
                 Games
               </Link>
               <Link to="/contact" className="text-white font-semibold">
@@ -90,11 +90,11 @@ export default function ContactPage() {
         </div>
       </nav>
 
-      <div className="bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 py-16 border-b border-slate-800">
+      <div className="bg-gradient-to-br from-[#E0B872]/10 via-[#1C2E44] to-[#0F1B2B] py-16 border-b border-[#E0B872]/20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="mb-4 text-5xl md:text-6xl font-bold text-white">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">
                 Hubungi Kami
               </span>
             </h1>
@@ -108,7 +108,7 @@ export default function ContactPage() {
       <div className="container mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div className="lg:col-span-2">
-            <Card className="bg-[#1a1f3a] border-slate-700">
+            <Card className="bg-[#1C2E44] border-[#E0B872]/30">
               <CardHeader>
                 <CardTitle className="text-white text-2xl">Kirim Pesan</CardTitle>
                 <p className="text-slate-400 text-sm">
@@ -156,7 +156,7 @@ export default function ContactPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+                    className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold"
                   >
                     <Send className="mr-2 h-4 w-4" />
                     {loading ? "Mengirim..." : "Kirim Pesan"}
@@ -167,10 +167,10 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-gradient-to-br from-blue-600/10 to-purple-600/10 border-slate-700">
+            <Card className="bg-gradient-to-br from-[#E0B872]/10 to-[#F5D99B]/10 border-[#E0B872]/30">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-xl flex items-center justify-center flex-shrink-0">
                     <Mail className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -180,7 +180,7 @@ export default function ContactPage() {
                     </p>
                     <a
                       href="mailto:cvtopasli@gmail.com"
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                      className="text-[#E0B872] hover:text-[#F5D99B] text-sm font-medium"
                     >
                       cvtopasli@gmail.com
                     </a>
@@ -232,7 +232,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <footer className="bg-[#0f1229] border-t border-slate-800">
+      <footer className="bg-[#1C2E44] border-t border-slate-800">
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div>

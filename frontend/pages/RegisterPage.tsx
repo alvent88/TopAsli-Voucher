@@ -278,7 +278,7 @@ export default function RegisterPhoneOnlyPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+                className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold h-11"
               >
                 {loading ? "Mengirim OTP..." : "Daftar"}
               </Button>
@@ -314,7 +314,7 @@ export default function RegisterPhoneOnlyPage() {
               <Button
                 type="submit"
                 disabled={loading || otpForm.otp.length !== 6}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+                className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold h-11"
               >
                 {loading ? "Memverifikasi..." : "Verifikasi & Daftar"}
               </Button>

@@ -82,13 +82,13 @@ export default function LoginPhoneOnlyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0F1B2B] via-[#1C2E44] to-[#0F1B2B] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
 
-      <Card className="w-full max-w-md bg-[#1a1f3a]/80 backdrop-blur-xl border-slate-700 shadow-2xl relative z-10">
+      <Card className="w-full max-w-md bg-[#1C2E44]/80 backdrop-blur-xl border-[#E0B872]/30 shadow-2xl relative z-10">
         <CardHeader className="space-y-1 pb-6">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#E0B872] to-[#F5D99B] rounded-2xl flex items-center justify-center shadow-lg">
               <LogIn className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function LoginPhoneOnlyPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+              className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold h-11"
             >
               {loading ? (
                 <>
@@ -153,7 +153,7 @@ export default function LoginPhoneOnlyPage() {
           <div className="text-center">
             <Link
               to="/forgot-password"
-              className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+              className="text-sm text-[#E0B872] hover:text-[#F5D99B] font-medium"
             >
               Lupa password?
             </Link>
@@ -162,7 +162,7 @@ export default function LoginPhoneOnlyPage() {
           <div className="pt-4 border-t border-slate-700 text-center">
             <p className="text-sm text-slate-400">
               Belum punya akun?{" "}
-              <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium">
+              <Link to="/register" className="text-[#E0B872] hover:text-[#F5D99B] font-medium">
                 Daftar di sini
               </Link>
             </p>

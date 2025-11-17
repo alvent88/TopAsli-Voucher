@@ -1,25 +1,23 @@
 import { Mail, MessageCircle, Phone, MapPin } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function PrivacyPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-[#0F1B2B]">
+      <nav className="border-b border-slate-800 bg-[#1C2E44] sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-xl">T</span>
-              </div>
-              <span className="text-white font-bold text-xl">TopAsli</span>
-            </div>
+            <Link to="/" className="flex items-center gap-3">
+              <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
+              <span className="text-xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">TopAsli</span>
+            </Link>
             <Button 
               onClick={() => navigate('/')} 
               variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              className="border-[#E0B872]/30 text-slate-300 hover:bg-[#1C2E44] hover:text-[#E0B872]"
             >
               Kembali
             </Button>
@@ -28,7 +26,7 @@ export default function PrivacyPage() {
       </nav>
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-8 md:p-12">
+        <div className="bg-[#1C2E44] border border-[#E0B872]/30 rounded-xl p-8 md:p-12">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
             Kebijakan Privasi CV Top Asli
           </h1>
@@ -161,21 +159,21 @@ export default function PrivacyPage() {
                 <h3 className="text-xl font-semibold text-white mb-4">CV Top Asli</h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-blue-400 flex-shrink-0 mt-1" />
+                    <MapPin className="h-5 w-5 text-[#E0B872] flex-shrink-0 mt-1" />
                     <p className="text-slate-300">
                       Desa Jetis, Kecamatan Jaten, Kabupaten Karanganyar<br />
                       Daerah Industri Cangkromo, Palur, Jawa Tengah
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-blue-400" />
-                    <a href="mailto:cvtopasli@gmail.com" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    <Mail className="h-5 w-5 text-[#E0B872]" />
+                    <a href="mailto:cvtopasli@gmail.com" className="text-[#E0B872] hover:text-[#F5D99B] transition-colors">
                       cvtopasli@gmail.com
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-blue-400" />
-                    <a href="tel:0271825970" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    <Phone className="h-5 w-5 text-[#E0B872]" />
+                    <a href="tel:0271825970" className="text-[#E0B872] hover:text-[#F5D99B] transition-colors">
                       0271-825970
                     </a>
                   </div>
@@ -191,15 +189,13 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm mt-20">
+      <footer className="border-t border-slate-800 bg-[#1C2E44] mt-20">
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">T</span>
-                </div>
-                <span className="text-white font-bold text-xl">TopAsli</span>
+                <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
+                <span className="text-xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">TopAsli</span>
               </div>
               <p className="text-slate-400 text-sm leading-relaxed">
                 Platform voucher digital untuk top-up game favorit Anda dengan mudah dan aman.
@@ -208,9 +204,9 @@ export default function PrivacyPage() {
             <div>
               <h4 className="text-white font-semibold mb-4">Informasi</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="/" className="text-slate-400 hover:text-white transition-colors">Beranda</a></li>
-                <li><a href="/privacy" className="text-slate-400 hover:text-white transition-colors">Kebijakan Privasi</a></li>
-                <li><a href="/terms" className="text-slate-400 hover:text-white transition-colors">Syarat & Ketentuan</a></li>
+                <li><a href="/" className="text-slate-400 hover:text-[#E0B872] transition-colors">Beranda</a></li>
+                <li><a href="/privacy" className="text-slate-400 hover:text-[#E0B872] transition-colors">Kebijakan Privasi</a></li>
+                <li><a href="/terms" className="text-slate-400 hover:text-[#E0B872] transition-colors">Syarat & Ketentuan</a></li>
               </ul>
             </div>
             <div>

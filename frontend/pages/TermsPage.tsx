@@ -3,21 +3,21 @@ import { AuthButton } from "@/components/AuthButton";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
-      <nav className="border-b border-slate-800 bg-[#0f1229] sticky top-0 z-50 shadow-lg">
+    <div className="min-h-screen bg-[#0F1B2B]">
+      <nav className="border-b border-slate-800 bg-[#1C2E44] sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">
                 TopAsli
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-300 hover:text-white transition-colors">
+              <Link to="/" className="text-slate-300 hover:text-[#E0B872] transition-colors">
                 Home
               </Link>
-              <Link to="/contact" className="text-slate-300 hover:text-white transition-colors">
+              <Link to="/contact" className="text-slate-300 hover:text-[#E0B872] transition-colors">
                 Kontak
               </Link>
             </div>
@@ -28,11 +28,11 @@ export default function TermsPage() {
         </div>
       </nav>
 
-      <div className="bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 py-16 border-b border-slate-800">
+      <div className="bg-gradient-to-br from-[#E0B872]/10 via-[#1C2E44] to-[#0F1B2B] py-16 border-b border-[#E0B872]/20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="mb-4 text-5xl md:text-6xl font-bold text-white">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">
                 Syarat dan Ketentuan
               </span>
             </h1>
@@ -44,7 +44,7 @@ export default function TermsPage() {
       </div>
 
       <div className="container mx-auto px-4 py-16 max-w-4xl">
-        <div className="bg-[#1a1f3a] border border-slate-700 rounded-2xl p-8 text-slate-300 space-y-8">
+        <div className="bg-[#1C2E44] border border-[#E0B872]/30 rounded-2xl p-8 text-slate-300 space-y-8">
           
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">1. Ketentuan Umum</h2>
@@ -168,7 +168,7 @@ export default function TermsPage() {
         </div>
       </div>
 
-      <footer className="bg-[#0f1229] border-t border-slate-800">
+      <footer className="bg-[#1C2E44] border-t border-slate-800">
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div>

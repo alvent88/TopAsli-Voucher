@@ -291,7 +291,7 @@ export default function ProductPage() {
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-[#1C2E44] border-[#E0B872]/30">
               <CardHeader className="pb-3 md:pb-6">
                 <div className="flex items-center gap-3 md:gap-4">
                   {product.iconUrl ? (
@@ -400,7 +400,7 @@ export default function ProductPage() {
             </Card>
 
             {packages.some((pkg) => pkg.isSpecialItem) && (
-              <Card className="bg-white/5 border-yellow-500/30">
+              <Card className="bg-[#1C2E44] border-[#E0B872]">
                 <CardHeader className="pb-3 md:pb-6">
                   <div className="flex items-center gap-2">
                     <Flame className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
@@ -463,7 +463,7 @@ export default function ProductPage() {
               </Card>
             )}
 
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-[#1C2E44] border-[#E0B872]/30">
               <CardHeader className="pb-3 md:pb-6">
                 <CardTitle className="text-white text-base md:text-lg">Top Up {product.category}</CardTitle>
               </CardHeader>
@@ -524,7 +524,7 @@ export default function ProductPage() {
           </div>
 
           <div>
-            <Card className="bg-white/5 border-white/10 lg:sticky lg:top-4">
+            <Card className="bg-[#1C2E44] border-[#E0B872]/30 lg:sticky lg:top-4">
               <CardHeader className="pb-3 md:pb-6">
                 <CardTitle className="text-white text-base md:text-lg">Ringkasan Pesanan</CardTitle>
               </CardHeader>
@@ -570,7 +570,7 @@ export default function ProductPage() {
                     )) ||
                     loading
                   }
-                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                  className="w-full bg-gradient-to-r from-[#E0B872] to-[#F5D99B] hover:from-[#E0B872]/90 hover:to-[#F5D99B]/90 text-[#0F1B2B] font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                 >
                   {validationStatus === "validating" ? "Memvalidasi..." : 
                    validationStatus === "invalid" ? "Username Invalid" :
