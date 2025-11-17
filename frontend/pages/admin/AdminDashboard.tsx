@@ -513,7 +513,7 @@ export default function AdminDashboard() {
       if (result.success) {
         toast({
           title: "✅ Sync PPOB Berhasil!",
-          description: "Response ditampilkan di textbox",
+          description: `Products: ${result.productsSynced || 0} | Packages: ${result.packagesCreated || 0}`,
         });
       } else {
         toast({
