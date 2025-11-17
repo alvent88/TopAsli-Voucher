@@ -23,6 +23,7 @@ export interface ListLoginHistoryRequest {
   offset?: number;
   ipAddress?: string;
   userId?: string;
+  name?: string;
   loginStatus?: string;
 }
 
@@ -49,19 +50,25 @@ export const listLoginHistory = api(
 
     if (req.ipAddress) {
       paramCount++;
-      whereConditions.push(`ip_address = $${paramCount}`);
-      queryParams.push(req.ipAddress);
+      whereConditions.push(`lh.ip_address ILIKE $${paramCount}`);
+      queryParams.push(`%${req.ipAddress}%`);
     }
 
     if (req.userId) {
       paramCount++;
-      whereConditions.push(`user_id = $${paramCount}`);
+      whereConditions.push(`lh.user_id = $${paramCount}`);
       queryParams.push(req.userId);
+    }
+
+    if (req.name) {
+      paramCount++;
+      whereConditions.push(`u.full_name ILIKE $${paramCount}`);
+      queryParams.push(`%${req.name}%`);
     }
 
     if (req.loginStatus) {
       paramCount++;
-      whereConditions.push(`login_status = $${paramCount}`);
+      whereConditions.push(`lh.login_status = $${paramCount}`);
       queryParams.push(req.loginStatus);
     }
 
@@ -70,7 +77,10 @@ export const listLoginHistory = api(
       : "";
 
     const countRows = await db.rawQueryAll<{ total: string }>(
-      `SELECT COUNT(*) as total FROM login_history ${whereClause}`,
+      `SELECT COUNT(*) as total 
+      FROM login_history lh
+      LEFT JOIN users u ON lh.user_id = u.clerk_user_id
+      ${whereClause}`,
       ...queryParams
     );
     const total = parseInt(countRows[0]?.total || "0");
@@ -198,6 +208,7 @@ export const getUsersByIP = api(
 export interface ExportLoginHistoryRequest {
   ipAddress?: string;
   userId?: string;
+  name?: string;
   loginStatus?: string;
   startDate?: string;
   endDate?: string;
@@ -224,31 +235,37 @@ export const exportLoginHistory = api(
 
     if (req.ipAddress) {
       paramCount++;
-      whereConditions.push(`ip_address = $${paramCount}`);
-      queryParams.push(req.ipAddress);
+      whereConditions.push(`lh.ip_address ILIKE $${paramCount}`);
+      queryParams.push(`%${req.ipAddress}%`);
     }
 
     if (req.userId) {
       paramCount++;
-      whereConditions.push(`user_id = $${paramCount}`);
+      whereConditions.push(`lh.user_id = $${paramCount}`);
       queryParams.push(req.userId);
+    }
+
+    if (req.name) {
+      paramCount++;
+      whereConditions.push(`u.full_name ILIKE $${paramCount}`);
+      queryParams.push(`%${req.name}%`);
     }
 
     if (req.loginStatus) {
       paramCount++;
-      whereConditions.push(`login_status = $${paramCount}`);
+      whereConditions.push(`lh.login_status = $${paramCount}`);
       queryParams.push(req.loginStatus);
     }
 
     if (req.startDate) {
       paramCount++;
-      whereConditions.push(`created_at >= $${paramCount}`);
+      whereConditions.push(`lh.created_at >= $${paramCount}`);
       queryParams.push(new Date(req.startDate));
     }
 
     if (req.endDate) {
       paramCount++;
-      whereConditions.push(`created_at <= $${paramCount}`);
+      whereConditions.push(`lh.created_at <= $${paramCount}`);
       queryParams.push(new Date(req.endDate));
     }
 

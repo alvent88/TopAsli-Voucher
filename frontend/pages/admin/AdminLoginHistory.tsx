@@ -45,7 +45,7 @@ export default function AdminLoginHistory() {
   const [page, setPage] = useState(0);
   const [limit] = useState(50);
   const [ipFilter, setIpFilter] = useState("");
-  const [userIdFilter, setUserIdFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
   const [searchIp, setSearchIp] = useState("");
@@ -62,7 +62,7 @@ export default function AdminLoginHistory() {
           limit,
           offset: page * limit,
           ipAddress: ipFilter || undefined,
-          userId: userIdFilter || undefined,
+          name: nameFilter || undefined,
           loginStatus: statusFilter === "all" ? undefined : statusFilter,
         });
 
@@ -77,7 +77,7 @@ export default function AdminLoginHistory() {
     };
 
     loadHistory();
-  }, [page, ipFilter, userIdFilter, statusFilter, limit]);
+  }, [page, ipFilter, nameFilter, statusFilter, limit]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString("id-ID", {
@@ -94,7 +94,7 @@ export default function AdminLoginHistory() {
 
   const handleResetFilters = () => {
     setIpFilter("");
-    setUserIdFilter("");
+    setNameFilter("");
     setStatusFilter("all");
     setPage(0);
   };
@@ -122,7 +122,7 @@ export default function AdminLoginHistory() {
     try {
       const response = await backend.admin.exportLoginHistory({
         ipAddress: ipFilter || undefined,
-        userId: userIdFilter || undefined,
+        name: nameFilter || undefined,
         loginStatus: statusFilter === "all" ? undefined : statusFilter,
       });
 
@@ -265,8 +265,8 @@ export default function AdminLoginHistory() {
               <label className="text-sm font-medium mb-2 block">Name</label>
               <Input
                 placeholder="Filter by Name..."
-                value={userIdFilter}
-                onChange={(e) => setUserIdFilter(e.target.value)}
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
               />
             </div>
 
