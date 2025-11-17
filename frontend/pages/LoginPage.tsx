@@ -94,7 +94,7 @@ export default function LoginPhoneOnlyPage() {
             Masuk
           </CardTitle>
           <CardDescription className="text-center text-gray-600">
-            Login dengan nomor HP dan password Anda
+            Login dengan nomor WhatsApp dan password Anda
           </CardDescription>
         </CardHeader>
 
@@ -103,7 +103,7 @@ export default function LoginPhoneOnlyPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                Nomor HP
+                Nomor WhatsApp
               </label>
               <Input
                 type="tel"
