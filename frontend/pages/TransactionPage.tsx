@@ -231,14 +231,14 @@ export default function TransactionPage() {
   const totalCredit = history.reduce((sum, item) => sum + item.credit, 0);
 
   return (
-    <div className="min-h-screen bg-[#0F1B2B]">
-      <nav className="border-b border-slate-800 bg-[#0f1229]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-3 lg:py-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/profile")}
-            className="text-white hover:text-blue-400 hover:bg-slate-800"
+            className="text-slate-700 hover:text-blue-600 hover:bg-slate-100"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
@@ -248,51 +248,51 @@ export default function TransactionPage() {
 
       <div className="container mx-auto px-4 py-6 lg:py-8">
         <div className="mb-6 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Riwayat Transaksi</h1>
-          <p className="text-sm lg:text-base text-slate-400">Buku transaksi lengkap dengan debit, kredit, dan saldo</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-2">Riwayat Transaksi</h1>
+          <p className="text-sm lg:text-base text-slate-600">Buku transaksi lengkap dengan debit, kredit, dan saldo</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
-          <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30">
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-300 shadow-lg">
             <CardContent className="pt-4 lg:pt-6 pb-4 lg:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs lg:text-sm text-slate-300">Saldo Saat Ini</p>
-                  <p className="text-lg lg:text-2xl font-bold text-white">{formatCurrency(currentBalance)}</p>
+                  <p className="text-xs lg:text-sm text-slate-700">Saldo Saat Ini</p>
+                  <p className="text-lg lg:text-2xl font-bold text-slate-900">{formatCurrency(currentBalance)}</p>
                 </div>
-                <Wallet className="h-6 w-6 lg:h-8 lg:w-8 text-blue-400" />
+                <Wallet className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#1a1f3a] border-slate-700">
+          <Card className="bg-white border-slate-200 shadow-lg">
             <CardContent className="pt-4 lg:pt-6 pb-4 lg:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs lg:text-sm text-slate-400">Total Debit</p>
-                  <p className="text-lg lg:text-2xl font-bold text-green-400">{formatCurrency(totalDebit)}</p>
+                  <p className="text-xs lg:text-sm text-slate-600">Total Debit</p>
+                  <p className="text-lg lg:text-2xl font-bold text-green-600">{formatCurrency(totalDebit)}</p>
                 </div>
-                <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-green-400" />
+                <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#1a1f3a] border-slate-700">
+          <Card className="bg-white border-slate-200 shadow-lg">
             <CardContent className="pt-4 lg:pt-6 pb-4 lg:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs lg:text-sm text-slate-400">Total Kredit</p>
-                  <p className="text-lg lg:text-2xl font-bold text-red-400">{formatCurrency(totalCredit)}</p>
+                  <p className="text-xs lg:text-sm text-slate-600">Total Kredit</p>
+                  <p className="text-lg lg:text-2xl font-bold text-red-600">{formatCurrency(totalCredit)}</p>
                 </div>
-                <TrendingDown className="h-6 w-6 lg:h-8 lg:w-8 text-red-400" />
+                <TrendingDown className="h-6 w-6 lg:h-8 lg:w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="bg-[#1a1f3a] border-slate-700 mb-4 lg:mb-6">
+        <Card className="bg-white border-slate-200 shadow-lg mb-4 lg:mb-6">
           <CardHeader className="pb-3 lg:pb-6">
-            <CardTitle className="text-white flex items-center gap-2 text-base lg:text-lg">
+            <CardTitle className="text-slate-900 flex items-center gap-2 text-base lg:text-lg">
               <Filter className="h-4 w-4 lg:h-5 lg:w-5" />
               Filter Tanggal
             </CardTitle>
@@ -300,22 +300,22 @@ export default function TransactionPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs lg:text-sm">Tanggal Mulai</Label>
+                <Label className="text-slate-700 text-xs lg:text-sm">Tanggal Mulai</Label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white text-sm lg:text-base"
+                  className="bg-white border-slate-300 text-slate-900 text-sm lg:text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300 text-xs lg:text-sm">Tanggal Akhir</Label>
+                <Label className="text-slate-700 text-xs lg:text-sm">Tanggal Akhir</Label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-slate-800 border-slate-600 text-white text-sm lg:text-base"
+                  className="bg-white border-slate-300 text-slate-900 text-sm lg:text-base"
                 />
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function TransactionPage() {
                   setEndDate("");
                 }}
                 size="sm"
-                className="bg-slate-700 hover:bg-slate-600 text-white border-slate-600 flex-1 sm:flex-none"
+                className="bg-slate-200 hover:bg-slate-300 text-slate-900 border-slate-300 flex-1 sm:flex-none"
               >
                 Reset
               </Button>
@@ -359,36 +359,36 @@ export default function TransactionPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1a1f3a] border-slate-700">
+        <Card className="bg-white border-slate-200 shadow-lg">
           <CardHeader className="pb-3 lg:pb-6">
-            <CardTitle className="text-white text-base lg:text-lg">Buku Transaksi</CardTitle>
-            <CardDescription className="text-slate-400 text-xs lg:text-sm">
+            <CardTitle className="text-slate-900 text-base lg:text-lg">Buku Transaksi</CardTitle>
+            <CardDescription className="text-slate-600 text-xs lg:text-sm">
               {loading ? "Memuat..." : `${history.length} transaksi ditemukan`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-slate-400 text-sm">Memuat transaksi...</div>
+              <div className="text-center py-8 text-slate-600 text-sm">Memuat transaksi...</div>
             ) : history.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-sm">Belum ada transaksi</div>
+              <div className="text-center py-8 text-slate-600 text-sm">Belum ada transaksi</div>
             ) : (
               <div className="overflow-x-auto -mx-4 lg:mx-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs lg:text-sm">Tanggal</TableHead>
-                      <TableHead className="text-slate-300 text-xs lg:text-sm">Keterangan</TableHead>
-                      <TableHead className="text-slate-300 text-xs lg:text-sm text-right hidden sm:table-cell">Debit (+)</TableHead>
-                      <TableHead className="text-slate-300 text-xs lg:text-sm text-right hidden sm:table-cell">Kredit (-)</TableHead>
-                      <TableHead className="text-slate-300 text-xs lg:text-sm text-right">Saldo</TableHead>
+                    <TableRow className="border-slate-200">
+                      <TableHead className="text-slate-700 text-xs lg:text-sm">Tanggal</TableHead>
+                      <TableHead className="text-slate-700 text-xs lg:text-sm">Keterangan</TableHead>
+                      <TableHead className="text-slate-700 text-xs lg:text-sm text-right hidden sm:table-cell">Debit (+)</TableHead>
+                      <TableHead className="text-slate-700 text-xs lg:text-sm text-right hidden sm:table-cell">Kredit (-)</TableHead>
+                      <TableHead className="text-slate-700 text-xs lg:text-sm text-right">Saldo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {history.map((item) => {
                       const typeInfo = getTypeLabel(item.type);
                       return (
-                        <TableRow key={item.id} className="border-slate-700">
-                          <TableCell className="text-slate-300">
+                        <TableRow key={item.id} className="border-slate-200">
+                          <TableCell className="text-slate-700">
                             <div className="flex items-center gap-1 lg:gap-2">
                               <Calendar className="h-3 w-3 lg:h-4 lg:w-4 text-slate-500" />
                               <span className="text-xs lg:text-sm">{formatDate(item.date)}</span>
@@ -399,47 +399,47 @@ export default function TransactionPage() {
                               <Badge className={`${typeInfo.color} text-xs`}>
                                 {typeInfo.label}
                               </Badge>
-                              <p className="text-white text-xs lg:text-sm font-medium break-words">{item.description}</p>
+                              <p className="text-slate-900 text-xs lg:text-sm font-medium break-words">{item.description}</p>
                               {item.relatedData?.voucherCode && (
-                                <p className="text-slate-400 text-xs font-mono break-all">
+                                <p className="text-slate-600 text-xs font-mono break-all">
                                   Kode: {item.relatedData.voucherCode}
                                 </p>
                               )}
                               {item.relatedData?.gameId && (
-                                <p className="text-slate-400 text-xs break-all">
+                                <p className="text-slate-600 text-xs break-all">
                                   ID: {item.relatedData.gameId}
                                 </p>
                               )}
                               <div className="sm:hidden flex gap-2 text-xs mt-1">
                                 {item.debit > 0 && (
-                                  <span className="text-green-400 font-bold">+{formatCurrency(item.debit)}</span>
+                                  <span className="text-green-600 font-bold">+{formatCurrency(item.debit)}</span>
                                 )}
                                 {item.credit > 0 && (
-                                  <span className="text-red-400 font-bold">-{formatCurrency(item.credit)}</span>
+                                  <span className="text-red-600 font-bold">-{formatCurrency(item.credit)}</span>
                                 )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-right hidden sm:table-cell">
                             {item.debit > 0 ? (
-                              <span className="text-green-400 font-bold text-xs lg:text-sm">
+                              <span className="text-green-600 font-bold text-xs lg:text-sm">
                                 + {formatCurrency(item.debit)}
                               </span>
                             ) : (
-                              <span className="text-slate-600 text-xs lg:text-sm">-</span>
+                              <span className="text-slate-400 text-xs lg:text-sm">-</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right hidden sm:table-cell">
                             {item.credit > 0 ? (
-                              <span className="text-red-400 font-bold text-xs lg:text-sm">
+                              <span className="text-red-600 font-bold text-xs lg:text-sm">
                                 - {formatCurrency(item.credit)}
                               </span>
                             ) : (
-                              <span className="text-slate-600 text-xs lg:text-sm">-</span>
+                              <span className="text-slate-400 text-xs lg:text-sm">-</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <span className="text-white font-bold text-sm lg:text-base">
+                            <span className="text-slate-900 font-bold text-sm lg:text-base">
                               {formatCurrency(item.balance)}
                             </span>
                           </TableCell>

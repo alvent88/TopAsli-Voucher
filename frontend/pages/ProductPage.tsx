@@ -274,13 +274,13 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <nav className="border-b border-white/10 bg-black/20 backdrop-blur-lg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="text-white hover:text-purple-300"
+            className="text-slate-700 hover:text-blue-600"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali

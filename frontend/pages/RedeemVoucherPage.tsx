@@ -96,15 +96,15 @@ function QRScanner({ onScan, onError, onClose }: { onScan: (code: string) => voi
   }, [cameraId, onScan, onError, onClose]);
 
   return (
-    <div className="bg-slate-900 rounded-lg p-4 space-y-3">
+    <div className="bg-slate-100 rounded-lg p-4 space-y-3">
       <div className="text-center">
-        <p className="text-slate-300 text-sm mb-2">Arahkan QR code ke kamera</p>
+        <p className="text-slate-700 text-sm mb-2">Arahkan QR code ke kamera</p>
       </div>
       {cameras.length > 1 && (
         <select 
           value={cameraId} 
           onChange={(e) => setCameraId(e.target.value)}
-          className="w-full bg-slate-800 text-white border border-slate-600 rounded px-3 py-2 text-sm"
+          className="w-full bg-white text-slate-900 border border-slate-300 rounded px-3 py-2 text-sm"
         >
           {cameras.map((camera) => (
             <option key={camera.id} value={camera.id}>
@@ -225,14 +225,14 @@ export default function RedeemVoucherPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1B2B]">
-      <nav className="border-b border-slate-800 bg-[#0f1229]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-3 lg:py-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/")}
-            className="text-white hover:text-blue-400 hover:bg-slate-800"
+            className="text-slate-700 hover:text-blue-600 hover:bg-slate-100"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali
@@ -246,22 +246,22 @@ export default function RedeemVoucherPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 mb-3 lg:mb-4">
               <Ticket className="h-8 w-8 lg:h-10 lg:w-10 text-white" />
             </div>
-            <h1 className="text-2xl lg:text-4xl font-bold text-white mb-2">Redeem Voucher</h1>
-            <p className="text-sm lg:text-base text-slate-400">Masukkan kode voucher atau scan QR code</p>
+            <h1 className="text-2xl lg:text-4xl font-bold text-slate-900 mb-2">Redeem Voucher</h1>
+            <p className="text-sm lg:text-base text-slate-600">Masukkan kode voucher atau scan QR code</p>
           </div>
 
           {!success ? (
-            <Card className="bg-[#1a1f3a] border-slate-700">
+            <Card className="bg-white border-slate-200 shadow-lg">
               <CardHeader className="pb-3 lg:pb-6">
-                <CardTitle className="text-white text-base lg:text-lg">Kode Voucher</CardTitle>
-                <CardDescription className="text-slate-400 text-xs lg:text-sm">
+                <CardTitle className="text-slate-900 text-base lg:text-lg">Kode Voucher</CardTitle>
+                <CardDescription className="text-slate-600 text-xs lg:text-sm">
                   Masukkan kode voucher atau scan QR code
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form ref={formRef} onSubmit={handleRedeem} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="voucherCode" className="text-slate-300 text-xs lg:text-sm">
+                    <Label htmlFor="voucherCode" className="text-slate-700 text-xs lg:text-sm">
                       Kode Voucher
                     </Label>
                     <div className="relative">
@@ -276,13 +276,13 @@ export default function RedeemVoucherPage() {
                           setDisplayCode(newValue);
                           setIsFromQRScan(false);
                         }}
-                        className="bg-slate-800 border-slate-600 text-white pl-9 lg:pl-10 text-base lg:text-lg tracking-wider uppercase"
+                        className="bg-white border-slate-300 text-slate-900 pl-9 lg:pl-10 text-base lg:text-lg tracking-wider uppercase"
                         disabled={loading || showScanner}
                         maxLength={32}
                       />
                       <Gift className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-600">
                       Kode voucher tidak case-sensitive
                     </p>
                   </div>
@@ -329,29 +329,29 @@ export default function RedeemVoucherPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-green-500/30">
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-lg">
               <CardContent className="pt-4 lg:pt-6 pb-4 lg:pb-6">
                 <div className="text-center space-y-3 lg:space-y-4">
                   <div className="inline-flex items-center justify-center w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-green-600">
                     <CheckCircle2 className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl lg:text-2xl font-bold text-white mb-1 lg:mb-2">Berhasil!</h2>
-                    <p className="text-sm lg:text-base text-slate-300">Voucher berhasil diredeem</p>
+                    <h2 className="text-xl lg:text-2xl font-bold text-slate-900 mb-1 lg:mb-2">Berhasil!</h2>
+                    <p className="text-sm lg:text-base text-slate-700">Voucher berhasil diredeem</p>
                   </div>
                   
                   {redeemResult && (
-                    <div className="bg-slate-900/50 rounded-lg p-3 lg:p-4 space-y-2">
+                    <div className="bg-white/50 rounded-lg p-3 lg:p-4 space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs lg:text-sm text-slate-300">Saldo Ditambahkan:</span>
-                        <span className="text-green-400 font-bold text-base lg:text-lg">
+                        <span className="text-xs lg:text-sm text-slate-700">Saldo Ditambahkan:</span>
+                        <span className="text-green-600 font-bold text-base lg:text-lg">
                           + {formatCurrency(redeemResult.amount)}
                         </span>
                       </div>
-                      <div className="border-t border-slate-700 pt-2">
+                      <div className="border-t border-slate-300 pt-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs lg:text-sm text-slate-300">Saldo Baru:</span>
-                          <span className="text-white font-bold text-lg lg:text-xl">
+                          <span className="text-xs lg:text-sm text-slate-700">Saldo Baru:</span>
+                          <span className="text-slate-900 font-bold text-lg lg:text-xl">
                             {formatCurrency(redeemResult.newBalance)}
                           </span>
                         </div>
@@ -359,7 +359,7 @@ export default function RedeemVoucherPage() {
                     </div>
                   )}
 
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-slate-600">
                     Anda akan dialihkan ke halaman utama...
                   </p>
                 </div>
@@ -367,8 +367,8 @@ export default function RedeemVoucherPage() {
             </Card>
           )}
 
-          <div className="mt-6 p-4 rounded-lg bg-blue-600/10 border border-blue-700/30">
-            <p className="text-blue-400 text-xs leading-relaxed">
+          <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <p className="text-blue-700 text-xs leading-relaxed">
               <strong>Catatan:</strong><br />
               • Setiap voucher hanya dapat digunakan sekali per user<br />
               • Pastikan kode voucher masih aktif dan belum kadaluarsa<br />
