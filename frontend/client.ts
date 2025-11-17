@@ -1330,6 +1330,7 @@ import { inquiryPaymentEndpoint as api_uniplay_inquiry_payment_endpoint_inquiryP
 import { simpleTest as api_uniplay_simple_test_simpleTest } from "~backend/uniplay/simple_test";
 import { syncAllProducts as api_uniplay_sync_all_products_syncAllProducts } from "~backend/uniplay/sync_all_products";
 import { syncUniPlayPackages as api_uniplay_sync_packages_syncUniPlayPackages } from "~backend/uniplay/sync_packages";
+import { syncPPOB as api_uniplay_sync_ppob_syncPPOB } from "~backend/uniplay/sync_ppob";
 import { syncServices as api_uniplay_sync_services_syncServices } from "~backend/uniplay/sync_services";
 import { testAPIResponse as api_uniplay_test_api_response_testAPIResponse } from "~backend/uniplay/test_api_response";
 import { testConnection as api_uniplay_test_connection_testConnection } from "~backend/uniplay/test_connection";
@@ -1357,6 +1358,7 @@ export namespace uniplay {
             this.inquiryPaymentEndpoint = this.inquiryPaymentEndpoint.bind(this)
             this.simpleTest = this.simpleTest.bind(this)
             this.syncAllProducts = this.syncAllProducts.bind(this)
+            this.syncPPOB = this.syncPPOB.bind(this)
             this.syncServices = this.syncServices.bind(this)
             this.syncUniPlayPackages = this.syncUniPlayPackages.bind(this)
             this.testAPIResponse = this.testAPIResponse.bind(this)
@@ -1422,6 +1424,12 @@ export namespace uniplay {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/uniplay/sync-all-products`, {method: "POST", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_uniplay_sync_all_products_syncAllProducts>
+        }
+
+        public async syncPPOB(): Promise<ResponseType<typeof api_uniplay_sync_ppob_syncPPOB>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/uniplay/sync-ppob`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_uniplay_sync_ppob_syncPPOB>
         }
 
         public async syncServices(): Promise<ResponseType<typeof api_uniplay_sync_services_syncServices>> {

@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [syncingPackages, setSyncingPackages] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [runningDiagnostic, setRunningDiagnostic] = useState(false);
+  const [syncingPPOB, setSyncingPPOB] = useState(false);
   
   // UniPlay API Response states
   const [uniplayApiResponse, setUniplayApiResponse] = useState("");
@@ -496,6 +497,47 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSyncPPOB = async () => {
+    setSyncingPPOB(true);
+    setUniplayApiResponse("");
+    setUniplayCurlCommand("");
+    try {
+      const result = await backend.uniplay.syncPPOB();
+      
+      if (result.curlCommand) {
+        setUniplayCurlCommand(result.curlCommand);
+      }
+      
+      setUniplayApiResponse(result.rawResponse);
+      
+      if (result.success) {
+        toast({
+          title: "✅ Sync PPOB Berhasil!",
+          description: "Response ditampilkan di textbox",
+        });
+      } else {
+        toast({
+          title: "❌ Sync PPOB Gagal",
+          description: "Check response untuk detail",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Sync PPOB error:", error);
+      setUniplayApiResponse(JSON.stringify({
+        error: error.message || "Unknown error",
+        details: error.toString(),
+      }, null, 2));
+      toast({
+        title: "Error",
+        description: error.message || "Gagal sync PPOB",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingPPOB(false);
+    }
+  };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -668,7 +710,7 @@ export default function AdminDashboard() {
                 >
                   {testingConnection ? "Testing..." : "🧪 Test Connection"}
                 </Button>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={handleTestDTU}
                     variant="outline"
@@ -691,6 +733,14 @@ export default function AdminDashboard() {
                     className="border-cyan-700 text-cyan-400 hover:bg-cyan-900/20 text-xs"
                   >
                     {syncingPackages ? "..." : "💰 Balance"}
+                  </Button>
+                  <Button
+                    onClick={handleSyncPPOB}
+                    disabled={syncingPPOB}
+                    variant="outline"
+                    className="border-yellow-700 text-yellow-400 hover:bg-yellow-900/20 text-xs"
+                  >
+                    {syncingPPOB ? "..." : "📱 PPOB"}
                   </Button>
                 </div>
                 <Button
