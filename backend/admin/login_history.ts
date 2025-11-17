@@ -7,6 +7,7 @@ import { logAuditAction } from "../audit/logger";
 export interface LoginHistoryEntry {
   id: number;
   userId: string;
+  name: string | null;
   email: string | null;
   phoneNumber: string | null;
   loginType: string;
@@ -81,19 +82,21 @@ export const listLoginHistory = api(
 
     const rows = await db.rawQueryAll<any>(
       `SELECT 
-        id,
-        user_id,
-        email,
-        phone_number,
-        login_type,
-        ip_address,
-        user_agent,
-        login_status,
-        failure_reason,
-        created_at
-      FROM login_history
+        lh.id,
+        lh.user_id,
+        lh.email,
+        lh.phone_number,
+        lh.login_type,
+        lh.ip_address,
+        lh.user_agent,
+        lh.login_status,
+        lh.failure_reason,
+        lh.created_at,
+        u.name
+      FROM login_history lh
+      LEFT JOIN users u ON lh.user_id = u.id
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY lh.created_at DESC
       LIMIT $${paramCount - 1} OFFSET $${paramCount}`,
       ...queryParams
     );
@@ -103,6 +106,7 @@ export const listLoginHistory = api(
       return {
         id: row.id,
         userId: row.user_id,
+        name: row.name,
         email: null,
         phoneNumber: phoneWithPrefix,
         loginType: row.login_type,
@@ -124,6 +128,7 @@ export interface GetUsersByIPRequest {
 
 export interface UserIPInfo {
   userId: string;
+  name: string | null;
   email: string | null;
   phoneNumber: string | null;
   loginCount: number;
@@ -148,17 +153,19 @@ export const getUsersByIP = api(
 
     const rows = await db.rawQueryAll<any>(
       `SELECT 
-        user_id,
-        email,
-        phone_number,
+        lh.user_id,
+        lh.email,
+        lh.phone_number,
+        u.name,
         COUNT(*) as login_count,
-        SUM(CASE WHEN login_status = 'success' THEN 1 ELSE 0 END) as success_count,
-        SUM(CASE WHEN login_status = 'failed' THEN 1 ELSE 0 END) as failed_count,
-        MAX(created_at) as last_login,
-        MIN(created_at) as first_login
-      FROM login_history
-      WHERE ip_address = $1
-      GROUP BY user_id, email, phone_number
+        SUM(CASE WHEN lh.login_status = 'success' THEN 1 ELSE 0 END) as success_count,
+        SUM(CASE WHEN lh.login_status = 'failed' THEN 1 ELSE 0 END) as failed_count,
+        MAX(lh.created_at) as last_login,
+        MIN(lh.created_at) as first_login
+      FROM login_history lh
+      LEFT JOIN users u ON lh.user_id = u.id
+      WHERE lh.ip_address = $1
+      GROUP BY lh.user_id, lh.email, lh.phone_number, u.name
       ORDER BY last_login DESC`,
       req.ipAddress
     );
@@ -167,6 +174,7 @@ export const getUsersByIP = api(
       const phoneWithPrefix = row.phone_number ? `62${row.phone_number}` : null;
       return {
         userId: row.user_id,
+        name: row.name,
         email: null,
         phoneNumber: phoneWithPrefix,
         loginCount: parseInt(row.login_count),
@@ -250,19 +258,21 @@ export const exportLoginHistory = api(
 
     const rows = await db.rawQueryAll<any>(
       `SELECT 
-        id,
-        user_id,
-        email,
-        phone_number,
-        login_type,
-        ip_address,
-        user_agent,
-        login_status,
-        failure_reason,
-        created_at
-      FROM login_history
+        lh.id,
+        lh.user_id,
+        lh.email,
+        lh.phone_number,
+        lh.login_type,
+        lh.ip_address,
+        lh.user_agent,
+        lh.login_status,
+        lh.failure_reason,
+        lh.created_at,
+        u.name
+      FROM login_history lh
+      LEFT JOIN users u ON lh.user_id = u.id
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY lh.created_at DESC
       LIMIT 10000`,
       ...queryParams
     );
@@ -270,6 +280,7 @@ export const exportLoginHistory = api(
     const headers = [
       "ID",
       "User ID",
+      "Name",
       "Phone Number",
       "Login Type",
       "IP Address",
@@ -284,6 +295,7 @@ export const exportLoginHistory = api(
       return [
         row.id.toString(),
         row.user_id || "-",
+        row.name || "-",
         phoneWithPrefix,
         row.login_type,
         row.ip_address || "-",
@@ -301,6 +313,7 @@ export const exportLoginHistory = api(
     const colWidths = [
       { wch: 10 },
       { wch: 30 },
+      { wch: 25 },
       { wch: 20 },
       { wch: 15 },
       { wch: 20 },

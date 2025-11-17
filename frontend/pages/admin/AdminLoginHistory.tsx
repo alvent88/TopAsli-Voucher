@@ -11,6 +11,7 @@ import { AlertCircle, Filter, Search, ChevronLeft, ChevronRight, Download, Users
 interface LoginHistoryEntry {
   id: number;
   userId: string;
+  name: string | null;
   email: string | null;
   phoneNumber: string | null;
   loginType: string;
@@ -23,6 +24,7 @@ interface LoginHistoryEntry {
 
 interface UserIPInfo {
   userId: string;
+  name: string | null;
   email: string | null;
   phoneNumber: string | null;
   loginCount: number;
@@ -201,7 +203,7 @@ export default function AdminLoginHistory() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>User ID</TableHead>
+                        <TableHead>Name</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Total Logins</TableHead>
                         <TableHead>Success</TableHead>
@@ -213,7 +215,7 @@ export default function AdminLoginHistory() {
                     <TableBody>
                       {ipUsers.map((user) => (
                         <TableRow key={user.userId}>
-                          <TableCell className="font-mono text-xs">{user.userId}</TableCell>
+                          <TableCell>{user.name || "-"}</TableCell>
                           <TableCell>
                             {user.phoneNumber || "-"}
                           </TableCell>
@@ -260,9 +262,9 @@ export default function AdminLoginHistory() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">User ID</label>
+              <label className="text-sm font-medium mb-2 block">Name</label>
               <Input
-                placeholder="Filter by User ID..."
+                placeholder="Filter by Name..."
                 value={userIdFilter}
                 onChange={(e) => setUserIdFilter(e.target.value)}
               />
@@ -314,7 +316,7 @@ export default function AdminLoginHistory() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Timestamp</TableHead>
-                      <TableHead>User ID</TableHead>
+                      <TableHead>Name</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>IP Address</TableHead>
@@ -328,8 +330,8 @@ export default function AdminLoginHistory() {
                         <TableCell className="whitespace-nowrap">
                           {formatDate(entry.createdAt)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {entry.userId}
+                        <TableCell>
+                          {entry.name || "-"}
                         </TableCell>
                         <TableCell>
                           {entry.phoneNumber || "-"}
