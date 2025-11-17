@@ -52,7 +52,7 @@ export default function ForgotPasswordPhonePage() {
       console.error("Send OTP failed:", error);
       toast({
         title: "Gagal Mengirim OTP",
-        description: error.message || "Nomor HP tidak terdaftar",
+        description: error.message || "Nomor WhatsApp tidak terdaftar",
         variant: "destructive",
       });
     } finally {

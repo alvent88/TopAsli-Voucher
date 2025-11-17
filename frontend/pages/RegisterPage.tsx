@@ -204,7 +204,7 @@ export default function RegisterPhoneOnlyPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                   <Phone className="h-4 w-4" />
-                  Nomor HP
+                  Nomor WhatsApp
                 </label>
                 <Input
                   type="tel"

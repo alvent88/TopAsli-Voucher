@@ -73,7 +73,7 @@ export default function LoginPhoneOnlyPage() {
       console.error("Login failed:", error);
       toast({
         title: "Login Gagal",
-        description: error.message || "Nomor HP atau password salah",
+        description: error.message || "Nomor WhatsApp atau password salah",
         variant: "destructive",
       });
     } finally {

@@ -202,7 +202,7 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                   <label className="text-xs lg:text-sm font-medium text-slate-300 flex items-center gap-2">
                     <Phone className="h-3 w-3 lg:h-4 lg:w-4" />
-                    Nomor HP
+                    Nomor WhatsApp
                   </label>
                   <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-white text-sm lg:text-base">
                     {phoneNumber}
