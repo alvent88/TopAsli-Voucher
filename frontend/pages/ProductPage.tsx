@@ -259,16 +259,16 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-slate-900">Loading...</div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white">Produk tidak ditemukan</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-slate-900">Produk tidak ditemukan</div>
       </div>
     );
   }
@@ -390,8 +390,8 @@ export default function ProductPage() {
                   </>
                 )}
                 {product?.category?.toLowerCase() === 'voucher' && (
-                  <div className="p-3 md:p-4 bg-purple-900/30 border border-purple-500/30 rounded-lg">
-                    <p className="text-purple-200 text-xs md:text-sm">
+                  <div className="p-3 md:p-4 bg-purple-50 border border-purple-300 rounded-lg">
+                    <p className="text-purple-800 text-xs md:text-sm">
                       Voucher akan dikirimkan ke email Anda setelah pembayaran berhasil
                     </p>
                   </div>
