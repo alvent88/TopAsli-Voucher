@@ -6,18 +6,18 @@ export default function PrivacyPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0F1B2B]">
-      <nav className="border-b border-slate-800 bg-[#1C2E44] sticky top-0 z-50">
+    <div className="min-h-screen bg-background">
+      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
-              <span className="text-xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">TopAsli</span>
+              <span className="text-xl font-bold text-primary">TopAsli</span>
             </Link>
             <Button 
               onClick={() => navigate('/')} 
               variant="outline"
-              className="border-[#E0B872]/30 text-slate-300 hover:bg-[#1C2E44] hover:text-[#E0B872]"
+              className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-primary"
             >
               Kembali
             </Button>
@@ -26,8 +26,8 @@ export default function PrivacyPage() {
       </nav>
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="bg-[#1C2E44] border border-[#E0B872]/30 rounded-xl p-8 md:p-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-8 md:p-12 shadow-sm">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
             Kebijakan Privasi CV Top Asli
           </h1>
 

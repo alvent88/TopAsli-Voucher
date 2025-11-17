@@ -3,21 +3,21 @@ import { AuthButton } from "@/components/AuthButton";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#0F1B2B]">
-      <nav className="border-b border-slate-800 bg-[#1C2E44] sticky top-0 z-50 shadow-lg">
+    <div className="min-h-screen bg-background">
+      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="TopAsli" className="w-10 h-10 rounded-lg" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#E0B872] to-[#F5D99B] bg-clip-text text-transparent">
+              <span className="text-2xl font-bold text-primary">
                 TopAsli
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-300 hover:text-[#E0B872] transition-colors">
+              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
                 Home
               </Link>
-              <Link to="/contact" className="text-slate-300 hover:text-[#E0B872] transition-colors">
+              <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">
                 Kontak
               </Link>
             </div>
