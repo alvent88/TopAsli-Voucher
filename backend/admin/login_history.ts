@@ -94,7 +94,7 @@ export const listLoginHistory = api(
         lh.created_at,
         u.name
       FROM login_history lh
-      LEFT JOIN users u ON lh.user_id = u.id
+      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
       ${whereClause}
       ORDER BY lh.created_at DESC
       LIMIT $${paramCount - 1} OFFSET $${paramCount}`,
@@ -163,7 +163,7 @@ export const getUsersByIP = api(
         MAX(lh.created_at) as last_login,
         MIN(lh.created_at) as first_login
       FROM login_history lh
-      LEFT JOIN users u ON lh.user_id = u.id
+      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
       WHERE lh.ip_address = $1
       GROUP BY lh.user_id, lh.email, lh.phone_number, u.name
       ORDER BY last_login DESC`,
@@ -270,7 +270,7 @@ export const exportLoginHistory = api(
         lh.created_at,
         u.name
       FROM login_history lh
-      LEFT JOIN users u ON lh.user_id = u.id
+      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
       ${whereClause}
       ORDER BY lh.created_at DESC
       LIMIT 10000`,
