@@ -88,7 +88,7 @@ export function AuthButton() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="text-white hover:text-blue-400 hover:bg-slate-800"
+            className="text-gray-900 hover:text-primary hover:bg-gray-100"
           >
             <UserCircle className="mr-2 h-4 w-4" />
             {userName || "User"}
