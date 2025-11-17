@@ -166,7 +166,7 @@ export default function ForgotPasswordPhonePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0F1B2B] via-[#1a2332] to-[#0F1B2B] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
 
       <Card className="w-full max-w-md bg-[#1a1f3a]/80 backdrop-blur-xl border-slate-700 shadow-2xl relative z-10">
@@ -181,7 +181,7 @@ export default function ForgotPasswordPhonePage() {
           </CardTitle>
           <CardDescription className="text-center text-slate-400">
             {step === "input"
-              ? "Masukkan nomor HP Anda"
+              ? "Masukkan nomor WhatsApp Anda"
               : step === "verify-otp"
               ? "Masukkan kode OTP yang dikirim via WhatsApp"
               : "Masukkan password baru Anda"}
@@ -194,7 +194,7 @@ export default function ForgotPasswordPhonePage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                   <Phone className="h-4 w-4" />
-                  Nomor HP
+                  Nomor WhatsApp
                 </label>
                 <Input
                   type="tel"
@@ -276,7 +276,7 @@ export default function ForgotPasswordPhonePage() {
                 className="w-full text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Ubah Nomor HP
+                Ubah Nomor WhatsApp
               </Button>
             </form>
           )}

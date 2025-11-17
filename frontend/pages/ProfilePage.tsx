@@ -138,7 +138,7 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0a0e27]">
+    <div className="min-h-screen bg-[#0F1B2B]">
       <nav className="border-b border-slate-800 bg-[#0f1229]">
         <div className="container mx-auto px-4 py-3 lg:py-4">
           <Button

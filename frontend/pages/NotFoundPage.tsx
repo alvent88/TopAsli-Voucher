@@ -6,7 +6,7 @@ export default function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0F1B2B] flex items-center justify-center p-4">
       <Card className="bg-[#1a1f3a] border-slate-700 max-w-md w-full">
         <CardHeader>
           <CardTitle className="text-white text-center text-4xl">404</CardTitle>
