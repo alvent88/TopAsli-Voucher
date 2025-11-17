@@ -314,14 +314,20 @@ export default function ProductPage() {
                   <>
                     <div>
                       <Label htmlFor="userId" className="text-white text-sm md:text-base">
-                        User ID
+                        {product?.category?.toLowerCase().includes('ppob') ? 'Nomor Konsumen' : 'User ID'}
                       </Label>
                       <div className="relative">
                         <Input
                           id="userId"
                           value={userId}
                           onChange={(e) => setUserId(e.target.value)}
-                          placeholder={product?.name?.toLowerCase().includes("valorant") ? "Masukkan Riot ID (contoh: yuyun#123)" : "Masukkan User ID"}
+                          placeholder={
+                            product?.category?.toLowerCase().includes('ppob') 
+                              ? "Masukkan nomor konsumen"
+                              : product?.name?.toLowerCase().includes("valorant") 
+                                ? "Masukkan Riot ID (contoh: yuyun#123)" 
+                                : "Masukkan User ID"
+                          }
                           className={`bg-white/10 text-white pr-10 text-sm md:text-base ${
                             validationStatus === "invalid" ? "border-red-500" : validationStatus === "valid" ? "border-green-500" : "border-white/20"
                           }`}
