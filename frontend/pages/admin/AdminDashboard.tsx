@@ -504,6 +504,13 @@ export default function AdminDashboard() {
     try {
       const result = await backend.uniplay.syncPPOB();
       
+      console.log("=== Sync PPOB Result ===");
+      console.log("Success:", result.success);
+      console.log("PPOB Count:", result.ppobCount);
+      console.log("Products Synced:", result.productsSynced);
+      console.log("Packages Created:", result.packagesCreated);
+      console.log("Errors:", result.errors);
+      
       if (result.curlCommand) {
         setUniplayCurlCommand(result.curlCommand);
       }
@@ -513,7 +520,7 @@ export default function AdminDashboard() {
       if (result.success) {
         toast({
           title: "✅ Sync PPOB Berhasil!",
-          description: `Products: ${result.productsSynced || 0} | Packages: ${result.packagesCreated || 0}`,
+          description: `PPOB: ${result.ppobCount || 0} | Products: ${result.productsSynced || 0} | Packages: ${result.packagesCreated || 0}`,
         });
       } else {
         toast({

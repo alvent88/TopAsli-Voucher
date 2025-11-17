@@ -33,6 +33,7 @@ export interface SyncPPOBResponse {
   productsSynced?: number;
   packagesCreated?: number;
   errors?: string[];
+  ppobCount?: number;
 }
 
 export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
@@ -181,11 +182,14 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
       }
 
       const ppobProducts = ppobData.list_ppob || [];
+      console.log(`📦 Received ${ppobProducts.length} PPOB products from UniPlay`);
+      
       let productsSynced = 0;
       let packagesCreated = 0;
       const errors: string[] = [];
 
       for (const ppob of ppobProducts) {
+        console.log(`Processing PPOB: ${ppob.name} (ID: ${ppob.id})`);
         try {
           const slug = `uniplay-ppob-${ppob.id.toLowerCase()}`;
 
@@ -234,8 +238,10 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
             
             productId = result.id;
             productsSynced++;
+            console.log(`✅ Created PPOB product: ${ppob.name}`);
           }
 
+          console.log(`Processing ${ppob.denom.length} denoms for ${ppob.name}...`);
           for (const denom of ppob.denom) {
             try {
               const price = parseInt(denom.price);
@@ -273,6 +279,7 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
                   )
                 `;
                 packagesCreated++;
+                console.log(`✅ Created package: ${denom.package}`);
               }
             } catch (err) {
               const errorMsg = `Failed to sync denom ${denom.package}: ${err instanceof Error ? err.message : String(err)}`;
@@ -285,6 +292,11 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
         }
       }
 
+      console.log(`\n✅ PPOB Sync complete:`);
+      console.log(`   - Products synced: ${productsSynced}`);
+      console.log(`   - Packages created: ${packagesCreated}`);
+      console.log(`   - Errors: ${errors.length}`);
+
       return {
         success: true,
         rawResponse: ppobResponseText,
@@ -292,6 +304,7 @@ export const syncPPOB = api<SyncPPOBRequest, SyncPPOBResponse>(
         productsSynced,
         packagesCreated,
         errors,
+        ppobCount: ppobProducts.length,
       };
     } catch (err) {
       console.error("❌ Failed to sync PPOB:", err);
