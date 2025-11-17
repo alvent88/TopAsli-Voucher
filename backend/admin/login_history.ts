@@ -92,9 +92,9 @@ export const listLoginHistory = api(
         lh.login_status,
         lh.failure_reason,
         lh.created_at,
-        u.name
+        u.full_name
       FROM login_history lh
-      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
+      LEFT JOIN users u ON lh.user_id = u.clerk_user_id
       ${whereClause}
       ORDER BY lh.created_at DESC
       LIMIT $${paramCount - 1} OFFSET $${paramCount}`,
@@ -106,7 +106,7 @@ export const listLoginHistory = api(
       return {
         id: row.id,
         userId: row.user_id,
-        name: row.name,
+        name: row.full_name,
         email: null,
         phoneNumber: phoneWithPrefix,
         loginType: row.login_type,
@@ -156,16 +156,16 @@ export const getUsersByIP = api(
         lh.user_id,
         lh.email,
         lh.phone_number,
-        u.name,
+        u.full_name,
         COUNT(*) as login_count,
         SUM(CASE WHEN lh.login_status = 'success' THEN 1 ELSE 0 END) as success_count,
         SUM(CASE WHEN lh.login_status = 'failed' THEN 1 ELSE 0 END) as failed_count,
         MAX(lh.created_at) as last_login,
         MIN(lh.created_at) as first_login
       FROM login_history lh
-      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
+      LEFT JOIN users u ON lh.user_id = u.clerk_user_id
       WHERE lh.ip_address = $1
-      GROUP BY lh.user_id, lh.email, lh.phone_number, u.name
+      GROUP BY lh.user_id, lh.email, lh.phone_number, u.full_name
       ORDER BY last_login DESC`,
       req.ipAddress
     );
@@ -174,7 +174,7 @@ export const getUsersByIP = api(
       const phoneWithPrefix = row.phone_number ? `62${row.phone_number}` : null;
       return {
         userId: row.user_id,
-        name: row.name,
+        name: row.full_name,
         email: null,
         phoneNumber: phoneWithPrefix,
         loginCount: parseInt(row.login_count),
@@ -268,9 +268,9 @@ export const exportLoginHistory = api(
         lh.login_status,
         lh.failure_reason,
         lh.created_at,
-        u.name
+        u.full_name
       FROM login_history lh
-      LEFT JOIN users u ON CAST(lh.user_id AS VARCHAR) = u.id
+      LEFT JOIN users u ON lh.user_id = u.clerk_user_id
       ${whereClause}
       ORDER BY lh.created_at DESC
       LIMIT 10000`,
@@ -295,7 +295,7 @@ export const exportLoginHistory = api(
       return [
         row.id.toString(),
         row.user_id || "-",
-        row.name || "-",
+        row.full_name || "-",
         phoneWithPrefix,
         row.login_type,
         row.ip_address || "-",
