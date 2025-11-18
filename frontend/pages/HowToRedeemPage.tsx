@@ -19,51 +19,29 @@ export default function HowToRedeemPage() {
       number: 1,
       title: "Daftar Akun",
       icon: UserPlus,
-      description: "Buat akun baru menggunakan nomor telepon Anda. Klik tombol 'Daftar' di halaman utama.",
+      description: "Buat akun baru di TopAsli. Klik tombol 'Daftar' di halaman utama.",
       details: [
-        "Masukkan nomor telepon aktif",
+        "Masukkan nomor WhatsApp yang aktif",
+        "Masukkan nama lengkap",
+        "Masukkan tanggal lahir",
         "Buat password yang aman",
         "Klik tombol 'Daftar'"
       ]
     },
     {
       number: 2,
-      title: "Verifikasi OTP",
-      icon: MessageSquare,
-      description: "Verifikasi nomor telepon dengan kode OTP yang dikirimkan via WhatsApp.",
-      details: [
-        "Terima kode OTP di WhatsApp Anda",
-        "Masukkan kode 6 digit",
-        "OTP berlaku selama 5 menit",
-        "Bisa request OTP baru jika kadaluarsa"
-      ]
-    },
-    {
-      number: 3,
-      title: "Lengkapi Data Profil",
-      icon: FileText,
-      description: "Isi data diri lengkap untuk menyelesaikan registrasi.",
-      details: [
-        "Nama lengkap",
-        "Email aktif",
-        "Tanggal lahir",
-        "Alamat lengkap"
-      ]
-    },
-    {
-      number: 4,
       title: "Login ke Akun",
       icon: CheckCircle,
-      description: "Login menggunakan nomor telepon dan password yang sudah dibuat.",
+      description: "Login menggunakan nomor WhatsApp dan password yang sudah dibuat.",
       details: [
-        "Masukkan nomor telepon",
+        "Masukkan nomor WhatsApp",
         "Masukkan password",
         "Klik 'Login'",
         "Sistem akan otomatis mengarahkan ke halaman utama"
       ]
     },
     {
-      number: 5,
+      number: 3,
       title: "Redeem Voucher",
       icon: Ticket,
       description: "Tukarkan kode voucher snack Anda menjadi saldo.",
@@ -76,7 +54,7 @@ export default function HowToRedeemPage() {
       ]
     },
     {
-      number: 6,
+      number: 4,
       title: "Gunakan Saldo",
       icon: CheckCircle,
       description: "Gunakan saldo untuk membeli game items, voucher digital, atau produk PPOB.",
@@ -174,19 +152,19 @@ export default function HowToRedeemPage() {
                 </h3>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Gunakan password yang kuat</li>
-                  <li>• Jangan bagikan OTP ke siapapun</li>
+                  <li>• Gunakan nomor WhatsApp yang aktif</li>
                   <li>• Simpan kode voucher dengan aman</li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-4 border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  Verifikasi OTP
+                  <UserPlus className="h-5 w-5 text-primary" />
+                  Registrasi
                 </h3>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• OTP dikirim via WhatsApp</li>
-                  <li>• Berlaku selama 5 menit</li>
-                  <li>• Bisa request ulang jika expired</li>
+                  <li>• Data diri harus lengkap & valid</li>
+                  <li>• Nomor WhatsApp untuk login</li>
+                  <li>• Proses daftar cepat & mudah</li>
                 </ul>
               </div>
               <div className="bg-white rounded-xl p-4 border border-gray-200">
