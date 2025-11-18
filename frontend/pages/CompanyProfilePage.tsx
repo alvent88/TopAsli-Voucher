@@ -59,12 +59,12 @@ export default function CompanyProfilePage() {
       <section className="relative w-full overflow-hidden bg-gray-900">
         <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] xl:h-[700px]">
           <img 
-            src="/hero-banner-gaming.png" 
-            alt="Professional Gaming Setup - CV Top Asli" 
+            src="/hero-banner-topasli.png" 
+            alt="Produk Snack AMEX dan KOMO - CV Top Asli" 
             className="w-full h-full object-cover object-center"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
       </section>
 
