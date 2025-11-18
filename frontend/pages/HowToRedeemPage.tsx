@@ -44,7 +44,7 @@ export default function HowToRedeemPage() {
       icon: FileText,
       description: "Isi data diri lengkap untuk menyelesaikan registrasi.",
       details: [
-        "Nama lengkap sesuai KTP",
+        "Nama lengkap",
         "Email aktif",
         "Tanggal lahir",
         "Alamat lengkap"
