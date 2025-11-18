@@ -247,9 +247,7 @@ export default function HowToRedeemPage() {
                 <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
                 <span className="text-xl font-bold text-gray-900">TopAsli</span>
               </div>
-              <p className="text-gray-600 text-sm">
-                Platform redeem voucher snack CV Top Asli dengan proses cepat dan aman.
-              </p>
+              <p className="text-gray-600 text-sm">Platform redeem voucher CV Top Asli dengan proses cepat dan aman.</p>
             </div>
             <div>
               <h4 className="text-gray-900 font-semibold mb-4">Layanan</h4>
