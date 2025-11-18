@@ -15,6 +15,8 @@ export interface LoginPhoneV2Response {
   phoneNumber: string;
   fullName: string;
   token: string;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
@@ -43,9 +45,11 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
       is_banned: boolean;
       ban_reason: string | null;
       banned_until: Date | null;
+      is_admin: boolean;
+      is_superadmin: boolean;
     }>`
       SELECT clerk_user_id, phone_number, password_hash, full_name, 
-             is_banned, ban_reason, banned_until
+             is_banned, ban_reason, banned_until, is_admin, is_superadmin
       FROM users 
       WHERE phone_number = ${phoneWithPrefix}
     `;
@@ -117,6 +121,8 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
       phoneNumber: user.phone_number,
       fullName: user.full_name,
       token,
+      isAdmin: user.is_admin || false,
+      isSuperAdmin: user.is_superadmin || false,
     };
   }
 );

@@ -27,11 +27,12 @@ export function AuthButton() {
       const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
       const name = sessionStorage.getItem("userName") || "";
       const phone = sessionStorage.getItem("userPhone") || "";
+      const adminStatus = sessionStorage.getItem("isAdmin") === "true";
       
       setIsLoggedIn(loggedIn);
       setUserName(name);
       setUserPhone(phone);
-      setIsAdmin(phone === "62818848168");
+      setIsAdmin(adminStatus);
       
       if (loggedIn) {
         loadBalance();

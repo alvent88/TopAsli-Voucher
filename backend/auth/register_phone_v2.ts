@@ -128,6 +128,8 @@ export interface VerifyAndRegisterResponse {
   phoneNumber: string;
   fullName: string;
   token: string;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegisterResponse>(
@@ -149,11 +151,22 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
 
     const phoneWithPrefix = `62${formattedPhone}`;
 
-    const existingUser = await db.queryRow<{ phone_number: string }>`
-      SELECT phone_number FROM users WHERE phone_number = ${formattedPhone}
+    const existingUser = await db.queryRow<{ 
+      phone_number: string;
+      is_banned: boolean;
+      ban_reason: string | null;
+    }>`
+      SELECT phone_number, is_banned, ban_reason 
+      FROM users 
+      WHERE phone_number = ${phoneWithPrefix}
     `;
 
     if (existingUser) {
+      if (existingUser.is_banned) {
+        throw APIError.permissionDenied(
+          `Nomor HP ini telah dibanned. Alasan: ${existingUser.ban_reason || "Tidak ada alasan yang diberikan"}. Hubungi admin untuk unban.`
+        );
+      }
       throw APIError.alreadyExists("Nomor HP ini sudah terdaftar");
     }
 
@@ -206,7 +219,7 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
       INSERT INTO users (
         clerk_user_id, phone_number, full_name, password_hash, date_of_birth, created_at, updated_at
       ) VALUES (
-        ${userId}, ${formattedPhone}, ${fullName}, ${passwordHash}, ${dateOfBirth}::date, NOW(), NOW()
+        ${userId}, ${phoneWithPrefix}, ${fullName}, ${passwordHash}, ${dateOfBirth}::date, NOW(), NOW()
       )
     `;
 
@@ -227,6 +240,8 @@ export const verifyAndRegister = api<VerifyAndRegisterRequest, VerifyAndRegister
       phoneNumber: phoneWithPrefix,
       fullName,
       token,
+      isAdmin: false,
+      isSuperAdmin: false,
     };
   }
 );

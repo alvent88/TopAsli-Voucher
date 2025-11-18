@@ -31,6 +31,8 @@ export default function LoginPhoneOnlyPage() {
       sessionStorage.setItem("userId", response.userId);
       sessionStorage.setItem("userPhone", response.phoneNumber);
       sessionStorage.setItem("userName", response.fullName);
+      sessionStorage.setItem("isAdmin", response.isAdmin ? "true" : "false");
+      sessionStorage.setItem("isSuperAdmin", response.isSuperAdmin ? "true" : "false");
 
       try {
         let ipAddress = 'unknown';
