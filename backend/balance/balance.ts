@@ -2,6 +2,7 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { checkAndLogBruteForceVoucher } from "../otp/security_logger";
 
 export interface GetBalanceResponse {
   balance: number;
@@ -69,6 +70,7 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       const failedCount = parseInt(recentFailedAttempts[0]?.count || '0');
       
       if (failedCount >= 5) {
+        await checkAndLogBruteForceVoucher(auth.userID, auth.phoneNumber || null, null);
         throw APIError.permissionDenied("Anda telah mencoba kode voucher yang salah terlalu banyak. Silakan coba lagi dalam 5 menit.");
       }
 
@@ -89,6 +91,7 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
           INSERT INTO voucher_claim_attempts (user_id, attempted_code, success)
           VALUES (${auth.userID}, ${code}, false)
         `;
+        await checkAndLogBruteForceVoucher(auth.userID, auth.phoneNumber || null, null);
         throw APIError.invalidArgument("Kode voucher tidak valid");
       }
 

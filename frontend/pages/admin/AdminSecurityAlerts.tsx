@@ -138,6 +138,7 @@ export default function AdminSecurityAlerts() {
     const labels: Record<string, string> = {
       rate_limit_exceeded: "Rate Limit Exceeded",
       brute_force_otp: "Brute Force OTP",
+      brute_force_voucher: "Brute Force Voucher",
       multiple_ip_attack: "Multiple IP Attack",
       fonnte_api_failure: "Fonnte API Failure",
       suspicious_login: "Suspicious Login",
@@ -321,7 +322,8 @@ export default function AdminSecurityAlerts() {
                 <SelectContent>
                   <SelectItem value="all">Semua Tipe</SelectItem>
                   <SelectItem value="rate_limit_exceeded">Rate Limit</SelectItem>
-                  <SelectItem value="brute_force_otp">Brute Force</SelectItem>
+                  <SelectItem value="brute_force_otp">Brute Force OTP</SelectItem>
+                  <SelectItem value="brute_force_voucher">Brute Force Voucher</SelectItem>
                   <SelectItem value="multiple_ip_attack">Multiple IP</SelectItem>
                   <SelectItem value="fonnte_api_failure">API Failure</SelectItem>
                   <SelectItem value="suspicious_login">Suspicious Login</SelectItem>

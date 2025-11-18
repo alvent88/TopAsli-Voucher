@@ -4,6 +4,7 @@ export type AlertSeverity = "low" | "medium" | "high" | "critical";
 export type AlertType = 
   | "rate_limit_exceeded"
   | "brute_force_otp"
+  | "brute_force_voucher"
   | "multiple_ip_attack"
   | "fonnte_api_failure"
   | "suspicious_login"
@@ -220,5 +221,59 @@ export async function checkAndLogBruteForceOTP(
 
   if (count >= 5) {
     await logBruteForceOTP(phoneNumber, ipAddress, count);
+  }
+}
+
+export async function logBruteForceVoucher(
+  userId: string,
+  phoneNumber: string | null,
+  ipAddress: string | null,
+  failedAttempts: number,
+  attemptedCodes: string[]
+): Promise<void> {
+  const severity: AlertSeverity = failedAttempts >= 10 ? "critical" : failedAttempts >= 5 ? "high" : "medium";
+
+  await createSecurityAlert({
+    alertType: "brute_force_voucher",
+    severity,
+    title: "Brute Force Voucher Redeem Detected",
+    description: `Multiple failed voucher redeem attempts (${failedAttempts} attempts) detected for user ${userId}. Phone: ${phoneNumber || 'N/A'}`,
+    phoneNumber,
+    ipAddress,
+    metadata: {
+      userId,
+      failedAttempts,
+      attemptedCodes: attemptedCodes.slice(-5),
+      threshold: 5,
+    },
+  });
+}
+
+export async function checkAndLogBruteForceVoucher(
+  userId: string,
+  phoneNumber: string | null,
+  ipAddress: string | null
+): Promise<void> {
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+  const failedAttemptsGen = db.query<{ count: string; attempted_code: string }>`
+    SELECT COUNT(*) as count, attempted_code
+    FROM voucher_claim_attempts
+    WHERE user_id = ${userId}
+      AND success = false
+      AND attempted_at > ${fiveMinutesAgo}
+    GROUP BY attempted_code
+  `;
+
+  const failedAttempts: any[] = [];
+  for await (const row of failedAttemptsGen) {
+    failedAttempts.push(row);
+  }
+
+  const totalFailed = failedAttempts.reduce((sum, row) => sum + parseInt(row.count), 0);
+  const attemptedCodes = failedAttempts.map((row: any) => row.attempted_code);
+
+  if (totalFailed >= 5) {
+    await logBruteForceVoucher(userId, phoneNumber, ipAddress, totalFailed, attemptedCodes);
   }
 }
