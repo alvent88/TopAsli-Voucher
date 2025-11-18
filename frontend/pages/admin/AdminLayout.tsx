@@ -14,22 +14,20 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const checkAdminStatus = () => {
-      const userPhone = sessionStorage.getItem("userPhone");
       const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+      const adminStatus = sessionStorage.getItem("isAdmin") === "true";
       
-      if (!isLoggedIn || !userPhone) {
+      if (!isLoggedIn) {
         setIsChecking(false);
         setIsAdmin(false);
         navigate("/404", { replace: true });
         return;
       }
 
-      const isAdminUser = userPhone === "0818848168" || userPhone === "62818848168";
-      
-      setIsAdmin(isAdminUser);
+      setIsAdmin(adminStatus);
       setIsChecking(false);
 
-      if (!isAdminUser) {
+      if (!adminStatus) {
         navigate("/404", { replace: true });
       }
     };
