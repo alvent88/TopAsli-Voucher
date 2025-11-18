@@ -56,7 +56,7 @@ export const sendForgotPasswordPhoneOTP = api<SendForgotPasswordPhoneOTPRequest,
     }>`
       SELECT clerk_user_id, phone_number
       FROM users
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
     `;
 
     if (!user) {
@@ -150,7 +150,7 @@ export const verifyForgotPasswordPhoneOTP = api<VerifyForgotPasswordPhoneOTPRequ
     }>`
       SELECT clerk_user_id, phone_number
       FROM users
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
     `;
 
     if (!user) {
