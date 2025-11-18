@@ -7,27 +7,27 @@ export default function CompanyProfilePage() {
   const brands = [
     {
       name: "Komo",
-      description: "Produk snack berkualitas dengan rasa autentik Indonesia",
+      logo: "/brands/komo.png",
       color: "from-red-500 to-red-600"
     },
     {
       name: "Topten",
-      description: "Inovasi rasa yang selalu menjadi pilihan favorit",
+      logo: "/brands/topten.png",
       color: "from-blue-500 to-blue-600"
     },
     {
       name: "Amex",
-      description: "Camilan premium dengan standar kualitas tertinggi",
+      logo: "/brands/amex.png",
       color: "from-green-500 to-green-600"
     },
     {
       name: "Myjo",
-      description: "Cemilan modern untuk gaya hidup masa kini",
+      logo: "/brands/myjo.png",
       color: "from-purple-500 to-purple-600"
     },
     {
       name: "Kachi-kachi",
-      description: "Sensasi renyah yang tak terlupakan",
+      logo: "/brands/kachi-kachi.png",
       color: "from-orange-500 to-orange-600"
     }
   ];
@@ -136,34 +136,47 @@ export default function CompanyProfilePage() {
         </div>
       </section>
 
-      <section id="brands" className="py-16 md:py-24 bg-gray-50">
+      <section id="brands" className="py-16 md:py-24 bg-white border-y border-gray-200">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Brand Kami</h2>
-            <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Koleksi brand premium yang menghadirkan berbagai pilihan snack untuk setiap momen
-            </p>
+            <div className="w-24 h-1 bg-primary mx-auto"></div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {brands.map((brand, index) => (
-              <Card key={index} className="group overflow-hidden border-2 border-gray-100 hover:border-primary transition-all duration-300 hover:shadow-xl">
-                <CardContent className="p-0">
-                  <div className={`bg-gradient-to-br ${brand.color} h-32 flex items-center justify-center relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-300"></div>
-                    <h3 className="text-3xl font-bold text-white relative z-10 group-hover:scale-110 transition-transform duration-300">
-                      {brand.name}
-                    </h3>
+          <div className="relative max-w-6xl mx-auto">
+            <div className="flex items-center justify-center gap-8 md:gap-12 lg:gap-16 flex-wrap px-4">
+              {brands.map((brand, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-center w-32 h-32 md:w-40 md:h-40 p-4 bg-white hover:bg-gray-50 rounded-lg transition-all duration-300 group"
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img 
+                      src={brand.logo} 
+                      alt={brand.name}
+                      className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div 
+                      className={`hidden w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br ${brand.color} items-center justify-center`}
+                    >
+                      <span className="text-white font-bold text-lg md:text-xl text-center px-2">
+                        {brand.name}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-6">
-                    <p className="text-gray-600 text-center">
-                      {brand.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center mt-8 text-sm text-gray-500">
+              <p>Simpan logo brand Anda di folder: <code className="bg-gray-100 px-2 py-1 rounded">/frontend/public/brands/</code></p>
+            </div>
           </div>
 
           <div className="text-center mt-12">
