@@ -123,6 +123,7 @@ export interface ClientOptions {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { activateAllCS as api_admin_activate_all_cs_activateAllCS } from "~backend/admin/activate_all_cs";
+import { banUser as api_admin_ban_user_banUser } from "~backend/admin/ban_user";
 import {
     getConfig as api_admin_config_getConfig,
     getGlobalDiscount as api_admin_config_getGlobalDiscount,
@@ -132,9 +133,11 @@ import {
 } from "~backend/admin/config";
 import { dashboard as api_admin_dashboard_dashboard } from "~backend/admin/dashboard";
 import { deleteAllProducts as api_admin_delete_all_products_deleteAllProducts } from "~backend/admin/delete_all_products";
+import { deleteUser as api_admin_delete_user_deleteUser } from "~backend/admin/delete_user";
 import { deleteUserByPhone as api_admin_delete_user_by_phone_deleteUserByPhone } from "~backend/admin/delete_user_by_phone";
 import { editUser as api_admin_edit_user_editUser } from "~backend/admin/edit_user";
 import { exportTransactions as api_admin_export_transactions_exportTransactions } from "~backend/admin/export_transactions";
+import { listUsers as api_admin_list_users_listUsers } from "~backend/admin/list_users";
 import {
     exportLoginHistory as api_admin_login_history_exportLoginHistory,
     getUsersByIP as api_admin_login_history_getUsersByIP,
@@ -176,17 +179,12 @@ import {
     toggleProduct as api_admin_toggle_visibility_toggleProduct
 } from "~backend/admin/toggle_visibility";
 import { listTransactions as api_admin_transactions_listTransactions } from "~backend/admin/transactions";
+import { unbanUser as api_admin_unban_user_unbanUser } from "~backend/admin/unban_user";
 import { getUniplayBalance as api_admin_uniplay_balance_getUniplayBalance } from "~backend/admin/uniplay_balance";
 import { updateSuperadminPhone as api_admin_update_phone_updateSuperadminPhone } from "~backend/admin/update_phone";
 import { updateTransaction as api_admin_update_transaction_updateTransaction } from "~backend/admin/update_transaction";
 import { getUploadUrl as api_admin_upload_icon_getUploadUrl } from "~backend/admin/upload_icon";
 import { getUserTransactions as api_admin_user_transactions_getUserTransactions } from "~backend/admin/user_transactions";
-import {
-    banUser as api_admin_users_banUser,
-    deleteUser as api_admin_users_deleteUser,
-    listUsers as api_admin_users_listUsers,
-    unbanUser as api_admin_users_unbanUser
-} from "~backend/admin/users";
 import {
     exportUsers as api_admin_users_export_exportUsers,
     importUsers as api_admin_users_export_importUsers
@@ -289,10 +287,10 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_whatsapp_cs_addWhatsAppCS>
         }
 
-        public async banUser(params: RequestType<typeof api_admin_users_banUser>): Promise<ResponseType<typeof api_admin_users_banUser>> {
+        public async banUser(params: RequestType<typeof api_admin_ban_user_banUser>): Promise<ResponseType<typeof api_admin_ban_user_banUser>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/ban`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_banUser>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_ban_user_banUser>
         }
 
         public async createPackage(params: RequestType<typeof api_admin_packages_crud_createPackage>): Promise<ResponseType<typeof api_admin_packages_crud_createPackage>> {
@@ -349,10 +347,10 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_products_crud_deleteProduct>
         }
 
-        public async deleteUser(params: { userId: string }): Promise<ResponseType<typeof api_admin_users_deleteUser>> {
+        public async deleteUser(params: { userId: string }): Promise<ResponseType<typeof api_admin_delete_user_deleteUser>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}`, {method: "DELETE", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_deleteUser>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_delete_user_deleteUser>
         }
 
         public async deleteUserByPhone(params: RequestType<typeof api_admin_delete_user_by_phone_deleteUserByPhone>): Promise<ResponseType<typeof api_admin_delete_user_by_phone_deleteUserByPhone>> {
@@ -500,10 +498,10 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_transactions_listTransactions>
         }
 
-        public async listUsers(): Promise<ResponseType<typeof api_admin_users_listUsers>> {
+        public async listUsers(): Promise<ResponseType<typeof api_admin_list_users_listUsers>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_listUsers>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_list_users_listUsers>
         }
 
         public async listVouchers(params: RequestType<typeof api_admin_vouchers_listVouchers>): Promise<ResponseType<typeof api_admin_vouchers_listVouchers>> {
@@ -605,10 +603,10 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_toggle_special_item_toggleSpecialItem>
         }
 
-        public async unbanUser(params: RequestType<typeof api_admin_users_unbanUser>): Promise<ResponseType<typeof api_admin_users_unbanUser>> {
+        public async unbanUser(params: RequestType<typeof api_admin_unban_user_unbanUser>): Promise<ResponseType<typeof api_admin_unban_user_unbanUser>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/admin/users/unban`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_users_unbanUser>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_unban_user_unbanUser>
         }
 
         public async updateAlertStatus(params: RequestType<typeof api_admin_security_alerts_updateAlertStatus>): Promise<ResponseType<typeof api_admin_security_alerts_updateAlertStatus>> {
