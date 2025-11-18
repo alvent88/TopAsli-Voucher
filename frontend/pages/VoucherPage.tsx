@@ -84,7 +84,7 @@ export default function HomePage() {
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Beranda</Link>
-              <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors">Produk Voucher</Link>
+             
               <Link to="/redeem-voucher" className="text-gray-700 hover:text-primary transition-colors">Redeem</Link>
               <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">Cara Redeem</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">Kontak</Link>
@@ -102,9 +102,7 @@ export default function HomePage() {
             <h1 className="mb-4 text-5xl md:text-6xl font-bold text-primary">
               TopAsli Redeem System
             </h1>
-            <p className="text-xl text-gray-700 mb-8">
-              Tukarkan voucher snack Anda dengan mudah. Proses instan, aman & terpercaya!
-            </p>
+            <p className="text-xl text-gray-700 mb-8">Tukarkan voucher Anda dengan mudah. Proses instan, aman & terpercaya!</p>
             <div className="flex justify-center">
               <Link to="/redeem-voucher">
                 <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3">
