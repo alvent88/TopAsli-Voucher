@@ -40,11 +40,10 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
       const oldUser = userResult[0];
 
-      let updateQuery = "UPDATE users SET ";
-      const updates: string[] = [];
+      const fieldsToUpdate: { [key: string]: any } = {};
       
       if (fullName !== undefined && fullName !== oldUser.full_name) {
-        updates.push(`full_name = '${fullName.replace(/'/g, "''")}'`);
+        fieldsToUpdate.full_name = fullName;
       }
 
       if (phoneNumber !== undefined) {
@@ -58,22 +57,28 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         }
         
         if (phone !== oldUser.phone_number) {
-          updates.push(`phone_number = '${phone}'`);
+          fieldsToUpdate.phone_number = phone;
         }
       }
 
       if (birthDate !== undefined && birthDate !== oldUser.birth_date) {
         if (birthDate) {
-          updates.push(`birth_date = '${birthDate}'`);
+          fieldsToUpdate.birth_date = birthDate;
         } else {
-          updates.push(`birth_date = NULL`);
+          fieldsToUpdate.birth_date = null;
         }
       }
 
-      if (updates.length > 0) {
-        updateQuery += updates.join(", ");
-        updateQuery += ` WHERE clerk_user_id = '${userId}'`;
-        await db.exec(updateQuery as any);
+      if (Object.keys(fieldsToUpdate).length > 0) {
+        const setParts = Object.keys(fieldsToUpdate).map(key => `${key} = $${key}`);
+        const setClause = setParts.join(", ");
+        
+        const queryValues = { ...fieldsToUpdate, userId };
+        const keys = Object.keys(queryValues);
+        const values = keys.map(k => queryValues[k]);
+        
+        const query = `UPDATE users SET ${setClause} WHERE clerk_user_id = $userId`;
+        await db.exec(query as any, values);
       }
 
       if (balance !== undefined) {
