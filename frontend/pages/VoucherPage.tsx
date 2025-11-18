@@ -79,11 +79,12 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
-              <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
-              <span className="text-2xl font-bold text-primary">TopAsli</span>
+              <img src="/logo.png" alt="CV Top Asli" className="w-12 h-12 rounded-full" />
+              <span className="text-2xl font-bold text-primary">CV Top Asli</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Games</Link>
+              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Beranda</Link>
+              <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors">Produk Voucher</Link>
               <Link to="/redeem-voucher" className="text-gray-700 hover:text-primary transition-colors">Redeem</Link>
               <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">Cara Redeem</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">Kontak</Link>
@@ -390,8 +391,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
-                <span className="text-xl font-bold text-gray-900">TopAsli</span>
+                <img src="/logo.png" alt="CV Top Asli" className="w-12 h-12 rounded-full" />
+                <span className="text-xl font-bold text-gray-900">CV Top Asli</span>
               </div>
               <p className="text-gray-600 text-sm">
                 Platform redeem voucher snack CV Top Asli dengan proses cepat dan aman.

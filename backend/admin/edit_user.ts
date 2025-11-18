@@ -73,7 +73,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
         const setParts = Object.keys(fieldsToUpdate).map(key => `${key} = $${key}`);
         const setClause = setParts.join(", ");
         
-        const queryValues = { ...fieldsToUpdate, userId };
+        const queryValues: Record<string, any> = { ...fieldsToUpdate, userId };
         const keys = Object.keys(queryValues);
         const values = keys.map(k => queryValues[k]);
         

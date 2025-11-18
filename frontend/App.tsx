@@ -4,7 +4,8 @@ import { useBackend } from "@/lib/useBackend";
 import { useIdleLogout } from "@/lib/useIdleLogout";
 import { Toaster } from "@/components/ui/toaster";
 import { RedeemVoucherFAB } from "@/components/RedeemVoucherFAB";
-import HomePage from "./pages/HomePage";
+import CompanyProfilePage from "./pages/CompanyProfilePage";
+import VoucherPage from "./pages/VoucherPage";
 import ProductPage from "./pages/ProductPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import TransactionPage from "./pages/TransactionPage";
@@ -43,7 +44,8 @@ function AppInner() {
     <>
       <RedeemVoucherFAB />
       <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<CompanyProfilePage />} />
+          <Route path="/voucher" element={<VoucherPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
