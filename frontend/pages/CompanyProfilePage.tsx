@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Building2, ShoppingBag, Award, Users, Mail, MessageCircle, MapPin } from "lucide-react";
+import { Building2, ShoppingBag, Award, Mail, MessageCircle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -41,12 +41,7 @@ export default function CompanyProfilePage() {
               <img src="/logo.png" alt="CV Top Asli" className="w-12 h-12 rounded-full" />
               <span className="text-2xl font-bold text-primary">CV Top Asli</span>
             </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <a href="#about" className="text-gray-700 hover:text-primary transition-colors">Tentang Kami</a>
-              <a href="#brands" className="text-gray-700 hover:text-primary transition-colors">Brand</a>
-              <a href="#values" className="text-gray-700 hover:text-primary transition-colors">Nilai Kami</a>
-              <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors font-semibold">Redeem Voucher</Link>
-            </div>
+
             <Link to="/voucher">
               <Button className="bg-primary hover:bg-blue-600 text-white">
                 Redeem Voucher
@@ -159,18 +154,6 @@ export default function CompanyProfilePage() {
               ))}
             </div>
             
-            <div className="text-center mt-8 text-sm text-gray-500">
-              <p>Simpan logo brand Anda di folder: <code className="bg-gray-100 px-2 py-1 rounded">/frontend/public/brands/</code></p>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Link to="/voucher">
-              <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-6 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
-                Redeem Voucher Brand Favorit Anda
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
@@ -222,24 +205,6 @@ export default function CompanyProfilePage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <Users className="h-16 w-16 mx-auto mb-6 opacity-90" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Bergabunglah dengan Kami</h2>
-            <p className="text-xl text-blue-100 mb-8">
-              Nikmati berbagai penawaran dan promosi eksklusif dari brand-brand favorit Anda
-            </p>
-            <Link to="/voucher">
-              <Button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
-                Mulai Redeem Voucher
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <footer className="bg-white border-t border-gray-200">
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -260,15 +225,13 @@ export default function CompanyProfilePage() {
             </div>
 
             <div>
-              <h4 className="text-gray-900 font-semibold mb-4">Brand Kami</h4>
+              <h4 className="text-gray-900 font-semibold mb-4">Menu</h4>
               <ul className="space-y-2 text-sm">
-                {brands.map((brand, index) => (
-                  <li key={index}>
-                    <Link to="/voucher" className="text-gray-600 hover:text-primary transition-colors">
-                      {brand.name}
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link to="/voucher" className="text-gray-600 hover:text-primary transition-colors">
+                    Redeem Voucher
+                  </Link>
+                </li>
               </ul>
             </div>
 
