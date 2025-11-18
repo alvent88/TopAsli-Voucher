@@ -54,8 +54,11 @@ export default function AdminMessages() {
   const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
+    const superAdminStatus = sessionStorage.getItem("isSuperAdmin") === "true";
+    setIsSuperAdmin(superAdminStatus);
     loadMessages();
   }, [showRead, sortBy, order]);
 
@@ -268,17 +271,19 @@ export default function AdminMessages() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(message);
-                            }}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {isSuperAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(message);
+                              }}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -327,14 +332,16 @@ export default function AdminMessages() {
                       Tandai Dibaca
                     </Button>
                   )}
-                  <Button
-                    onClick={() => handleDeleteClick(selectedMessage)}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Hapus
-                  </Button>
+                  {isSuperAdmin && (
+                    <Button
+                      onClick={() => handleDeleteClick(selectedMessage)}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Hapus
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (

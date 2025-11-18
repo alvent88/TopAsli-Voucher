@@ -107,8 +107,8 @@ export const deleteMessage = api<DeleteMessageRequest, DeleteMessageResponse>(
   async ({ messageId }) => {
     const auth = getAuthData()!;
 
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can delete messages");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can delete messages");
     }
 
     await db.exec`
