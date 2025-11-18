@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import backend from "~backend/client";
 import type { Product } from "~backend/product/list";
-import { Gamepad2, Search, Shield, Zap, Mail, MessageCircle, ChevronDown } from "lucide-react";
+import { Gamepad2, Search, Shield, Zap, Mail, MessageCircle, ChevronDown, Ticket } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,7 @@ export default function HomePage() {
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Games</Link>
+              <Link to="/redeem-voucher" className="text-gray-700 hover:text-primary transition-colors">Redeem Voucher</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">Kontak</Link>
             </div>
             <div className="flex items-center gap-3">
@@ -102,6 +103,14 @@ export default function HomePage() {
             <p className="text-xl text-gray-700 mb-8">
               Tukarkan voucher snack Anda dengan mudah. Proses instan, aman & terpercaya!
             </p>
+            <div className="flex justify-center">
+              <Link to="/redeem-voucher">
+                <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3">
+                  <Ticket className="h-6 w-6" />
+                  Redeem Voucher Sekarang
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

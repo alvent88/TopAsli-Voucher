@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useBackend } from "@/lib/useBackend";
 import { useIdleLogout } from "@/lib/useIdleLogout";
 import { Toaster } from "@/components/ui/toaster";
+import { RedeemVoucherFAB } from "@/components/RedeemVoucherFAB";
 import HomePage from "./pages/HomePage";
 import ProductPage from "./pages/ProductPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -39,6 +40,7 @@ function AppInner() {
   
   return (
     <>
+      <RedeemVoucherFAB />
       <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
