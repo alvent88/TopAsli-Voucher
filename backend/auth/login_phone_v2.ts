@@ -40,14 +40,43 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
       phone_number: string;
       password_hash: string;
       full_name: string;
+      is_banned: boolean;
+      ban_reason: string | null;
+      banned_until: Date | null;
     }>`
-      SELECT clerk_user_id, phone_number, password_hash, full_name
+      SELECT clerk_user_id, phone_number, password_hash, full_name, 
+             is_banned, ban_reason, banned_until
       FROM users 
       WHERE phone_number = ${phoneWithPrefix}
     `;
 
     if (!user) {
       throw APIError.unauthenticated("Nomor HP atau password salah");
+    }
+
+    if (user.is_banned) {
+      const now = new Date();
+      if (user.banned_until && user.banned_until > now) {
+        const remainingMinutes = Math.ceil((user.banned_until.getTime() - now.getTime()) / 60000);
+        throw APIError.permissionDenied(
+          `Akun Anda telah dibanned. Alasan: ${user.ban_reason || "Brute force voucher attempts"}. Silakan coba lagi dalam ${remainingMinutes} menit.`
+        );
+      } else if (user.banned_until && user.banned_until <= now) {
+        await db.exec`
+          UPDATE users
+          SET is_banned = false,
+              ban_reason = NULL,
+              banned_at = NULL,
+              banned_until = NULL,
+              banned_by = NULL
+          WHERE clerk_user_id = ${user.clerk_user_id}
+        `;
+        console.log("Auto-unban user after expiry:", user.clerk_user_id);
+      } else {
+        throw APIError.permissionDenied(
+          `Akun Anda telah dibanned secara permanen. Alasan: ${user.ban_reason || "Tidak ada alasan yang diberikan"}. Hubungi admin untuk unban.`
+        );
+      }
     }
 
     if (!user.password_hash) {

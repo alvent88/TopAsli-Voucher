@@ -34,38 +34,11 @@ import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
 import AdminSecurityAlerts from "./pages/admin/AdminSecurityAlerts";
 
-function BanChecker() {
-  const backend = useBackend();
-  const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
-  const userPhone = sessionStorage.getItem("userPhone");
-
-  useEffect(() => {
-    const checkBanStatus = async () => {
-      if (!isLoggedIn || !userPhone) return;
-
-      const banCheckKey = `ban_checked_${userPhone}`;
-      
-      if (sessionStorage.getItem(banCheckKey)) {
-        return;
-      }
-
-    };
-
-    checkBanStatus();
-    const interval = setInterval(checkBanStatus, 10000);
-
-    return () => clearInterval(interval);
-  }, [isLoggedIn, userPhone, backend]);
-
-  return null;
-}
-
 function AppInner() {
   useIdleLogout();
   
   return (
     <>
-      <BanChecker />
       <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />

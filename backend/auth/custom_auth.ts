@@ -1,5 +1,6 @@
 import { Header, APIError, Gateway } from "encore.dev/api";
 import { authHandler } from "encore.dev/auth";
+import db from "../db";
 
 interface AuthParams {
   authorization?: Header<"Authorization">;
@@ -32,6 +33,41 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
   
   if (!decoded) {
     throw APIError.unauthenticated("invalid token");
+  }
+
+  const userBanCheck = await db.queryRow<{
+    is_banned: boolean;
+    ban_reason: string | null;
+    banned_until: Date | null;
+  }>`
+    SELECT is_banned, ban_reason, banned_until
+    FROM users
+    WHERE clerk_user_id = ${decoded.userId}
+  `;
+
+  if (userBanCheck?.is_banned) {
+    const now = new Date();
+    if (userBanCheck.banned_until && userBanCheck.banned_until > now) {
+      const remainingMinutes = Math.ceil((userBanCheck.banned_until.getTime() - now.getTime()) / 60000);
+      throw APIError.permissionDenied(
+        `Akun Anda telah dibanned. Alasan: ${userBanCheck.ban_reason || "Brute force voucher attempts"}. Silakan coba lagi dalam ${remainingMinutes} menit.`
+      );
+    } else if (userBanCheck.banned_until && userBanCheck.banned_until <= now) {
+      await db.exec`
+        UPDATE users
+        SET is_banned = false,
+            ban_reason = NULL,
+            banned_at = NULL,
+            banned_until = NULL,
+            banned_by = NULL
+        WHERE clerk_user_id = ${decoded.userId}
+      `;
+      console.log("Auto-unban user after expiry:", decoded.userId);
+    } else {
+      throw APIError.permissionDenied(
+        `Akun Anda telah dibanned secara permanen. Alasan: ${userBanCheck.ban_reason || "Tidak ada alasan yang diberikan"}. Hubungi admin untuk unban.`
+      );
+    }
   }
 
   const isSuperAdmin = decoded.phoneNumber === "62818848168";
