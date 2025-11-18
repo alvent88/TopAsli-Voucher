@@ -43,9 +43,7 @@ export default function CompanyProfilePage() {
             </Link>
 
             <Link to="/voucher">
-              <Button className="bg-primary hover:bg-blue-600 text-white">
-                Redeem Voucher
-              </Button>
+              <Button className="bg-primary hover:bg-blue-600 text-white">Klaim Voucher</Button>
             </Link>
           </div>
         </div>
