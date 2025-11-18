@@ -39,8 +39,10 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
     is_banned: boolean;
     ban_reason: string | null;
     banned_until: Date | null;
+    is_admin: boolean;
+    is_superadmin: boolean;
   }>`
-    SELECT is_banned, ban_reason, banned_until
+    SELECT is_banned, ban_reason, banned_until, is_admin, is_superadmin
     FROM users
     WHERE clerk_user_id = ${decoded.userId}
   `;
@@ -70,8 +72,8 @@ export const auth = authHandler<AuthParams, AuthData>(async (data) => {
     }
   }
 
-  const isSuperAdmin = decoded.phoneNumber === "62818848168";
-  const isAdmin = isSuperAdmin;
+  const isAdmin = userBanCheck?.is_admin || false;
+  const isSuperAdmin = userBanCheck?.is_superadmin || false;
 
   return {
     userID: decoded.userId,

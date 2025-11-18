@@ -33,28 +33,46 @@ export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>
     console.log("Promoted by:", auth.userID);
 
     try {
-      const user = await db.queryRow<{ phone_number: string }>`
-        SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
+      const user = await db.queryRow<{ phone_number: string; full_name: string }>`
+        SELECT phone_number, full_name FROM users WHERE clerk_user_id = ${userId}
       `;
       
       if (!user) {
         throw APIError.notFound("User not found");
       }
 
-      console.log(`User promoted to ${role} successfully`);
+      if (role === "superadmin") {
+        await db.exec`
+          UPDATE users
+          SET is_superadmin = TRUE,
+              is_admin = TRUE,
+              updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
+      } else {
+        await db.exec`
+          UPDATE users
+          SET is_admin = TRUE,
+              is_superadmin = FALSE,
+              updated_at = NOW()
+          WHERE clerk_user_id = ${userId}
+        `;
+      }
+
+      console.log(`User ${user.full_name} promoted to ${role} successfully`);
       
       await logAuditAction({
         actionType: "PROMOTE",
         entityType: "ADMIN",
         entityId: userId,
         oldValues: { isAdmin: false, isSuperAdmin: false },
-        newValues: { isAdmin: role === "admin" || role === "superadmin", isSuperAdmin: role === "superadmin" },
+        newValues: { isAdmin: true, isSuperAdmin: role === "superadmin" },
         metadata: { role, targetUserPhone: user.phone_number },
       }, ipAddress, userAgent);
 
       return {
         success: true,
-        message: `User berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}. Note: Admin status is determined by phone number 62818848168`,
+        message: `User ${user.full_name} berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}`,
       };
     } catch (err: any) {
       console.error("=== PROMOTE TO ADMIN ERROR ===");
@@ -96,18 +114,26 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
     console.log("Demoted by:", auth.userID);
 
     try {
-      const user = await db.queryRow<{ phone_number: string }>`
-        SELECT phone_number FROM users WHERE clerk_user_id = ${userId}
+      const user = await db.queryRow<{ phone_number: string; full_name: string }>`
+        SELECT phone_number, full_name FROM users WHERE clerk_user_id = ${userId}
       `;
       
       if (!user) {
         throw APIError.notFound("User not found");
       }
 
-      console.log("User demoted from admin successfully");
+      await db.exec`
+        UPDATE users
+        SET is_admin = FALSE,
+            is_superadmin = FALSE,
+            updated_at = NOW()
+        WHERE clerk_user_id = ${userId}
+      `;
+
+      console.log(`User ${user.full_name} demoted from admin successfully`);
       
       await logAuditAction({
-        actionType: "PROMOTE",
+        actionType: "DEMOTE",
         entityType: "ADMIN",
         entityId: userId,
         oldValues: { isAdmin: true, isSuperAdmin: false },
@@ -117,7 +143,7 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
 
       return {
         success: true,
-        message: "User berhasil diturunkan dari admin. Note: Admin status is determined by phone number 62818848168",
+        message: `User ${user.full_name} berhasil diturunkan dari admin`,
       };
     } catch (err: any) {
       console.error("=== DEMOTE FROM ADMIN ERROR ===");

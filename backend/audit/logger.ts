@@ -14,6 +14,7 @@ export type ActionType =
   | "ACTIVATE"
   | "DEACTIVATE"
   | "PROMOTE"
+  | "DEMOTE"
   | "BAN"
   | "UNBAN"
   | "EXPORT"

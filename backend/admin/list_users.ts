@@ -43,6 +43,8 @@ export const listUsers = api<void, ListUsersResponse>(
           u.is_banned,
           u.banned_at,
           u.ban_reason,
+          u.is_admin,
+          u.is_superadmin,
           COALESCE(ub.balance, 0) as balance,
           lh.last_login
          FROM users u
@@ -65,8 +67,8 @@ export const listUsers = api<void, ListUsersResponse>(
         birthDate: row.birth_date ? new Date(row.birth_date).toISOString() : null,
         createdAt: new Date(row.created_at).toISOString(),
         lastSignInAt: row.last_login ? new Date(row.last_login).toISOString() : null,
-        isAdmin: false,
-        isSuperAdmin: row.phone_number === "62818848168",
+        isAdmin: row.is_admin || false,
+        isSuperAdmin: row.is_superadmin || false,
         balance: parseFloat(row.balance) || 0,
         isBanned: row.is_banned || false,
         bannedAt: row.banned_at ? new Date(row.banned_at).toISOString() : null,
