@@ -69,7 +69,8 @@ export default function HowToRedeemPage() {
       description: "Tukarkan kode voucher snack Anda menjadi saldo.",
       details: [
         "Klik menu 'Redeem' di navigasi",
-        "Masukkan kode voucher 16 digit",
+        "Scan kode QR voucher menggunakan kamera",
+        "Jika tidak ada kamera, input manual 32 digit kode voucher",
         "Klik tombol 'Redeem'",
         "Saldo otomatis masuk ke akun Anda"
       ]
@@ -194,7 +195,7 @@ export default function HowToRedeemPage() {
                   Kode Voucher
                 </h3>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Kode voucher 16 digit</li>
+                  <li>• Scan QR code atau input 32 digit manual</li>
                   <li>• Hanya bisa digunakan 1 kali</li>
                   <li>• Saldo langsung masuk setelah redeem</li>
                 </ul>
