@@ -1,4 +1,5 @@
 import { api, APIError } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import db from "../db";
 
 interface UpdateTransactionParams {
@@ -13,6 +14,11 @@ interface UpdateTransactionResponse {
 export const updateTransaction = api<UpdateTransactionParams, UpdateTransactionResponse>(
   { expose: true, method: "PUT", path: "/admin/transactions/:id", auth: true },
   async ({ id, status }) => {
+    const auth = getAuthData();
+    if (!auth || !auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Superadmin access required");
+    }
+
     const validStatuses = ["pending", "processing", "success", "failed"];
     if (!validStatuses.includes(status)) {
       throw APIError.invalidArgument("invalid status");

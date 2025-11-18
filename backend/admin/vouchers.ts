@@ -148,8 +148,8 @@ export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBa
   async ({ amount, quantity, expiresAt }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can create vouchers");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can create vouchers");
     }
 
     if (![2000, 5000, 10000, 20000, 50000, 100000].includes(amount)) {
@@ -233,8 +233,8 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
   async ({ code }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can delete vouchers");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can delete vouchers");
     }
 
     try {

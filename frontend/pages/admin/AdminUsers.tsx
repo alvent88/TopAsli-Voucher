@@ -355,7 +355,7 @@ export default function AdminUsers() {
     if (!reason) return;
 
     try {
-      await backend.admin.banUser({ phoneNumber: user.phoneNumber || "", reason });
+      await backend.admin.banUser({ userId: user.id, reason });
       toast({
         title: "Berhasil",
         description: `${user.fullName || user.phoneNumber} berhasil dibanned`,
@@ -373,20 +373,17 @@ export default function AdminUsers() {
 
   const handleUnbanUser = async (user: User) => {
     try {
-      await backend.admin.unbanUser({ phoneNumber: user.phoneNumber || "" });
+      await backend.admin.unbanUser({ userId: user.id });
       toast({
         title: "Berhasil",
-        description: `${user.fullName || user.phoneNumber} berhasil diunban`,
+        description: `${user.fullName || user.phoneNumber} berhasil di-unban`,
       });
-      
-      setTimeout(() => {
-        loadUsers();
-      }, 1000);
+      loadUsers();
     } catch (error: any) {
       console.error("Failed to unban user:", error);
       toast({
         title: "Error",
-        description: error.message || "Gagal mengunban user",
+        description: error.message || "Gagal unban user",
         variant: "destructive",
       });
     }

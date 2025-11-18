@@ -58,6 +58,41 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       console.log("User phone:", auth.phoneNumber);
       console.log("Voucher code:", code);
 
+      const userBanCheck = await db.queryRow<{
+        is_banned: boolean;
+        ban_reason: string | null;
+        banned_until: Date | null;
+      }>`
+        SELECT is_banned, ban_reason, banned_until
+        FROM users
+        WHERE clerk_user_id = ${auth.userID}
+      `;
+
+      if (userBanCheck?.is_banned) {
+        const now = new Date();
+        if (userBanCheck.banned_until && userBanCheck.banned_until > now) {
+          const remainingMinutes = Math.ceil((userBanCheck.banned_until.getTime() - now.getTime()) / 60000);
+          throw APIError.permissionDenied(
+            `Akun Anda telah dibanned. Alasan: ${userBanCheck.ban_reason || "Brute force voucher attempts"}. Silakan coba lagi dalam ${remainingMinutes} menit.`
+          );
+        } else if (userBanCheck.banned_until && userBanCheck.banned_until <= now) {
+          await db.exec`
+            UPDATE users
+            SET is_banned = false,
+                ban_reason = NULL,
+                banned_at = NULL,
+                banned_until = NULL,
+                banned_by = NULL
+            WHERE clerk_user_id = ${auth.userID}
+          `;
+          console.log("Auto-unban user after 1 hour:", auth.userID);
+        } else {
+          throw APIError.permissionDenied(
+            `Akun Anda telah dibanned secara permanen. Alasan: ${userBanCheck.ban_reason || "Tidak ada alasan yang diberikan"}. Hubungi admin untuk unban.`
+          );
+        }
+      }
+
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const recentFailedAttempts = await db.queryAll<{ count: string }>`
         SELECT COUNT(*) as count 
@@ -71,7 +106,21 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       
       if (failedCount >= 5) {
         await checkAndLogBruteForceVoucher(auth.userID, auth.phoneNumber || null, null);
-        throw APIError.permissionDenied("Anda telah mencoba kode voucher yang salah terlalu banyak. Silakan coba lagi dalam 5 menit.");
+        
+        const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
+        await db.exec`
+          UPDATE users
+          SET is_banned = true,
+              ban_reason = 'Auto-ban: Brute force voucher redeem attempts (5+ failed in 5 minutes)',
+              banned_at = NOW(),
+              banned_until = ${oneHourLater},
+              banned_by = 'SYSTEM'
+          WHERE clerk_user_id = ${auth.userID}
+        `;
+        
+        console.log("User auto-banned for 1 hour due to brute force voucher:", auth.userID);
+        
+        throw APIError.permissionDenied("Anda telah dibanned selama 1 jam karena terlalu banyak mencoba kode voucher yang salah. Hubungi admin jika ini adalah kesalahan.");
       }
 
       const voucherRow = await db.queryRow<{

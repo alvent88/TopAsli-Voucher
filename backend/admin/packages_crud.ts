@@ -36,8 +36,8 @@ export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
   async ({ productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can create packages");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can create packages");
     }
 
     const row = await db.queryRow<{ id: number }>`
@@ -83,8 +83,8 @@ export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
   async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can update packages");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can update packages");
     }
 
     const updates: string[] = [];
@@ -177,8 +177,8 @@ export const deletePackage = api<DeletePackageRequest, DeletePackageResponse>(
   async ({ packageId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can delete packages");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can delete packages");
     }
 
     const pkg = await db.queryRow<{ name: string; amount: number; price: number }>` 

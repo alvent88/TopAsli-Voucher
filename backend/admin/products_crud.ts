@@ -33,8 +33,8 @@ export const createProduct = api<CreateProductRequest, CreateProductResponse>(
   async ({ name, slug, category, description, iconUrl }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can create products");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can create products");
     }
 
     const row = await db.queryRow<{ id: number }>`
@@ -77,8 +77,8 @@ export const updateProduct = api<UpdateProductRequest, UpdateProductResponse>(
   async ({ productId, name, slug, category, description, iconUrl, isActive }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can update products");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can update products");
     }
 
     const updates: string[] = [];
@@ -156,8 +156,8 @@ export const deleteProduct = api<DeleteProductRequest, DeleteProductResponse>(
   async ({ productId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
     const auth = getAuthData()!;
     
-    if (!auth.isAdmin) {
-      throw APIError.permissionDenied("Only admin can delete products");
+    if (!auth.isSuperAdmin) {
+      throw APIError.permissionDenied("Only superadmin can delete products");
     }
 
     const product = await db.queryRow<{ name: string; slug: string }>` 
