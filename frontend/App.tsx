@@ -12,6 +12,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import RedeemVoucherPage from "./pages/RedeemVoucherPage";
+import HowToRedeemPage from "./pages/HowToRedeemPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
@@ -48,6 +49,7 @@ function AppInner() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/redeem-voucher" element={<RedeemVoucherPage />} />
+          <Route path="/how-to-redeem" element={<HowToRedeemPage />} />
           <Route path="/transactions" element={<TransactionPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<TermsPage />} />

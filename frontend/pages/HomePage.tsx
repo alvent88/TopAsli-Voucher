@@ -84,7 +84,8 @@ export default function HomePage() {
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Games</Link>
-              <Link to="/redeem-voucher" className="text-gray-700 hover:text-primary transition-colors">Redeem Voucher</Link>
+              <Link to="/redeem-voucher" className="text-gray-700 hover:text-primary transition-colors">Redeem</Link>
+              <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">Cara Redeem</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">Kontak</Link>
             </div>
             <div className="flex items-center gap-3">
