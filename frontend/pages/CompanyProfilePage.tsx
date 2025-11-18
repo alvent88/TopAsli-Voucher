@@ -59,7 +59,7 @@ export default function CompanyProfilePage() {
       <section className="relative w-full overflow-hidden bg-gray-900">
         <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] xl:h-[700px]">
           <img 
-            src="/hero-banner.png" 
+            src="/hero-banner.jpg" 
             alt="Snacking Made Right - CV Top Asli" 
             className="w-full h-full object-cover object-center"
             loading="eager"
