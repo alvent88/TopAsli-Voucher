@@ -38,7 +38,7 @@ export const listUsers = api<void, ListUsersResponse>(
           u.clerk_user_id as id,
           u.phone_number,
           u.full_name,
-          u.birth_date,
+          u.date_of_birth as birth_date,
           u.created_at,
           u.is_banned,
           u.banned_at,

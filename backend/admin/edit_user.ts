@@ -29,7 +29,7 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
     try {
       const userResult = await db.queryAll<any>`
-        SELECT clerk_user_id, phone_number, full_name, birth_date 
+        SELECT clerk_user_id, phone_number, full_name, date_of_birth as birth_date 
         FROM users 
         WHERE clerk_user_id = ${userId}
       `;
@@ -63,9 +63,9 @@ export const editUser = api<EditUserRequest, EditUserResponse>(
 
       if (birthDate !== undefined && birthDate !== oldUser.birth_date) {
         if (birthDate) {
-          fieldsToUpdate.birth_date = birthDate;
+          fieldsToUpdate.date_of_birth = birthDate;
         } else {
-          fieldsToUpdate.birth_date = null;
+          fieldsToUpdate.date_of_birth = null;
         }
       }
 
