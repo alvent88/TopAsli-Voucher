@@ -98,9 +98,9 @@ export default function CompanyProfilePage() {
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
                     <ShoppingBag className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">5 Brand Ternama</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Produsen Berpengalaman</h3>
                   <p className="text-gray-600">
-                    Portofolio brand yang dikenal dan dicintai konsumen
+                    Memproduksi berbagai jenis snack berkualitas tinggi
                   </p>
                 </CardContent>
               </Card>
