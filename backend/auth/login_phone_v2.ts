@@ -33,6 +33,8 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
       formattedPhone = formattedPhone.substring(3);
     }
 
+    const phoneWithPrefix = `62${formattedPhone}`;
+
     const user = await db.queryRow<{ 
       clerk_user_id: string;
       phone_number: string;
@@ -41,7 +43,7 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
     }>`
       SELECT clerk_user_id, phone_number, password_hash, full_name
       FROM users 
-      WHERE phone_number = ${formattedPhone}
+      WHERE phone_number = ${phoneWithPrefix}
     `;
 
     if (!user) {
@@ -77,14 +79,13 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
 
     console.log("=== LOGIN PHONE V2 SUCCESS ===");
 
-    const phoneWithPrefix = `62${user.phone_number}`;
-    const token = generateToken(user.clerk_user_id, phoneWithPrefix, user.full_name);
+    const token = generateToken(user.clerk_user_id, user.phone_number, user.full_name);
 
     return {
       success: true,
       message: "Login berhasil!",
       userId: user.clerk_user_id,
-      phoneNumber: phoneWithPrefix,
+      phoneNumber: user.phone_number,
       fullName: user.full_name,
       token,
     };
