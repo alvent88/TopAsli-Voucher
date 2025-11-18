@@ -56,30 +56,15 @@ export default function CompanyProfilePage() {
         </div>
       </nav>
 
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxIDEuNzktNCA0LTRzNCAxLjc5IDQgNC0xLjc5IDQtNCA0LTQtMS43OS00LTR6bTAgMTBjMC0yLjIxIDEuNzktNCA0LTRzNCAxLjc5IDQgNC0xLjc5IDQtNCA0LTQtMS43OS00LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-20"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Snacking Made Right
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Menciptakan momen kebahagiaan melalui produk snack berkualitas tinggi
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/voucher">
-                <Button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3">
-                  Redeem Voucher Sekarang
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <a href="#about">
-                <Button variant="outline" className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300">
-                  Pelajari Lebih Lanjut
-                </Button>
-              </a>
-            </div>
-          </div>
+      <section className="relative w-full overflow-hidden bg-gray-900">
+        <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] xl:h-[700px]">
+          <img 
+            src="/hero-banner.png" 
+            alt="Snacking Made Right - CV Top Asli" 
+            className="w-full h-full object-cover object-center"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>
       </section>
 
