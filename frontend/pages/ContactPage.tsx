@@ -199,7 +199,7 @@ export default function ContactPage() {
                     <h3 className="text-[#0F1B2B] font-semibold mb-1">WhatsApp</h3>
                     <p className="text-slate-700 text-sm mb-2">Chat langsung dengan tim kami</p>
                     <a
-                      href="https://api.whatsapp.com/send/?phone=6282225058000&text=Halo%20kak,%20saya%20mau%20tanya&type=phone_number&app_absent=0"
+                      href="https://api.whatsapp.com/send/?phone=6281328528689&text=Halo%20kak,%20saya%20mau%20tanya&type=phone_number&app_absent=0"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
