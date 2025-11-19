@@ -106,13 +106,13 @@ export default function HomePage() {
           <div className="container mx-auto px-4 text-center">
             <div className="flex flex-col gap-4">
               <Link to="/redeem-voucher">
-                <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
+                <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto cursor-pointer hover:cursor-pointer">
                   <Ticket className="h-6 w-6" />
                   Redeem Voucher Sekarang
                 </Button>
               </Link>
               <Link to="/how-to-redeem">
-                <Button variant="outline" className="bg-white/90 hover:bg-white border-primary text-primary px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
+                <Button variant="outline" className="bg-white/90 hover:bg-white border-primary text-primary px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto cursor-pointer hover:cursor-pointer">
                   Cara Redeem
                 </Button>
               </Link>
