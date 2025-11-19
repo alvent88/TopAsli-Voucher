@@ -83,7 +83,7 @@ export default function HomePage() {
               <span className="text-2xl font-bold text-primary">CV Top Asli</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Beranda</Link>
+              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">Home</Link>
              
              
               <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">Cara Redeem</Link>
