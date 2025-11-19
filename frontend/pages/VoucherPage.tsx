@@ -100,7 +100,7 @@ export default function HomePage() {
         <img
           src="/hero-banner-gaming.png"
           alt="Gaming Banner"
-          className="w-full h-full object-cover object-[center_65%]"
+          className="w-full h-full object-cover object-[center_30%]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex items-center justify-center">
           <div className="container mx-auto px-4 text-center">
