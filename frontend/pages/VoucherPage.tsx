@@ -96,11 +96,11 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden max-h-[60vh] md:max-h-[50vh]">
         <img
           src="/hero-banner-gaming.png"
           alt="Gaming Banner"
-          className="w-full h-auto object-cover"
+          className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex items-center justify-center">
           <div className="container mx-auto px-4 text-center">
