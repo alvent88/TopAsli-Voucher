@@ -96,7 +96,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <div className="relative overflow-hidden h-[100vh]">
+      <div className="relative overflow-hidden h-[72vh] md:h-[100vh]">
         <img
           src="/hero-banner-gaming.png"
           alt="Gaming Banner"
