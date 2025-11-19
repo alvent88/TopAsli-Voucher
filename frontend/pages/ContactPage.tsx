@@ -207,7 +207,7 @@ export default function ContactPage() {
                       <MessageCircle className="h-4 w-4" />
                       Chat Sekarang
                     </a>
-                    <p className="text-slate-700 text-xs mt-2">+62 822-2505-8000</p>
+                    <p className="text-slate-700 text-xs mt-2">+62 813-2852-8689</p>
                   </div>
                 </div>
               </CardContent>
