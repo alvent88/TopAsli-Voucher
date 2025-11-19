@@ -96,18 +96,24 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 py-16 border-b border-blue-200">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="mb-4 text-5xl md:text-6xl font-bold text-primary">
-              TopAsli Redeem System
-            </h1>
-            <p className="text-xl text-gray-700 mb-8">Tukarkan voucher Anda dengan mudah. Proses instan, aman & terpercaya!</p>
-            <div className="flex justify-center">
+      <div className="relative overflow-hidden">
+        <img
+          src="/hero-banner-gaming.png"
+          alt="Gaming Banner"
+          className="w-full h-auto object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex items-center justify-center">
+          <div className="container mx-auto px-4 text-center">
+            <div className="flex flex-col gap-4">
               <Link to="/redeem-voucher">
-                <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3">
+                <Button className="bg-primary hover:bg-blue-600 text-white px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
                   <Ticket className="h-6 w-6" />
                   Redeem Voucher Sekarang
+                </Button>
+              </Link>
+              <Link to="/how-to-redeem">
+                <Button variant="outline" className="bg-white/90 hover:bg-white border-primary text-primary px-8 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
+                  Cara Redeem
                 </Button>
               </Link>
             </div>
