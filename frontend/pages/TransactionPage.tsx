@@ -237,7 +237,7 @@ export default function TransactionPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/voucher")}
             className="text-slate-700 hover:text-blue-600 hover:bg-slate-100"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
