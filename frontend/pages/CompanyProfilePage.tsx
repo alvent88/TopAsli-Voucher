@@ -50,7 +50,7 @@ export default function CompanyProfilePage() {
       </nav>
 
       <section className="relative w-full overflow-hidden bg-white">
-        <div className="relative w-full h-[300px] md:h-[400px] lg:h-[450px]">
+        <div className="relative w-full h-[720px]">
           <img 
             src="/hero-banner.png" 
             alt="Snacking Made Right - CV Top Asli" 
