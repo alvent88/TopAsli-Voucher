@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical, Info } from "lucide-react";
+import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical, Info, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -85,6 +85,8 @@ export default function AdminUsers() {
   const [uploading, setUploading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin" | "superadmin">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned">("all");
 
   useEffect(() => {
     loadUsers();
@@ -188,11 +190,27 @@ export default function AdminUsers() {
   };
 
   const filteredUsers = users.filter((user) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const fullName = (user.fullName || user.firstName || "").toLowerCase();
-    const phone = (user.phoneNumber || "").toLowerCase();
-    return fullName.includes(query) || phone.includes(query);
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const fullName = (user.fullName || user.firstName || "").toLowerCase();
+      const phone = (user.phoneNumber || "").toLowerCase();
+      if (!fullName.includes(query) && !phone.includes(query)) {
+        return false;
+      }
+    }
+
+    if (roleFilter !== "all") {
+      if (roleFilter === "superadmin" && !user.isSuperAdmin) return false;
+      if (roleFilter === "admin" && (!user.isAdmin || user.isSuperAdmin)) return false;
+      if (roleFilter === "user" && (user.isAdmin || user.isSuperAdmin)) return false;
+    }
+
+    if (statusFilter !== "all") {
+      if (statusFilter === "banned" && !user.isBanned) return false;
+      if (statusFilter === "active" && user.isBanned) return false;
+    }
+
+    return true;
   });
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
@@ -473,7 +491,7 @@ export default function AdminUsers() {
       <Card className="bg-[#1a1f3a] border-slate-700">
         <CardHeader>
           <CardTitle className="text-white">Daftar Pengguna</CardTitle>
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
@@ -483,6 +501,71 @@ export default function AdminUsers() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
               />
+            </div>
+            <div className="flex gap-2 items-center">
+              <Filter className="h-4 w-4 text-slate-400" />
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant={roleFilter === "all" ? "default" : "outline"}
+                  onClick={() => setRoleFilter("all")}
+                  className={roleFilter === "all" ? "bg-blue-600 hover:bg-blue-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  Semua Role
+                </Button>
+                <Button
+                  size="sm"
+                  variant={roleFilter === "user" ? "default" : "outline"}
+                  onClick={() => setRoleFilter("user")}
+                  className={roleFilter === "user" ? "bg-blue-600 hover:bg-blue-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  User
+                </Button>
+                <Button
+                  size="sm"
+                  variant={roleFilter === "admin" ? "default" : "outline"}
+                  onClick={() => setRoleFilter("admin")}
+                  className={roleFilter === "admin" ? "bg-blue-600 hover:bg-blue-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  <Shield className="h-3 w-3 mr-1" />
+                  Admin
+                </Button>
+                <Button
+                  size="sm"
+                  variant={roleFilter === "superadmin" ? "default" : "outline"}
+                  onClick={() => setRoleFilter("superadmin")}
+                  className={roleFilter === "superadmin" ? "bg-yellow-600 hover:bg-yellow-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  <Crown className="h-3 w-3 mr-1" />
+                  Superadmin
+                </Button>
+                <div className="border-l border-slate-600 mx-1"></div>
+                <Button
+                  size="sm"
+                  variant={statusFilter === "all" ? "default" : "outline"}
+                  onClick={() => setStatusFilter("all")}
+                  className={statusFilter === "all" ? "bg-blue-600 hover:bg-blue-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  Semua Status
+                </Button>
+                <Button
+                  size="sm"
+                  variant={statusFilter === "active" ? "default" : "outline"}
+                  onClick={() => setStatusFilter("active")}
+                  className={statusFilter === "active" ? "bg-green-600 hover:bg-green-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  Aktif
+                </Button>
+                <Button
+                  size="sm"
+                  variant={statusFilter === "banned" ? "default" : "outline"}
+                  onClick={() => setStatusFilter("banned")}
+                  className={statusFilter === "banned" ? "bg-red-600 hover:bg-red-700" : "border-slate-600 text-slate-300 hover:bg-slate-800"}
+                >
+                  <Ban className="h-3 w-3 mr-1" />
+                  Banned
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
