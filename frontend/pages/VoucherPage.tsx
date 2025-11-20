@@ -406,6 +406,7 @@ export default function HomePage() {
               <h4 className="text-gray-900 font-semibold mb-4">Layanan</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/redeem-voucher" className="text-gray-600 hover:text-primary transition-colors">Redeem Voucher</Link></li>
+                <li><Link to="/how-to-redeem" className="text-gray-600 hover:text-primary transition-colors">Cara Redeem</Link></li>
                 <li><Link to="/contact" className="text-gray-600 hover:text-primary transition-colors">Kontak Kami</Link></li>
               </ul>
             </div>
