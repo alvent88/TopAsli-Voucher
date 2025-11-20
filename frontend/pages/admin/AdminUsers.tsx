@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical } from "lucide-react";
+import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -609,13 +609,26 @@ export default function AdminUsers() {
                       </TableCell>
                       <TableCell>
                         {user.isBanned ? (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
                             <Badge className="bg-red-600 text-xs w-fit">
                               <Ban className="mr-1 h-3 w-3" />
                               Banned
                             </Badge>
                             {user.bannedReason && (
-                              <span className="text-xs text-slate-400 truncate max-w-[120px]">{user.bannedReason}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 p-0 hover:bg-slate-700"
+                                onClick={() => {
+                                  toast({
+                                    title: "Alasan Banned",
+                                    description: user.bannedReason || "Tidak ada alasan",
+                                    duration: 5000,
+                                  });
+                                }}
+                              >
+                                <Info className="h-3 w-3 text-blue-400" />
+                              </Button>
                             )}
                           </div>
                         ) : (
