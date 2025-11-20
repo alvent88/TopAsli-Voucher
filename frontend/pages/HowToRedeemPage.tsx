@@ -213,9 +213,7 @@ export default function HowToRedeemPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
               Butuh Bantuan?
             </h2>
-            <p className="text-gray-600 text-center mb-6">
-              Tim customer service kami siap membantu Anda 24/7
-            </p>
+            <p className="text-gray-600 text-center mb-6">Tim customer service kami siap membantu Anda</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="mailto:cvtopasli@gmail.com" 
