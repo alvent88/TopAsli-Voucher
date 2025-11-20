@@ -56,10 +56,17 @@ export interface AuditLog {
   createdAt: Date;
 }
 
+export interface AuditHeaders {
+  xForwardedFor?: Header<"x-forwarded-for">;
+  xRealIp?: Header<"x-real-ip">;
+  cfConnectingIp?: Header<"cf-connecting-ip">;
+  trueClientIp?: Header<"true-client-ip">;
+  userAgent?: Header<"user-agent">;
+}
+
 export async function logAuditAction(
   entry: AuditLogEntry,
-  ipAddress?: Header<"x-forwarded-for">,
-  userAgent?: Header<"user-agent">
+  headers?: AuditHeaders
 ): Promise<void> {
   try {
     const auth = getAuthData();
@@ -77,8 +84,15 @@ export async function logAuditAction(
       console.error("Failed to fetch user email from Clerk:", error);
     }
 
-    const finalIpAddress = ipAddress || "unknown";
-    const finalUserAgent = userAgent || "unknown";
+    console.log("=== AUDIT LOG HEADERS DEBUG ===");
+    console.log("x-forwarded-for:", headers?.xForwardedFor);
+    console.log("x-real-ip:", headers?.xRealIp);
+    console.log("cf-connecting-ip:", headers?.cfConnectingIp);
+    console.log("true-client-ip:", headers?.trueClientIp);
+    console.log("user-agent:", headers?.userAgent);
+
+    const finalIpAddress = headers?.xForwardedFor || headers?.xRealIp || headers?.cfConnectingIp || headers?.trueClientIp || "unknown";
+    const finalUserAgent = headers?.userAgent || "unknown";
 
     await db.exec`
       INSERT INTO audit_logs (

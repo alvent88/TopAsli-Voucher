@@ -329,15 +329,20 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_delete_all_products_deleteAllProducts>
         }
 
-        public async deleteAllVouchers(): Promise<ResponseType<typeof api_admin_vouchers_deleteAllVouchers>> {
+        public async deleteAllVouchers(params: RequestType<typeof api_admin_vouchers_deleteAllVouchers>): Promise<ResponseType<typeof api_admin_vouchers_deleteAllVouchers>> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/all/delete`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/all/delete`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_deleteAllVouchers>
         }
 
-        public async deletePackage(params: { packageId: number }): Promise<ResponseType<typeof api_admin_packages_crud_deletePackage>> {
+        public async deletePackage(params: RequestType<typeof api_admin_packages_crud_deletePackage>): Promise<ResponseType<typeof api_admin_packages_crud_deletePackage>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                "_auditMetadata": params["_auditMetadata"] === undefined ? undefined : String(params["_auditMetadata"]),
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/packages/${encodeURIComponent(params.packageId)}`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/packages/${encodeURIComponent(params.packageId)}`, {query, method: "DELETE", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_packages_crud_deletePackage>
         }
 
@@ -347,9 +352,14 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_products_crud_deleteProduct>
         }
 
-        public async deleteUser(params: { userId: string }): Promise<ResponseType<typeof api_admin_delete_user_deleteUser>> {
+        public async deleteUser(params: RequestType<typeof api_admin_delete_user_deleteUser>): Promise<ResponseType<typeof api_admin_delete_user_deleteUser>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/delete`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_delete_user_deleteUser>
         }
 
@@ -359,21 +369,36 @@ export namespace admin {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_delete_user_by_phone_deleteUserByPhone>
         }
 
-        public async deleteVoucher(params: { code: string }): Promise<ResponseType<typeof api_admin_vouchers_deleteVoucher>> {
+        public async deleteVoucher(params: RequestType<typeof api_admin_vouchers_deleteVoucher>): Promise<ResponseType<typeof api_admin_vouchers_deleteVoucher>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/${encodeURIComponent(params.code)}`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/vouchers/${encodeURIComponent(params.code)}/delete`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_vouchers_deleteVoucher>
         }
 
-        public async deleteWhatsAppCS(params: { id: number }): Promise<ResponseType<typeof api_admin_whatsapp_cs_deleteWhatsAppCS>> {
+        public async deleteWhatsAppCS(params: RequestType<typeof api_admin_whatsapp_cs_deleteWhatsAppCS>): Promise<ResponseType<typeof api_admin_whatsapp_cs_deleteWhatsAppCS>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/whatsapp-cs/${encodeURIComponent(params.id)}`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/whatsapp-cs/${encodeURIComponent(params.id)}/delete`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_whatsapp_cs_deleteWhatsAppCS>
         }
 
-        public async demoteFromAdmin(params: { userId: string }): Promise<ResponseType<typeof api_admin_promote_admin_demoteFromAdmin>> {
+        public async demoteFromAdmin(params: RequestType<typeof api_admin_promote_admin_demoteFromAdmin>): Promise<ResponseType<typeof api_admin_promote_admin_demoteFromAdmin>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/demote`, {method: "POST", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/users/${encodeURIComponent(params.userId)}/demote`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_admin_promote_admin_demoteFromAdmin>
         }
 
@@ -525,7 +550,8 @@ export namespace admin {
         public async promoteToAdmin(params: RequestType<typeof api_admin_promote_admin_promoteToAdmin>): Promise<ResponseType<typeof api_admin_promote_admin_promoteToAdmin>> {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
             const body: Record<string, any> = {
-                role: params.role,
+                "_auditMetadata": params["_auditMetadata"],
+                role:             params.role,
             }
 
             // Now make the actual call to the API
@@ -618,6 +644,7 @@ export namespace admin {
         public async updatePackage(params: RequestType<typeof api_admin_packages_crud_updatePackage>): Promise<ResponseType<typeof api_admin_packages_crud_updatePackage>> {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
             const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
                 amount:           params.amount,
                 discountPrice:    params.discountPrice,
                 isActive:         params.isActive,
@@ -676,9 +703,10 @@ export namespace admin {
         public async updateWhatsAppCS(params: RequestType<typeof api_admin_whatsapp_cs_updateWhatsAppCS>): Promise<ResponseType<typeof api_admin_whatsapp_cs_updateWhatsAppCS>> {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
             const body: Record<string, any> = {
-                adminName:   params.adminName,
-                isActive:    params.isActive,
-                phoneNumber: params.phoneNumber,
+                "_auditMetadata": params["_auditMetadata"],
+                adminName:        params.adminName,
+                isActive:         params.isActive,
+                phoneNumber:      params.phoneNumber,
             }
 
             // Now make the actual call to the API
@@ -1051,9 +1079,14 @@ export namespace message {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_message_create_create>
         }
 
-        public async deleteMessage(params: { messageId: number }): Promise<ResponseType<typeof api_message_list_deleteMessage>> {
+        public async deleteMessage(params: RequestType<typeof api_message_list_deleteMessage>): Promise<ResponseType<typeof api_message_list_deleteMessage>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                "_auditMetadata": params["_auditMetadata"],
+            }
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/admin/messages/${encodeURIComponent(params.messageId)}`, {method: "DELETE", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/admin/messages/${encodeURIComponent(params.messageId)}/delete`, {method: "POST", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_message_list_deleteMessage>
         }
 

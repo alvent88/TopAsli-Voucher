@@ -17,7 +17,22 @@ export interface BanUserResponse {
 
 export const banUser = api<BanUserRequest, BanUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/ban", auth: true },
-  async ({ userId, reason, duration }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { userId, reason, duration }, 
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
+    const ipAddress = xForwardedFor || xRealIp || cfConnectingIp || "unknown";
+    
+    console.log("=== BAN USER HEADERS DEBUG ===");
+    console.log("x-forwarded-for:", xForwardedFor);
+    console.log("x-real-ip:", xRealIp);
+    console.log("cf-connecting-ip:", cfConnectingIp);
+    console.log("Final IP Address:", ipAddress);
+    console.log("User Agent:", userAgent);
+    
     const auth = getAuthData();
     if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Superadmin access required");
@@ -58,7 +73,12 @@ export const banUser = api<BanUserRequest, BanUserResponse>(
       entityType: "USER",
       entityId: userId,
       newValues: { reason, duration, bannedUntil: bannedUntil?.toISOString() },
-    }, ipAddress, userAgent);
+    }, {
+      xForwardedFor,
+      xRealIp,
+      cfConnectingIp,
+      userAgent,
+    });
 
     console.log(`User ${userId} (${userCheck.full_name}) banned by ${auth.userID}. Reason: ${reason}`);
 
