@@ -205,7 +205,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-[#0F1B2B] font-semibold mb-1">WhatsApp</h3>
-                    <p className="text-slate-700 text-sm mb-2">Chat langsung dengan tim kami</p>
+                    <p className="text-slate-700 text-sm mb-2">Chat langsung dengan tim kami (senin-sabtu jam 08.00 - 15.00)</p>
                     <a
                       href="https://api.whatsapp.com/send/?phone=6281328528689&text=Halo%20kak,%20saya%20mau%20tanya&type=phone_number&app_absent=0"
                       target="_blank"
