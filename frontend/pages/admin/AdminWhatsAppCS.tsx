@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 
 interface WhatsAppCS {
   id: number;
@@ -68,7 +69,8 @@ export default function AdminWhatsAppCS() {
 
     setSubmitting(true);
     try {
-      await backend.admin.addWhatsAppCS({ phoneNumber, adminName });
+      const payload = await withAuditMetadata({ phoneNumber, adminName });
+      await backend.admin.addWhatsAppCS(payload);
       toast({
         title: "Berhasil",
         description: "Nomor WhatsApp CS berhasil ditambahkan",
@@ -91,10 +93,11 @@ export default function AdminWhatsAppCS() {
 
   const handleToggleActive = async (number: WhatsAppCS) => {
     try {
-      await backend.admin.updateWhatsAppCS({
+      const payload = await withAuditMetadata({
         id: number.id,
         isActive: !number.isActive,
       });
+      await backend.admin.updateWhatsAppCS(payload);
       toast({
         title: "Berhasil",
         description: `Nomor WhatsApp CS berhasil ${!number.isActive ? "diaktifkan" : "dinonaktifkan"}`,
@@ -114,7 +117,8 @@ export default function AdminWhatsAppCS() {
     if (!confirm("Hapus nomor WhatsApp CS ini?")) return;
 
     try {
-      await backend.admin.deleteWhatsAppCS({ id });
+      const payload = await withAuditMetadata({ id });
+      await backend.admin.deleteWhatsAppCS(payload);
       toast({
         title: "Berhasil",
         description: "Nomor WhatsApp CS berhasil dihapus",
@@ -142,11 +146,12 @@ export default function AdminWhatsAppCS() {
 
     setSubmitting(true);
     try {
-      await backend.admin.updateWhatsAppCS({
+      const payload = await withAuditMetadata({
         id: selectedNumber.id,
         phoneNumber,
         adminName,
       });
+      await backend.admin.updateWhatsAppCS(payload);
       toast({
         title: "Berhasil",
         description: "Nomor WhatsApp CS berhasil diupdate",

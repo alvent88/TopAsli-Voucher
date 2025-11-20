@@ -2,6 +2,8 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
+import { WithAuditMetadata } from "../audit/types";
 
 export interface Message {
   id: number;
@@ -94,7 +96,7 @@ export const markAsRead = api<MarkAsReadRequest, MarkAsReadResponse>(
   }
 );
 
-export interface DeleteMessageRequest {
+export interface DeleteMessageRequest extends WithAuditMetadata {
   messageId: number;
 }
 
@@ -103,18 +105,29 @@ export interface DeleteMessageResponse {
 }
 
 export const deleteMessage = api<DeleteMessageRequest, DeleteMessageResponse>(
-  { expose: true, method: "DELETE", path: "/admin/messages/:messageId", auth: true },
-  async ({ messageId }) => {
+  { expose: true, method: "POST", path: "/admin/messages/:messageId/delete", auth: true },
+  async ({ messageId, _auditMetadata }) => {
     const auth = getAuthData()!;
 
     if (!auth.isSuperAdmin) {
       throw APIError.permissionDenied("Only superadmin can delete messages");
     }
 
+    const message = await db.queryRow<{ name: string; subject: string; phone_number: string | null }>`
+      SELECT name, subject, phone_number FROM messages WHERE id = ${messageId}
+    `;
+
     await db.exec`
       DELETE FROM messages
       WHERE id = ${messageId}
     `;
+
+    await logAuditAction({
+      actionType: "DELETE",
+      entityType: "MESSAGE",
+      entityId: messageId.toString(),
+      oldValues: message ? { name: message.name, subject: message.subject, phoneNumber: message.phone_number } : undefined,
+    }, _auditMetadata);
 
     return { success: true };
   }

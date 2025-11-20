@@ -30,7 +30,8 @@ export type EntityType =
   | "CONFIG"
   | "TRANSACTION"
   | "WHATSAPP_CS"
-  | "ADMIN";
+  | "ADMIN"
+  | "MESSAGE";
 
 export interface AuditLogEntry {
   actionType: ActionType;
@@ -198,6 +199,7 @@ export async function getAuditLogs(params: {
         )
         WHEN al.entity_type = 'VOUCHER' THEN al.entity_id
         WHEN al.entity_type = 'WHATSAPP_CS' THEN (SELECT admin_name FROM whatsapp_cs_numbers WHERE id::text = al.entity_id)
+        WHEN al.entity_type = 'MESSAGE' THEN (SELECT name || ' - ' || subject FROM messages WHERE id::text = al.entity_id)
         ELSE al.entity_id
       END as entity_name,
       al.old_values,

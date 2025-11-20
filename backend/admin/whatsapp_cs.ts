@@ -1,9 +1,9 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
-import { extractAuditHeaders } from "../audit/extract_headers";
+import { WithAuditMetadata } from "../audit/types";
 
 export interface WhatsAppCSNumber {
   id: number;
@@ -53,7 +53,7 @@ export const listWhatsAppCS = api<void, ListWhatsAppCSResponse>(
   }
 );
 
-export interface AddWhatsAppCSRequest {
+export interface AddWhatsAppCSRequest extends WithAuditMetadata {
   phoneNumber: string;
   adminName: string;
 }
@@ -65,14 +65,7 @@ export interface AddWhatsAppCSResponse {
 
 export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
   { expose: true, method: "POST", path: "/admin/whatsapp-cs", auth: true },
-  async (
-    { phoneNumber, adminName },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ phoneNumber, adminName, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -98,7 +91,7 @@ export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
         entityType: "WHATSAPP_CS",
         entityId: result!.id.toString(),
         newValues: { phoneNumber: formattedPhone, adminName, isActive: true },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
 
       return { success: true, id: result!.id };
     } catch (err: any) {
@@ -113,7 +106,7 @@ export const addWhatsAppCS = api<AddWhatsAppCSRequest, AddWhatsAppCSResponse>(
   }
 );
 
-export interface UpdateWhatsAppCSRequest {
+export interface UpdateWhatsAppCSRequest extends WithAuditMetadata {
   id: number;
   phoneNumber?: string;
   adminName?: string;
@@ -126,14 +119,7 @@ export interface UpdateWhatsAppCSResponse {
 
 export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSResponse>(
   { expose: true, method: "PUT", path: "/admin/whatsapp-cs/:id", auth: true },
-  async (
-    { id, phoneNumber, adminName, isActive },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ id, phoneNumber, adminName, isActive, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -187,7 +173,7 @@ export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSRes
           isActive: oldCS.is_active,
         } : undefined,
         newValues: { phoneNumber, adminName, isActive },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
 
       return { success: true };
     } catch (err) {
@@ -197,7 +183,7 @@ export const updateWhatsAppCS = api<UpdateWhatsAppCSRequest, UpdateWhatsAppCSRes
   }
 );
 
-export interface DeleteWhatsAppCSRequest {
+export interface DeleteWhatsAppCSRequest extends WithAuditMetadata {
   id: number;
 }
 
@@ -206,15 +192,8 @@ export interface DeleteWhatsAppCSResponse {
 }
 
 export const deleteWhatsAppCS = api<DeleteWhatsAppCSRequest, DeleteWhatsAppCSResponse>(
-  { expose: true, method: "DELETE", path: "/admin/whatsapp-cs/:id", auth: true },
-  async (
-    { id },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  { expose: true, method: "POST", path: "/admin/whatsapp-cs/:id/delete", auth: true },
+  async ({ id, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -233,7 +212,7 @@ export const deleteWhatsAppCS = api<DeleteWhatsAppCSRequest, DeleteWhatsAppCSRes
         entityType: "WHATSAPP_CS",
         entityId: id.toString(),
         oldValues: cs ? { phoneNumber: cs.phone_number, adminName: cs.admin_name } : undefined,
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
       
       return { success: true };
     } catch (err) {

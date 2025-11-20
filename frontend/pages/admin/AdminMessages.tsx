@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 import {
   Table,
   TableBody,
@@ -112,7 +113,8 @@ export default function AdminMessages() {
 
     setDeleting(true);
     try {
-      await backend.message.deleteMessage({ messageId: messageToDelete.id });
+      const payload = await withAuditMetadata({ messageId: messageToDelete.id });
+      await backend.message.deleteMessage(payload);
       toast({
         title: "Berhasil",
         description: "Pesan berhasil dihapus",
