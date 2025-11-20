@@ -4,7 +4,6 @@ import { getAuthData } from "~encore/auth";
 
 interface DashboardStats {
   totalTransactions: number;
-  totalRevenue: number;
   totalUsers: number;
 }
 
@@ -18,9 +17,9 @@ export const dashboard = api<void, DashboardStats>(
 
     const stats = await db.queryRow<any>`
       SELECT 
-        COUNT(*) as total_transactions,
-        COALESCE(SUM(price), 0) as total_revenue
+        COUNT(*) as total_transactions
       FROM transactions
+      WHERE DATE(created_at) = CURRENT_DATE
     `;
 
     const userCount = await db.queryRow<any>`
@@ -29,7 +28,6 @@ export const dashboard = api<void, DashboardStats>(
 
     return {
       totalTransactions: parseInt(stats.total_transactions),
-      totalRevenue: parseInt(stats.total_revenue),
       totalUsers: parseInt(userCount.total_users),
     };
   }

@@ -18,7 +18,6 @@ import {
 
 interface DashboardStats {
   totalTransactions: number;
-  totalRevenue: number;
   totalUsers: number;
 }
 
@@ -28,7 +27,6 @@ export default function AdminDashboard() {
   const { canEdit } = usePermissions();
   const [stats, setStats] = useState<DashboardStats>({
     totalTransactions: 0,
-    totalRevenue: 0,
     totalUsers: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -563,18 +561,11 @@ export default function AdminDashboard() {
       bgColor: "bg-indigo-500/10",
     },
     {
-      title: "Total Transaksi",
+      title: "Transaksi Hari Ini",
       value: stats.totalTransactions.toString(),
       icon: TrendingUp,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-    },
-    {
-      title: "Total Pendapatan",
-      value: formatCurrency(stats.totalRevenue),
-      icon: DollarSign,
-      color: "text-green-400",
-      bgColor: "bg-green-500/10",
     },
     {
       title: "Saldo UniPlay",
@@ -614,7 +605,7 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
