@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface Voucher {
   code: string;
@@ -145,7 +146,14 @@ function generateVoucherCode(): string {
 
 export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBatchResponse>(
   { expose: true, method: "POST", path: "/admin/vouchers/batch", auth: true },
-  async ({ amount, quantity, expiresAt }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { amount, quantity, expiresAt },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -204,7 +212,7 @@ export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBa
         entityType: "VOUCHER",
         newValues: { amount, quantity, expiresAt, codes },
         metadata: { batchSize: quantity, codesGenerated: codes.length },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return { success: true, codes };
     } catch (err: any) {
@@ -230,7 +238,14 @@ export interface DeleteVoucherResponse {
 
 export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/:code", auth: true },
-  async ({ code }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { code },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -249,7 +264,7 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
         entityType: "VOUCHER",
         entityId: code,
         oldValues: voucher ? { code: voucher.code, amount: voucher.amount } : { code },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
       
       return { success: true };
     } catch (err) {
@@ -266,7 +281,14 @@ export interface DeleteAllVouchersResponse {
 
 export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/all/delete", auth: true },
-  async (_, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    _,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -285,7 +307,7 @@ export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
         actionType: "DELETE",
         entityType: "VOUCHER",
         metadata: { action: "deleteAll", deletedCount: count },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
       
       return { success: true, deletedCount: count };
     } catch (err) {

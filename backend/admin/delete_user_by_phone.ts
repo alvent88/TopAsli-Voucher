@@ -5,6 +5,7 @@ import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -22,7 +23,14 @@ export interface DeleteUserByPhoneResponse {
 
 export const deleteUserByPhone = api<DeleteUserByPhoneRequest, DeleteUserByPhoneResponse>(
   { expose: true, method: "POST", path: "/admin/delete-user-by-phone" },
-  async ({ phoneNumber }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { phoneNumber },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     console.log("=== DELETE USER BY PHONE START ===");
     console.log("Phone number:", phoneNumber);
 
@@ -98,7 +106,7 @@ export const deleteUserByPhone = api<DeleteUserByPhoneRequest, DeleteUserByPhone
         entityId: registrationRow?.clerk_user_id || formattedPhone,
         oldValues: { phoneNumber: formattedPhone },
         metadata: { deletedFromClerk, deletedFromDatabase },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,

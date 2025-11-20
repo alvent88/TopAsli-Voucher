@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface Package {
   id: number;
@@ -33,7 +34,14 @@ export interface CreatePackageResponse {
 
 export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
   { expose: true, method: "POST", path: "/admin/packages", auth: true },
-  async ({ productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -55,7 +63,7 @@ export const createPackage = api<CreatePackageRequest, CreatePackageResponse>(
       entityType: "PACKAGE",
       entityId: row.id.toString(),
       newValues: { productId, name, amount, unit, price, discountPrice, uniplayEntitasId, uniplayDenomId },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true, id: row.id };
   }
@@ -80,7 +88,14 @@ export interface UpdatePackageResponse {
 
 export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
   { expose: true, method: "PUT", path: "/admin/packages/:packageId", auth: true },
-  async ({ packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { packageId, productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -158,7 +173,7 @@ export const updatePackage = api<UpdatePackageRequest, UpdatePackageResponse>(
         uniplayDenomId: oldPackage.uniplay_denom_id,
       } : undefined,
       newValues: { productId, name, amount, unit, price, discountPrice, isActive, uniplayEntitasId, uniplayDenomId },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true };
   }
@@ -174,7 +189,14 @@ export interface DeletePackageResponse {
 
 export const deletePackage = api<DeletePackageRequest, DeletePackageResponse>(
   { expose: true, method: "DELETE", path: "/admin/packages/:packageId", auth: true },
-  async ({ packageId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { packageId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -192,7 +214,7 @@ export const deletePackage = api<DeletePackageRequest, DeletePackageResponse>(
       entityType: "PACKAGE",
       entityId: packageId.toString(),
       oldValues: pkg ? { name: pkg.name, amount: pkg.amount, price: pkg.price } : undefined,
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true };
   }

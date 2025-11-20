@@ -4,6 +4,7 @@ import { APIError } from "encore.dev/api";
 import { createClerkClient } from "@clerk/backend";
 import { secret } from "encore.dev/config";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 const clerkSecretKey = secret("ClerkSecretKey");
 const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
@@ -19,7 +20,14 @@ export interface SetAdminResponse {
 
 export const setAdmin = api<SetAdminRequest, SetAdminResponse>(
   { expose: true, method: "POST", path: "/admin/set-admin" },
-  async ({ email }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { email },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     console.log("=== SET ADMIN START ===");
     console.log("Email:", email);
 
@@ -52,7 +60,7 @@ export const setAdmin = api<SetAdminRequest, SetAdminResponse>(
         oldValues: { isAdmin: user.publicMetadata?.isAdmin || false },
         newValues: { isAdmin: true },
         metadata: { targetUserEmail: email },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,
@@ -83,7 +91,14 @@ export interface UpdatePhoneResponse {
 
 export const updateUserPhone = api<UpdatePhoneRequest, UpdatePhoneResponse>(
   { expose: true, method: "POST", path: "/admin/update-phone" },
-  async ({ email, phoneNumber }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { email, phoneNumber },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     console.log("=== UPDATE USER PHONE START ===");
     console.log("Email:", email);
     console.log("New phone:", phoneNumber);
@@ -130,7 +145,7 @@ export const updateUserPhone = api<UpdatePhoneRequest, UpdatePhoneResponse>(
         oldValues: { phoneNumber: user.publicMetadata?.phoneNumber },
         newValues: { phoneNumber: formattedPhone },
         metadata: { targetUserEmail: email },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,

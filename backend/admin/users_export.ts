@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface ExportUsersResponse {
   csv: string;
@@ -91,7 +92,14 @@ export interface ImportUsersResponse {
 
 export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
   { expose: true, method: "POST", path: "/admin/users/import", auth: true },
-  async ({ csvData }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { csvData },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -180,7 +188,7 @@ export const importUsers = api<ImportUsersRequest, ImportUsersResponse>(
                   method: "CSV Import",
                   phoneNumber: phoneNumber,
                 },
-              }, ipAddress, userAgent);
+              }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
             }
 
             updated++;

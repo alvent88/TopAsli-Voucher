@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface AdminConfig {
   whatsapp: {
@@ -48,7 +49,14 @@ export interface GetGlobalDiscountResponse {
 
 export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
   { expose: true, method: "POST", path: "/admin/config/save", auth: true },
-  async ({ config }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { config },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -75,7 +83,7 @@ export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
         entityId: "dashboard_config",
         oldValues: oldConfigRow ? JSON.parse(oldConfigRow.value) : undefined,
         newValues: config,
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return { success: true };
     } catch (err) {
@@ -174,7 +182,14 @@ export const getSuperadminPhone = api<GetSuperadminPhoneRequest, GetSuperadminPh
 
 export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDiscountResponse>(
   { expose: true, method: "POST", path: "/admin/config/global-discount", auth: true },
-  async ({ discount }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { discount },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -199,7 +214,7 @@ export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDisco
         entityId: "global_discount",
         oldValues: oldDiscountRow ? { discount: parseFloat(oldDiscountRow.value) } : undefined,
         newValues: { discount },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return { success: true };
     } catch (err) {

@@ -44,10 +44,12 @@ export interface AuditLogEntry {
 export interface AuditLog {
   id: number;
   adminId: string;
+  adminName: string | null;
   adminEmail: string | null;
   actionType: string;
   entityType: string;
   entityId: string | null;
+  entityName: string | null;
   oldValues: Record<string, any> | null;
   newValues: Record<string, any> | null;
   metadata: Record<string, any> | null;
@@ -187,21 +189,31 @@ export async function getAuditLogs(params: {
 
   const rows = await db.rawQueryAll<any>(
     `SELECT 
-      id,
-      admin_id,
-      admin_email,
-      action_type,
-      entity_type,
-      entity_id,
-      old_values,
-      new_values,
-      metadata,
-      ip_address,
-      user_agent,
-      created_at
-    FROM audit_logs
+      al.id,
+      al.admin_id,
+      al.admin_email,
+      u.full_name as admin_name,
+      al.action_type,
+      al.entity_type,
+      al.entity_id,
+      CASE 
+        WHEN al.entity_type = 'USER' THEN (SELECT full_name FROM users WHERE clerk_user_id = al.entity_id)
+        WHEN al.entity_type = 'PRODUCT' THEN (SELECT name FROM products WHERE id::text = al.entity_id)
+        WHEN al.entity_type = 'PACKAGE' THEN (SELECT name FROM packages WHERE id::text = al.entity_id)
+        WHEN al.entity_type = 'VOUCHER' THEN al.entity_id
+        WHEN al.entity_type = 'WHATSAPP_CS' THEN (SELECT admin_name FROM whatsapp_cs_numbers WHERE id::text = al.entity_id)
+        ELSE al.entity_id
+      END as entity_name,
+      al.old_values,
+      al.new_values,
+      al.metadata,
+      al.ip_address,
+      al.user_agent,
+      al.created_at
+    FROM audit_logs al
+    LEFT JOIN users u ON al.admin_id = u.clerk_user_id
     ${whereClause}
-    ORDER BY created_at DESC
+    ORDER BY al.created_at DESC
     LIMIT $${paramCount - 1} OFFSET $${paramCount}`,
     ...queryParams
   );
@@ -209,10 +221,12 @@ export async function getAuditLogs(params: {
   const logs: AuditLog[] = rows.map((row: any) => ({
     id: row.id,
     adminId: row.admin_id,
+    adminName: row.admin_name,
     adminEmail: row.admin_email,
     actionType: row.action_type,
     entityType: row.entity_type,
     entityId: row.entity_id,
+    entityName: row.entity_name,
     oldValues: row.old_values,
     newValues: row.new_values,
     metadata: row.metadata,

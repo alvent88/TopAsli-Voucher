@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface Product {
   id: number;
@@ -30,7 +31,14 @@ export interface CreateProductResponse {
 
 export const createProduct = api<CreateProductRequest, CreateProductResponse>(
   { expose: true, method: "POST", path: "/admin/products", auth: true },
-  async ({ name, slug, category, description, iconUrl }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { name, slug, category, description, iconUrl },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -52,7 +60,7 @@ export const createProduct = api<CreateProductRequest, CreateProductResponse>(
       entityType: "PRODUCT",
       entityId: row.id.toString(),
       newValues: { name, slug, category, description, iconUrl },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true, id: row.id };
   }
@@ -74,7 +82,14 @@ export interface UpdateProductResponse {
 
 export const updateProduct = api<UpdateProductRequest, UpdateProductResponse>(
   { expose: true, method: "PUT", path: "/admin/products/:productId", auth: true },
-  async ({ productId, name, slug, category, description, iconUrl, isActive }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { productId, name, slug, category, description, iconUrl, isActive },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -137,7 +152,7 @@ export const updateProduct = api<UpdateProductRequest, UpdateProductResponse>(
         isActive: oldProduct.is_active,
       } : undefined,
       newValues: { name, slug, category, description, iconUrl, isActive },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true };
   }
@@ -153,7 +168,14 @@ export interface DeleteProductResponse {
 
 export const deleteProduct = api<DeleteProductRequest, DeleteProductResponse>(
   { expose: true, method: "DELETE", path: "/admin/products/:productId", auth: true },
-  async ({ productId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { productId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -171,7 +193,7 @@ export const deleteProduct = api<DeleteProductRequest, DeleteProductResponse>(
       entityType: "PRODUCT",
       entityId: productId.toString(),
       oldValues: product ? { name: product.name, slug: product.slug } : undefined,
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { success: true };
   }

@@ -11,10 +11,12 @@ import { AlertCircle, Filter, Search, ChevronLeft, ChevronRight, Download } from
 interface AuditLog {
   id: number;
   adminId: string;
+  adminName: string | null;
   adminEmail: string | null;
   actionType: string;
   entityType: string;
   entityId: string | null;
+  entityName: string | null;
   oldValues: Record<string, any> | null;
   newValues: Record<string, any> | null;
   metadata: Record<string, any> | null;
@@ -266,7 +268,7 @@ export default function AdminAuditLogs() {
                           {formatDate(log.createdAt)}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {log.adminEmail || log.adminId}
+                          {log.adminName || log.adminEmail || log.adminId}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -285,7 +287,7 @@ export default function AdminAuditLogs() {
                           </Badge>
                         </TableCell>
                         <TableCell className="font-mono text-xs">
-                          {log.entityId || "-"}
+                          {log.entityName || log.entityId || "-"}
                         </TableCell>
                         <TableCell className="font-mono text-xs">
                           {log.ipAddress || "-"}
@@ -354,7 +356,7 @@ export default function AdminAuditLogs() {
 
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Admin</div>
-                <div className="font-mono">{selectedLog.adminEmail || selectedLog.adminId}</div>
+                <div className="font-mono">{selectedLog.adminName || selectedLog.adminEmail || selectedLog.adminId}</div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -375,7 +377,7 @@ export default function AdminAuditLogs() {
 
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Entity ID</div>
-                <div className="font-mono text-sm">{selectedLog.entityId || "-"}</div>
+                <div className="font-mono text-sm">{selectedLog.entityName || selectedLog.entityId || "-"}</div>
               </div>
 
               {selectedLog.oldValues && (

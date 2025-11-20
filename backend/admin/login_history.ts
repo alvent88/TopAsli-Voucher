@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface LoginHistoryEntry {
   id: number;
@@ -154,7 +155,14 @@ export interface GetUsersByIPResponse {
 
 export const getUsersByIP = api(
   { method: "GET", path: "/admin/login-history/ip/:ipAddress", auth: true, expose: true },
-  async (req: GetUsersByIPRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">): Promise<GetUsersByIPResponse> => {
+  async (
+    req: GetUsersByIPRequest,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ): Promise<GetUsersByIPResponse> => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -199,7 +207,7 @@ export const getUsersByIP = api(
       actionType: "EXPORT",
       entityType: "USER",
       metadata: { action: "query_users_by_ip", ipAddress: req.ipAddress, userCount: users.length },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { users };
   }
@@ -220,7 +228,14 @@ export interface ExportLoginHistoryResponse {
 
 export const exportLoginHistory = api(
   { method: "POST", path: "/admin/login-history/export", auth: true, expose: true },
-  async (req: ExportLoginHistoryRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">): Promise<ExportLoginHistoryResponse> => {
+  async (
+    req: ExportLoginHistoryRequest,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ): Promise<ExportLoginHistoryResponse> => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -348,7 +363,7 @@ export const exportLoginHistory = api(
       actionType: "EXPORT",
       entityType: "USER",
       metadata: { action: "export_login_history", filters: req, rowCount: rows.length },
-    }, ipAddress, userAgent);
+    }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
     return { xlsx: xlsxBuffer };
   }

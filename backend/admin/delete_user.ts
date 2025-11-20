@@ -3,6 +3,7 @@ import { APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface DeleteUserRequest {
   userId: string;
@@ -14,7 +15,14 @@ export interface DeleteUserResponse {
 
 export const deleteUser = api<DeleteUserRequest, DeleteUserResponse>(
   { expose: true, method: "DELETE", path: "/admin/users/:userId", auth: true },
-  async ({ userId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { userId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData();
     if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Superadmin access required");
@@ -32,7 +40,7 @@ export const deleteUser = api<DeleteUserRequest, DeleteUserResponse>(
         entityType: "USER",
         entityId: userId,
         oldValues: user ? { fullName: user.full_name, phoneNumber: user.phone_number } : undefined,
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return { success: true };
     } catch (err) {

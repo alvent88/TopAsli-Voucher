@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface ToggleProductRequest {
   productId: number;
@@ -17,7 +18,14 @@ export interface ToggleProductResponse {
 
 export const toggleProduct = api<ToggleProductRequest, ToggleProductResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-product", auth: true },
-  async (req: ToggleProductRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    req: ToggleProductRequest,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -39,7 +47,7 @@ export const toggleProduct = api<ToggleProductRequest, ToggleProductResponse>(
         entityId: req.productId.toString(),
         newValues: { isActive: req.isActive },
         metadata: { action: "visibility" },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,
@@ -68,7 +76,14 @@ export interface TogglePackageResponse {
 
 export const togglePackage = api<TogglePackageRequest, TogglePackageResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-package", auth: true },
-  async (req: TogglePackageRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    req: TogglePackageRequest,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -90,7 +105,7 @@ export const togglePackage = api<TogglePackageRequest, TogglePackageResponse>(
         entityId: req.packageId.toString(),
         newValues: { isActive: req.isActive },
         metadata: { action: "visibility" },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,
@@ -119,7 +134,14 @@ export interface ToggleFeaturedResponse {
 
 export const toggleFeatured = api<ToggleFeaturedRequest, ToggleFeaturedResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-featured", auth: true },
-  async (req: ToggleFeaturedRequest, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    req: ToggleFeaturedRequest,
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -153,7 +175,7 @@ export const toggleFeatured = api<ToggleFeaturedRequest, ToggleFeaturedResponse>
         entityId: req.productId.toString(),
         newValues: { isFeatured: req.isFeatured },
         metadata: { action: "featured" },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,

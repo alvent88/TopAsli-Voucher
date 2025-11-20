@@ -3,6 +3,7 @@ import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import { extractAuditHeaders } from "../audit/extract_headers";
 
 export interface PromoteToAdminRequest {
   userId: string;
@@ -16,7 +17,14 @@ export interface PromoteToAdminResponse {
 
 export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/promote", auth: true },
-  async ({ userId, role }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { userId, role },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -68,7 +76,7 @@ export const promoteToAdmin = api<PromoteToAdminRequest, PromoteToAdminResponse>
         oldValues: { isAdmin: false, isSuperAdmin: false },
         newValues: { isAdmin: true, isSuperAdmin: role === "superadmin" },
         metadata: { role, targetUserPhone: user.phone_number },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,
@@ -98,7 +106,14 @@ export interface DemoteFromAdminResponse {
 
 export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminResponse>(
   { expose: true, method: "POST", path: "/admin/users/:userId/demote", auth: true },
-  async ({ userId }, ipAddress?: Header<"x-forwarded-for">, userAgent?: Header<"user-agent">) => {
+  async (
+    { userId },
+    xForwardedFor?: Header<"x-forwarded-for">,
+    xRealIp?: Header<"x-real-ip">,
+    cfConnectingIp?: Header<"cf-connecting-ip">,
+    trueClientIp?: Header<"true-client-ip">,
+    userAgent?: Header<"user-agent">
+  ) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -139,7 +154,7 @@ export const demoteFromAdmin = api<DemoteFromAdminRequest, DemoteFromAdminRespon
         oldValues: { isAdmin: true, isSuperAdmin: false },
         newValues: { isAdmin: false, isSuperAdmin: false },
         metadata: { action: "demote", targetUserPhone: user.phone_number },
-      }, ipAddress, userAgent);
+      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
 
       return {
         success: true,
