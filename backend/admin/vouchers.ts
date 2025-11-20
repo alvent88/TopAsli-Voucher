@@ -1,9 +1,9 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
-import { extractAuditHeaders } from "../audit/extract_headers";
+import type { WithAuditMetadata } from "../audit/types";
 
 export interface Voucher {
   code: string;
@@ -124,7 +124,7 @@ export const listVouchers = api<ListVouchersParams, ListVouchersResponse>(
   }
 );
 
-export interface CreateVoucherBatchRequest {
+export interface CreateVoucherBatchRequest extends WithAuditMetadata {
   amount: number;
   quantity: number;
   expiresAt?: string;
@@ -146,14 +146,7 @@ function generateVoucherCode(): string {
 
 export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBatchResponse>(
   { expose: true, method: "POST", path: "/admin/vouchers/batch", auth: true },
-  async (
-    { amount, quantity, expiresAt },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ amount, quantity, expiresAt, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -212,7 +205,7 @@ export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBa
         entityType: "VOUCHER",
         newValues: { amount, quantity, expiresAt, codes },
         metadata: { batchSize: quantity, codesGenerated: codes.length },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
 
       return { success: true, codes };
     } catch (err: any) {
@@ -228,7 +221,7 @@ export const createVoucherBatch = api<CreateVoucherBatchRequest, CreateVoucherBa
   }
 );
 
-export interface DeleteVoucherRequest {
+export interface DeleteVoucherRequest extends WithAuditMetadata {
   code: string;
 }
 
@@ -238,14 +231,7 @@ export interface DeleteVoucherResponse {
 
 export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/:code", auth: true },
-  async (
-    { code },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ code, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isSuperAdmin) {
@@ -264,7 +250,7 @@ export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
         entityType: "VOUCHER",
         entityId: code,
         oldValues: voucher ? { code: voucher.code, amount: voucher.amount } : { code },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
       
       return { success: true };
     } catch (err) {
@@ -279,16 +265,9 @@ export interface DeleteAllVouchersResponse {
   deletedCount: number;
 }
 
-export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
+export const deleteAllVouchers = api<WithAuditMetadata, DeleteAllVouchersResponse>(
   { expose: true, method: "DELETE", path: "/admin/vouchers/all/delete", auth: true },
-  async (
-    _,
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -307,7 +286,7 @@ export const deleteAllVouchers = api<void, DeleteAllVouchersResponse>(
         actionType: "DELETE",
         entityType: "VOUCHER",
         metadata: { action: "deleteAll", deletedCount: count },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
       
       return { success: true, deletedCount: count };
     } catch (err) {

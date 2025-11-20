@@ -1,11 +1,11 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
-import { extractAuditHeaders } from "../audit/extract_headers";
+import type { WithAuditMetadata } from "../audit/types";
 
-export interface ToggleServerIdRequest {
+export interface ToggleServerIdRequest extends WithAuditMetadata {
   productId: number;
   requiresServerId: boolean;
 }
@@ -18,14 +18,7 @@ export interface ToggleServerIdResponse {
 
 export const toggleServerIdRequirement = api<ToggleServerIdRequest, ToggleServerIdResponse>(
   { expose: true, method: "POST", path: "/admin/toggle-server-id", auth: true },
-  async (
-    req: ToggleServerIdRequest,
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async (req) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -47,7 +40,7 @@ export const toggleServerIdRequirement = api<ToggleServerIdRequest, ToggleServer
         entityId: req.productId.toString(),
         newValues: { requiresServerId: req.requiresServerId },
         metadata: { action: "serverIdRequirement" },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, req._auditMetadata);
 
       return {
         success: true,
