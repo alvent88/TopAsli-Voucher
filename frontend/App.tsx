@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useBackend } from "@/lib/useBackend";
 import { useIdleLogout } from "@/lib/useIdleLogout";
 import { Toaster } from "@/components/ui/toaster";
@@ -37,11 +37,22 @@ import AdminLoginHistory from "./pages/admin/AdminLoginHistory";
 import AdminValidationGames from "./pages/admin/AdminValidationGames";
 import AdminSecurityAlerts from "./pages/admin/AdminSecurityAlerts";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function AppInner() {
   useIdleLogout();
   
   return (
     <>
+      <ScrollToTop />
       <RedeemVoucherFAB />
       <Routes>
           <Route path="/" element={<CompanyProfilePage />} />
