@@ -188,8 +188,14 @@ export async function getAuditLogs(params: {
       al.entity_id,
       CASE 
         WHEN al.entity_type = 'USER' THEN (SELECT full_name FROM users WHERE clerk_user_id = al.entity_id)
+        WHEN al.entity_type = 'ADMIN' THEN (SELECT full_name FROM users WHERE clerk_user_id = al.entity_id)
         WHEN al.entity_type = 'PRODUCT' THEN (SELECT name FROM products WHERE id::text = al.entity_id)
-        WHEN al.entity_type = 'PACKAGE' THEN (SELECT name FROM packages WHERE id::text = al.entity_id)
+        WHEN al.entity_type = 'PACKAGE' THEN (
+          SELECT p.name || ' (' || pkg.name || ')' 
+          FROM packages pkg 
+          LEFT JOIN products p ON pkg.product_id = p.id 
+          WHERE pkg.id::text = al.entity_id
+        )
         WHEN al.entity_type = 'VOUCHER' THEN al.entity_id
         WHEN al.entity_type = 'WHATSAPP_CS' THEN (SELECT admin_name FROM whatsapp_cs_numbers WHERE id::text = al.entity_id)
         ELSE al.entity_id

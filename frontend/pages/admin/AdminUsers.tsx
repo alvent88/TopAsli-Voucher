@@ -396,7 +396,8 @@ export default function AdminUsers() {
 
   const handleUnbanUser = async (user: User) => {
     try {
-      await backend.admin.unbanUser({ userId: user.id });
+      const payload = await withAuditMetadata({ userId: user.id });
+      await backend.admin.unbanUser(payload);
       toast({
         title: "Berhasil",
         description: `${user.fullName || user.phoneNumber} berhasil di-unban`,

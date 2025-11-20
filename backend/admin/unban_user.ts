@@ -2,8 +2,10 @@ import { api } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
+import { logAuditAction } from "../audit/logger";
+import type { WithAuditMetadata } from "../audit/types";
 
-export interface UnbanUserRequest {
+export interface UnbanUserRequest extends WithAuditMetadata {
   userId: string;
 }
 
@@ -14,7 +16,7 @@ export interface UnbanUserResponse {
 
 export const unbanUser = api<UnbanUserRequest, UnbanUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/unban", auth: true },
-  async ({ userId }) => {
+  async ({ userId, _auditMetadata }) => {
     const auth = getAuthData();
     if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Superadmin access required");
@@ -47,6 +49,14 @@ export const unbanUser = api<UnbanUserRequest, UnbanUserResponse>(
           banned_by = NULL
       WHERE clerk_user_id = ${userId}
     `;
+
+    await logAuditAction({
+      actionType: "UNBAN",
+      entityType: "USER",
+      entityId: userId,
+      oldValues: { isBanned: true },
+      newValues: { isBanned: false },
+    }, _auditMetadata);
 
     console.log(`User ${userId} (${userCheck.full_name}) unbanned by superadmin ${auth.userID}`);
 

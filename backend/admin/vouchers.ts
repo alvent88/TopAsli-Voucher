@@ -230,7 +230,7 @@ export interface DeleteVoucherResponse {
 }
 
 export const deleteVoucher = api<DeleteVoucherRequest, DeleteVoucherResponse>(
-  { expose: true, method: "DELETE", path: "/admin/vouchers/:code", auth: true },
+  { expose: true, method: "POST", path: "/admin/vouchers/:code/delete", auth: true },
   async ({ code, _auditMetadata }) => {
     const auth = getAuthData()!;
     
@@ -266,7 +266,7 @@ export interface DeleteAllVouchersResponse {
 }
 
 export const deleteAllVouchers = api<WithAuditMetadata, DeleteAllVouchersResponse>(
-  { expose: true, method: "DELETE", path: "/admin/vouchers/all/delete", auth: true },
+  { expose: true, method: "POST", path: "/admin/vouchers/all/delete", auth: true },
   async ({ _auditMetadata }) => {
     const auth = getAuthData()!;
     

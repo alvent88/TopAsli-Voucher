@@ -14,7 +14,7 @@ export interface DeleteUserResponse {
 }
 
 export const deleteUser = api<DeleteUserRequest, DeleteUserResponse>(
-  { expose: true, method: "DELETE", path: "/admin/users/:userId", auth: true },
+  { expose: true, method: "POST", path: "/admin/users/:userId/delete", auth: true },
   async ({ userId, _auditMetadata }) => {
     const auth = getAuthData();
     if (!auth || !auth.isSuperAdmin) {
