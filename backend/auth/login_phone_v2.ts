@@ -37,6 +37,40 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
 
     const phoneWithPrefix = `62${formattedPhone}`;
 
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const recentFailedAttempts = await db.queryAll<{ count: string }>`
+      SELECT COUNT(*) as count 
+      FROM login_attempts 
+      WHERE phone_number = ${phoneWithPrefix}
+      AND success = false 
+      AND attempted_at > ${fiveMinutesAgo}
+    `;
+
+    const failedCount = parseInt(recentFailedAttempts[0]?.count || '0');
+    
+    if (failedCount >= 5) {
+      const fiveMinutesLater = new Date(Date.now() + 5 * 60 * 1000);
+      const existingUser = await db.queryRow<{ clerk_user_id: string }>`
+        SELECT clerk_user_id FROM users WHERE phone_number = ${phoneWithPrefix}
+      `;
+      
+      if (existingUser) {
+        await db.exec`
+          UPDATE users
+          SET is_banned = true,
+              ban_reason = 'Auto-ban: Brute force login attempts (5+ failed in 5 minutes)',
+              banned_at = NOW(),
+              banned_until = ${fiveMinutesLater},
+              banned_by = 'SYSTEM'
+          WHERE clerk_user_id = ${existingUser.clerk_user_id}
+        `;
+        
+        console.log("User auto-banned for 5 minutes due to brute force login:", existingUser.clerk_user_id);
+      }
+      
+      throw APIError.permissionDenied("Terlalu banyak percobaan login gagal. Akun dibanned selama 5 menit.");
+    }
+
     const user = await db.queryRow<{ 
       clerk_user_id: string;
       phone_number: string;
@@ -55,6 +89,10 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
     `;
 
     if (!user) {
+      await db.exec`
+        INSERT INTO login_attempts (phone_number, success)
+        VALUES (${phoneWithPrefix}, false)
+      `;
       throw APIError.unauthenticated("Nomor HP atau password salah");
     }
 
@@ -92,8 +130,17 @@ export const loginPhoneV2 = api<LoginPhoneV2Request, LoginPhoneV2Response>(
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordValid) {
+      await db.exec`
+        INSERT INTO login_attempts (phone_number, success)
+        VALUES (${phoneWithPrefix}, false)
+      `;
       throw APIError.unauthenticated("Nomor HP atau password salah");
     }
+
+    await db.exec`
+      INSERT INTO login_attempts (phone_number, success)
+      VALUES (${phoneWithPrefix}, true)
+    `;
 
     console.log("Login successful for user:", user.clerk_user_id);
 

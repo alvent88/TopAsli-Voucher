@@ -61,9 +61,10 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
       const userBanCheck = await db.queryRow<{
         is_banned: boolean;
         ban_reason: string | null;
+        banned_at: Date | null;
         banned_until: Date | null;
       }>`
-        SELECT is_banned, ban_reason, banned_until
+        SELECT is_banned, ban_reason, banned_at, banned_until
         FROM users
         WHERE clerk_user_id = ${auth.userID}
       `;
@@ -72,8 +73,10 @@ export const redeemVoucher = api<RedeemVoucherRequest, RedeemVoucherResponse>(
         const now = new Date();
         if (userBanCheck.banned_until && userBanCheck.banned_until > now) {
           const remainingMinutes = Math.ceil((userBanCheck.banned_until.getTime() - now.getTime()) / 60000);
+          const bannedSince = userBanCheck.banned_at ? new Date(userBanCheck.banned_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) : 'N/A';
+          const bannedUntil = new Date(userBanCheck.banned_until).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
           throw APIError.permissionDenied(
-            `Akun Anda telah dibanned. Alasan: ${userBanCheck.ban_reason || "Brute force voucher attempts"}. Silakan coba lagi dalam ${remainingMinutes} menit.`
+            `Akun Anda telah dibanned. Alasan: ${userBanCheck.ban_reason || "Brute force voucher attempts"}. Dibanned sejak: ${bannedSince}. Dibanned sampai: ${bannedUntil}. Silakan coba lagi dalam ${remainingMinutes} menit.`
           );
         } else if (userBanCheck.banned_until && userBanCheck.banned_until <= now) {
           await db.exec`
