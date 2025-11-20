@@ -74,7 +74,7 @@ export default function HowToRedeemPage() {
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="TopAsli" className="w-12 h-12 rounded-full" />
-              <span className="text-2xl font-bold text-primary">TopAsli</span>
+              <span className="text-2xl font-bold text-primary">CV Top Asli</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors">Home</Link>
