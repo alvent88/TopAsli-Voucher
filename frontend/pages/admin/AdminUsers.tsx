@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Users, Trash2, Mail, Phone, Calendar, Loader2, AlertTriangle, RefreshCw, Shield, ShieldOff, Crown, Edit, Wallet, Ban, Unlock, ArrowUpDown, ArrowUp, ArrowDown, History, Download, Upload, Search, MoreVertical, Info, Filter } from "lucide-react";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -373,7 +374,8 @@ export default function AdminUsers() {
     if (!reason) return;
 
     try {
-      await backend.admin.banUser({ userId: user.id, reason });
+      const payload = await withAuditMetadata({ userId: user.id, reason });
+      await backend.admin.banUser(payload);
       toast({
         title: "Berhasil",
         description: `${user.fullName || user.phoneNumber} berhasil dibanned`,

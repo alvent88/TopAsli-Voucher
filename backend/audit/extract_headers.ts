@@ -1,18 +1,14 @@
-import { Header } from "encore.dev/api";
-import { AuditHeaders } from "./logger";
+import type { AuditMetadata } from "./types";
 
 export function extractAuditHeaders(
-  xForwardedFor?: Header<"x-forwarded-for">,
-  xRealIp?: Header<"x-real-ip">,
-  cfConnectingIp?: Header<"cf-connecting-ip">,
-  trueClientIp?: Header<"true-client-ip">,
-  userAgent?: Header<"user-agent">
-): AuditHeaders {
+  _xForwardedFor?: any,
+  _xRealIp?: any,
+  _cfConnectingIp?: any,
+  _trueClientIp?: any,
+  _userAgent?: any
+): AuditMetadata {
   return {
-    xForwardedFor,
-    xRealIp,
-    cfConnectingIp,
-    trueClientIp,
-    userAgent,
+    ipAddress: "unknown",
+    userAgent: "unknown",
   };
 }

@@ -1,10 +1,11 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
+import type { WithAuditMetadata } from "../audit/types";
 
-export interface BanUserRequest {
+export interface BanUserRequest extends WithAuditMetadata {
   userId: string;
   reason: string;
   duration?: number;
@@ -17,22 +18,7 @@ export interface BanUserResponse {
 
 export const banUser = api<BanUserRequest, BanUserResponse>(
   { expose: true, method: "POST", path: "/admin/users/ban", auth: true },
-  async (
-    { userId, reason, duration }, 
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
-    const ipAddress = xForwardedFor || xRealIp || cfConnectingIp || "unknown";
-    
-    console.log("=== BAN USER HEADERS DEBUG ===");
-    console.log("x-forwarded-for:", xForwardedFor);
-    console.log("x-real-ip:", xRealIp);
-    console.log("cf-connecting-ip:", cfConnectingIp);
-    console.log("Final IP Address:", ipAddress);
-    console.log("User Agent:", userAgent);
-    
+  async ({ userId, reason, duration, _auditMetadata }) => {
     const auth = getAuthData();
     if (!auth || !auth.isSuperAdmin) {
       throw APIError.permissionDenied("Superadmin access required");
@@ -73,12 +59,7 @@ export const banUser = api<BanUserRequest, BanUserResponse>(
       entityType: "USER",
       entityId: userId,
       newValues: { reason, duration, bannedUntil: bannedUntil?.toISOString() },
-    }, {
-      xForwardedFor,
-      xRealIp,
-      cfConnectingIp,
-      userAgent,
-    });
+    }, _auditMetadata);
 
     console.log(`User ${userId} (${userCheck.full_name}) banned by ${auth.userID}. Reason: ${reason}`);
 
