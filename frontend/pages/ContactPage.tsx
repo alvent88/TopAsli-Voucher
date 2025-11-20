@@ -82,10 +82,15 @@ export default function ContactPage() {
               <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">
                 Cara Redeem
               </Link>
-              <Link to="/contact" className="text-white font-semibold">
+              <Link to="/contact" className="text-primary font-semibold">
                 Kontak
               </Link>
             </div>
+            <button className="md:hidden">
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
             <div className="flex items-center gap-3">
               <AuthButton />
             </div>
