@@ -1,9 +1,9 @@
-import { api, Header } from "encore.dev/api";
+import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { APIError } from "encore.dev/api";
 import db from "../db";
 import { logAuditAction } from "../audit/logger";
-import { extractAuditHeaders } from "../audit/extract_headers";
+import { WithAuditMetadata } from "../audit/types";
 
 export interface AdminConfig {
   whatsapp: {
@@ -27,7 +27,7 @@ export interface AdminConfig {
   };
 }
 
-export interface SaveConfigRequest {
+export interface SaveConfigRequest extends WithAuditMetadata {
   config: AdminConfig;
 }
 
@@ -35,7 +35,7 @@ export interface SaveConfigResponse {
   success: boolean;
 }
 
-export interface SaveGlobalDiscountRequest {
+export interface SaveGlobalDiscountRequest extends WithAuditMetadata {
   discount: number;
 }
 
@@ -49,14 +49,7 @@ export interface GetGlobalDiscountResponse {
 
 export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
   { expose: true, method: "POST", path: "/admin/config/save", auth: true },
-  async (
-    { config },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ config, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -83,7 +76,7 @@ export const saveConfig = api<SaveConfigRequest, SaveConfigResponse>(
         entityId: "dashboard_config",
         oldValues: oldConfigRow ? JSON.parse(oldConfigRow.value) : undefined,
         newValues: config,
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
 
       return { success: true };
     } catch (err) {
@@ -182,14 +175,7 @@ export const getSuperadminPhone = api<GetSuperadminPhoneRequest, GetSuperadminPh
 
 export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDiscountResponse>(
   { expose: true, method: "POST", path: "/admin/config/global-discount", auth: true },
-  async (
-    { discount },
-    xForwardedFor?: Header<"x-forwarded-for">,
-    xRealIp?: Header<"x-real-ip">,
-    cfConnectingIp?: Header<"cf-connecting-ip">,
-    trueClientIp?: Header<"true-client-ip">,
-    userAgent?: Header<"user-agent">
-  ) => {
+  async ({ discount, _auditMetadata }) => {
     const auth = getAuthData()!;
     
     if (!auth.isAdmin) {
@@ -214,7 +200,7 @@ export const saveGlobalDiscount = api<SaveGlobalDiscountRequest, SaveGlobalDisco
         entityId: "global_discount",
         oldValues: oldDiscountRow ? { discount: parseFloat(oldDiscountRow.value) } : undefined,
         newValues: { discount },
-      }, extractAuditHeaders(xForwardedFor, xRealIp, cfConnectingIp, trueClientIp, userAgent));
+      }, _auditMetadata);
 
       return { success: true };
     } catch (err) {

@@ -100,7 +100,8 @@ export default function AdminPackages() {
 
   const saveGlobalDiscount = async () => {
     try {
-      await backend.admin.saveGlobalDiscount({ discount: globalDiscount });
+      const payload = await withAuditMetadata({ discount: globalDiscount });
+      await backend.admin.saveGlobalDiscount(payload);
       toast({
         title: "Berhasil",
         description: "Diskon global berhasil disimpan",
@@ -191,7 +192,7 @@ export default function AdminPackages() {
 
     setSubmitting(true);
     try {
-      await backend.admin.createPackage({
+      const payload = await withAuditMetadata({
         productId: formData.productId,
         name: formData.name,
         amount: formData.amount,
@@ -201,6 +202,7 @@ export default function AdminPackages() {
         uniplayEntitasId: formData.uniplayEntitasId || undefined,
         uniplayDenomId: formData.uniplayDenomId || undefined,
       });
+      await backend.admin.createPackage(payload);
       
       toast({
         title: "Berhasil",
@@ -227,7 +229,7 @@ export default function AdminPackages() {
 
     setSubmitting(true);
     try {
-      await backend.admin.updatePackage({
+      const payload = await withAuditMetadata({
         packageId: selectedPackage.id,
         productId: formData.productId,
         name: formData.name,
@@ -239,6 +241,7 @@ export default function AdminPackages() {
         uniplayEntitasId: formData.uniplayEntitasId || undefined,
         uniplayDenomId: formData.uniplayDenomId || undefined,
       });
+      await backend.admin.updatePackage(payload);
       
       toast({
         title: "Berhasil",
@@ -266,7 +269,8 @@ export default function AdminPackages() {
 
     setSubmitting(true);
     try {
-      await backend.admin.deletePackage({ packageId: selectedPackage.id });
+      const payload = await withAuditMetadata({ packageId: selectedPackage.id });
+      await backend.admin.deletePackage(payload);
       
       toast({
         title: "Berhasil",
