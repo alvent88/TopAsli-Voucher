@@ -4,6 +4,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import type { Package } from "~backend/pkg/list";
 import type { Product } from "~backend/product/list";
 import { RefreshCw, Plus, Pencil, Trash2, Package2, Search } from "lucide-react";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -289,10 +290,11 @@ export default function AdminPackages() {
 
   const handleToggleActive = async (pkg: Package) => {
     try {
-      await backend.admin.togglePackage({
+      const payload = await withAuditMetadata({
         packageId: pkg.id,
         isActive: !pkg.isActive,
       });
+      await backend.admin.togglePackage(payload);
       
       toast({
         title: "Berhasil",
@@ -312,10 +314,11 @@ export default function AdminPackages() {
 
   const handleToggleSpecialItem = async (pkg: Package) => {
     try {
-      await backend.admin.toggleSpecialItem({
+      const payload = await withAuditMetadata({
         packageId: pkg.id,
         isSpecialItem: !pkg.isSpecialItem,
       });
+      await backend.admin.toggleSpecialItem(payload);
       
       toast({
         title: "Berhasil",

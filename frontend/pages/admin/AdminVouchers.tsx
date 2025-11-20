@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Ticket, Plus, Trash2, Search, Download, CheckCircle2, Clock, Loader2, RefreshCw, AlertTriangle, QrCode, Upload } from "lucide-react";
 import QRCode from "qrcode";
 import { usePermissions } from "@/lib/usePermissions";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,11 +116,12 @@ export default function AdminVouchers() {
   const handleCreateBatch = async () => {
     setCreating(true);
     try {
-      const result = await backend.admin.createVoucherBatch({
+      const payload = await withAuditMetadata({
         amount,
         quantity,
         expiresAt: expiresAt || undefined,
       });
+      const result = await backend.admin.createVoucherBatch(payload);
 
       setGeneratedCodes(result.codes);
       
@@ -145,7 +147,8 @@ export default function AdminVouchers() {
     if (!confirm(`Hapus voucher ${code}?`)) return;
 
     try {
-      await backend.admin.deleteVoucher({ code });
+      const payload = await withAuditMetadata({ code });
+      await backend.admin.deleteVoucher(payload);
       toast({
         title: "Berhasil",
         description: "Voucher berhasil dihapus",
@@ -289,7 +292,8 @@ export default function AdminVouchers() {
     }
 
     try {
-      const voucherResult = await backend.admin.deleteAllVouchers();
+      const payload = await withAuditMetadata({});
+      const voucherResult = await backend.admin.deleteAllVouchers(payload);
       
       toast({
         title: "Berhasil",

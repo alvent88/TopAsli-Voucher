@@ -3,6 +3,7 @@ import { useBackend } from "@/lib/useBackend";
 import { usePermissions } from "@/lib/usePermissions";
 import type { Product } from "~backend/product/list";
 import { RefreshCw, Plus, Pencil, Trash2, Upload, X, Search } from "lucide-react";
+import { withAuditMetadata } from "@/lib/withAuditMetadata";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -278,10 +279,11 @@ export default function AdminProducts() {
 
   const handleToggleActive = async (product: Product) => {
     try {
-      await backend.admin.toggleProduct({
+      const payload = await withAuditMetadata({
         productId: product.id,
         isActive: !product.isActive,
       });
+      await backend.admin.toggleProduct(payload);
       
       toast({
         title: "Berhasil",
@@ -301,10 +303,11 @@ export default function AdminProducts() {
 
   const handleToggleFeatured = async (product: Product) => {
     try {
-      await backend.admin.toggleFeatured({
+      const payload = await withAuditMetadata({
         productId: product.id,
         isFeatured: !product.isFeatured,
       });
+      await backend.admin.toggleFeatured(payload);
       
       toast({
         title: "Berhasil",
@@ -324,10 +327,11 @@ export default function AdminProducts() {
 
   const handleToggleServerId = async (product: Product) => {
     try {
-      await backend.admin.toggleServerIdRequirement({
+      const payload = await withAuditMetadata({
         productId: product.id,
         requiresServerId: !product.requiresServerId,
       });
+      await backend.admin.toggleServerIdRequirement(payload);
       
       toast({
         title: "Berhasil",

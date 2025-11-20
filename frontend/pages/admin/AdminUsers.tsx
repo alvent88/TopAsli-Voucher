@@ -262,7 +262,8 @@ export default function AdminUsers() {
 
     setDeleting(true);
     try {
-      await backend.admin.deleteUser({ userId: userToDelete.id });
+      const payload = await withAuditMetadata({ userId: userToDelete.id });
+      await backend.admin.deleteUser(payload);
       toast({
         title: "Berhasil",
         description: "Pengguna berhasil dihapus",
@@ -284,7 +285,8 @@ export default function AdminUsers() {
 
   const handlePromoteToAdmin = async (user: User, role: "admin" | "superadmin") => {
     try {
-      await backend.admin.promoteToAdmin({ userId: user.id, role });
+      const payload = await withAuditMetadata({ userId: user.id, role });
+      await backend.admin.promoteToAdmin(payload);
       toast({
         title: "Berhasil 🎉",
         description: `${user.fullName || user.phoneNumber} berhasil diangkat menjadi ${role === "superadmin" ? "superadmin" : "admin"}`,
@@ -302,7 +304,8 @@ export default function AdminUsers() {
 
   const handleDemoteFromAdmin = async (user: User) => {
     try {
-      await backend.admin.demoteFromAdmin({ userId: user.id });
+      const payload = await withAuditMetadata({ userId: user.id });
+      await backend.admin.demoteFromAdmin(payload);
       toast({
         title: "Berhasil",
         description: `${user.fullName || user.phoneNumber} berhasil diturunkan dari admin`,
