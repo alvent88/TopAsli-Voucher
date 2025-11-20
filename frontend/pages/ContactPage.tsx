@@ -76,8 +76,11 @@ export default function ContactPage() {
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
-                Games
+              <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors">
+                Home
+              </Link>
+              <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">
+                Cara Redeem
               </Link>
               <Link to="/contact" className="text-white font-semibold">
                 Kontak

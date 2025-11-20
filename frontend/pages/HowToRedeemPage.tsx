@@ -77,7 +77,7 @@ export default function HowToRedeemPage() {
               <span className="text-2xl font-bold text-primary">TopAsli</span>
             </Link>
             <div className="hidden md:flex items-center gap-6">
-             
+              <Link to="/voucher" className="text-gray-700 hover:text-primary transition-colors">Home</Link>
               <Link to="/how-to-redeem" className="text-gray-700 hover:text-primary transition-colors">Cara Redeem</Link>
               <Link to="/contact" className="text-gray-700 hover:text-primary transition-colors">Kontak</Link>
             </div>
